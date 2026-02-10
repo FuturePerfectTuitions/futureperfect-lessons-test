@@ -151,9 +151,12 @@
   }
 
   function yearLabel(y){
-    const m = /^Y(\d+)$/.exec(y);
-    return m ? `Year ${m[1]}` : y;
-  }
+  if(y === "Y411plus") return "Year 4 11+";
+  if(y === "Y511plus") return "Year 5 11+";
+
+  const m = /^Y(\d+)$/.exec(y);
+  return m ? `Year ${m[1]}` : y;
+}
 
   function vrLabel(key){
     if(key === "VR_HOWTO") return "How to";
