@@ -470,13 +470,7 @@ function badgeInfo(){
     btn.className = "btn primary";
     btn.type = "button";
     btn.textContent = "Watch lesson";
-    btn.disabled = !l.sp;
-
-    btn.addEventListener("click", () => openLesson(l));
-
-    card.appendChild(leftWrap);
-    card.appendChild(btn);
-    list.appendChild(card);
+    
   });
 }
 
