@@ -133,6 +133,10 @@
 <script>
   const API = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
+  const qs = new URLSearchParams(location.search);
+  const mode = (qs.get("mode") || "maths").toLowerCase(); // maths | vr
+  const baseYear = (qs.get("baseYear") || "").trim(); // optional (from subject.html)
+
   function logout(){
     sessionStorage.removeItem("fpt_u");
     sessionStorage.removeItem("fpt_p");
@@ -151,6 +155,13 @@
     return m ? `Year ${m[1]}` : y;
   }
 
+  function vrLabel(key){
+    if(key === "VR_HOWTO") return "How to";
+    if(key === "VR_Y4") return "Year 4";
+    if(key === "VR_Y5") return "Year 5";
+    return key;
+  }
+
   async function run(){
     const auth = getAuth();
     if(!auth){
@@ -160,17 +171,51 @@
 
     document.getElementById("logoutBtn").onclick = logout;
 
-    const me = await fetch(`${API}/me`, { headers:{ Authorization: auth.header } }).then(r => r.json());
-    document.getElementById("sub").textContent =
-      `Hi ${me.name}, which year's lessons would you like to study?`;
+    const meRes = await fetch(`${API}/me`, { headers:{ Authorization: auth.header } });
+    if(!meRes.ok){ logout(); return; }
+    const me = await meRes.json();
 
-    const years = await fetch(`${API}/years`, { headers:{ Authorization: auth.header } }).then(r => r.json());
-
+    const h1 = document.querySelector("h1");
+    const sub = document.getElementById("sub");
     const wrap = document.getElementById("years");
-    years.forEach(y => {
+    wrap.innerHTML = "";
+
+    // VR branch chooser
+    if(mode === "vr"){
+      h1.textContent = "Verbal Reasoning";
+
+      // If we came from subject.html we can show baseYear nicely
+      if(baseYear){
+        sub.textContent = `Hi ${me.name}, choose a Verbal Reasoning section (from ${yearLabel(baseYear)}).`;
+      }else{
+        sub.textContent = `Hi ${me.name}, choose a Verbal Reasoning section.`;
+      }
+
+      const vrKeys = ["VR_HOWTO", "VR_Y4", "VR_Y5"];
+      vrKeys.forEach(k => {
+        const a = document.createElement("a");
+        a.className = "btn";
+        a.href = `lessons.html?year=${encodeURIComponent(k)}&mode=vr&baseYear=${encodeURIComponent(baseYear || "")}`;
+        a.textContent = vrLabel(k);
+        wrap.appendChild(a);
+      });
+      return;
+    }
+
+    // Default: Maths year chooser (normal login landing)
+    h1.textContent = "Choose your year";
+    sub.textContent = `Hi ${me.name}, which year's lessons would you like to study?`;
+
+    const yearsRes = await fetch(`${API}/years`, { headers:{ Authorization: auth.header } });
+    if(!yearsRes.ok){ logout(); return; }
+    const years = await yearsRes.json();
+
+    const mathsYears = (Array.isArray(years) ? years : []).filter(y => !String(y).startsWith("VR_"));
+
+    mathsYears.forEach(y => {
       const a = document.createElement("a");
       a.className = "btn";
-      a.href = `lessons.html?year=${y}`;
+      a.href = `subject.html?year=${encodeURIComponent(y)}`;
       a.textContent = yearLabel(y);
       wrap.appendChild(a);
     });
