@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Future Perfect – Choose Year</title>
+
+  <style>
+    :root{
+      --red:#d71920;
+      --blue:#0b2a6f;
+      --border:#e5e5e5;
+      --text:#111;
+      --muted:#666;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      padding:24px;
+      font-family:"Segoe UI",Arial,sans-serif;
+      background:#fff;
+      color:var(--text);
+    }
+    .frame{
+      max-width:1000px;
+      margin:0 auto;
+      padding:10px;
+      border-radius:22px;
+      background:repeating-linear-gradient(
+        45deg,
+        var(--red) 0 14px,
+        #fff 14px 28px,
+        var(--blue) 28px 42px,
+        #fff 42px 56px
+      );
+    }
+    .panel{
+      background:#fff;
+      border-radius:16px;
+      padding:18px;
+      border:1px solid var(--border);
+    }
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:14px;
+      margin-bottom:12px;
+    }
+    .logo{
+      height:46px;
+    }
+    h1{
+      margin:0;
+      font-size:22px;
+    }
+    .muted{
+      color:var(--muted);
+      font-size:14px;
+      margin-top:4px;
+    }
+
+    .actionRow{
+      display:flex;
+      justify-content:flex-end;
+      margin:10px 0;
+    }
+
+    .btnSmall{
+      padding:10px 14px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--blue);
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:12px;
+      margin-top:18px;
+    }
+    .btn{
+      padding:14px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#fff;
+      text-align:center;
+      font-weight:700;
+      text-decoration:none;
+      color:var(--text);
+    }
+
+    .notice{
+      margin-top:18px;
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="frame">
+    <div class="panel">
+
+      <div class="top">
+        <div>
+          <h1>Choose your year</h1>
+          <div class="muted" id="sub">Loading…</div>
+        </div>
+        <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions">
+      </div>
+
+      <div class="actionRow">
+        <button id="logoutBtn" class="btnSmall">Log out</button>
+      </div>
+
+      <div id="years" class="grid"></div>
+
+      <div class="notice">
+        🔒 Videos are proprietary material belonging to Future Perfect Tuitions.
+        These must not be shared, copied, or distributed outside of Future Perfect Tuitions.
+        <br><br>
+        Access is provided only while the child is enrolled and will be withdrawn once the student is no longer on roll.
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  const API = "https://fpt-lessons-api.futureperfectlessons.workers.dev";
+
+  function logout(){
+    sessionStorage.removeItem("fpt_u");
+    sessionStorage.removeItem("fpt_p");
+    location.href = "index.html";
+  }
+
+  function getAuth(){
+    const u = sessionStorage.getItem("fpt_u");
+    const p = sessionStorage.getItem("fpt_p");
+    if(!u || !p) return null;
+    return { header: "Basic " + btoa(u + ":" + p) };
+  }
+
+  function yearLabel(y){
+    const m = /^Y(\d+)$/.exec(y);
+    return m ? `Year ${m[1]}` : y;
+  }
+
+  async function run(){
+    const auth = getAuth();
+    if(!auth){
+      location.href = "index.html";
+      return;
+    }
+
+    document.getElementById("logoutBtn").onclick = logout;
+
+    const me = await fetch(`${API}/me`, { headers:{ Authorization: auth.header } }).then(r => r.json());
+    document.getElementById("sub").textContent =
+      `Hi ${me.name}, which year's lessons would you like to study?`;
+
+    const years = await fetch(`${API}/years`, { headers:{ Authorization: auth.header } }).then(r => r.json());
+
+    const wrap = document.getElementById("years");
+    years.forEach(y => {
+      const a = document.createElement("a");
+      a.className = "btn";
+      a.href = `lessons.html?year=${y}`;
+      a.textContent = yearLabel(y);
+      wrap.appendChild(a);
+    });
+  }
+
+  run();
+</script>
+</body>
+</html>

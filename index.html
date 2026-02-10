@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Future Perfect – Student Login</title>
+
+  <style>
+    :root{
+      --red:#d71920;
+      --blue:#0b2a6f;
+      --border:#e7e7e7;
+      --text:#121212;
+      --muted:#666;
+      --bg:#ffffff;
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
+      --radius: 18px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      padding:24px;
+      font-family:"Segoe UI", Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    .frame{
+      max-width:1000px;
+      margin:0 auto;
+      padding:10px;
+      border-radius:22px;
+      background:repeating-linear-gradient(
+        45deg,
+        var(--red) 0 14px,
+        #fff 14px 28px,
+        var(--blue) 28px 42px,
+        #fff 42px 56px
+      );
+    }
+
+    .panel{
+      background:#fff;
+      border-radius:16px;
+      padding:22px;
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .logoRow{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin-bottom:14px;
+    }
+    .logo{
+      height:56px;
+      width:auto;
+      display:block;
+    }
+
+    h1{
+      margin:0;
+      text-align:center;
+      font-size:26px;
+      line-height:1.2;
+      letter-spacing:.2px;
+    }
+
+    .sub{
+      margin:8px 0 0 0;
+      text-align:center;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.4;
+    }
+
+    .card{
+      margin:18px auto 0;
+      max-width:520px;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      padding:16px;
+      background:#fff;
+    }
+
+    .grid{
+      display:grid;
+      gap:12px;
+    }
+
+    label{
+      display:block;
+      font-weight:700;
+      font-size:13px;
+      margin:0 0 6px 0;
+    }
+
+    .input{
+      width:100%;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      outline:none;
+      font-size:15px;
+      background:#fff;
+    }
+    .input:focus{
+      border-color:#cfcfcf;
+      box-shadow:0 0 0 4px rgba(11,42,111,.08);
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-top:6px;
+    }
+
+    .btn{
+      appearance:none;
+      border:1px solid var(--border);
+      background:#fff;
+      padding:12px 14px;
+      border-radius:14px;
+      font-weight:800;
+      cursor:pointer;
+      color:var(--text);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      user-select:none;
+      min-width:160px;
+    }
+    .btn.primary{
+      background:var(--blue);
+      border-color:transparent;
+      color:#fff;
+    }
+    .btn.primary:hover{ filter:brightness(.97); }
+    .btn:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+    }
+
+    .tiny{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+
+    .error{
+      margin-top:12px;
+      padding:12px;
+      border:1px solid #f1c6c6;
+      background:#fff6f6;
+      border-radius:14px;
+      color:#8a1f1f;
+      font-weight:700;
+      display:none;
+      white-space:pre-wrap;
+    }
+
+    .ok{
+      margin-top:12px;
+      padding:12px;
+      border:1px solid #cfe8d2;
+      background:#f3fff4;
+      border-radius:14px;
+      color:#155f24;
+      font-weight:700;
+      display:none;
+      white-space:pre-wrap;
+    }
+
+    .footer{
+      margin-top:14px;
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="frame">
+    <div class="panel">
+
+      <div class="logoRow">
+        <img class="logo" src="assets/fpt-logo.png" alt="Future Perfect Tuitions">
+      </div>
+
+      <h1>Student Login</h1>
+      <p class="sub">Please enter your username and password to access your lesson videos.</p>
+
+      <div class="card">
+        <form id="loginForm" class="grid" autocomplete="off">
+          <div>
+            <label for="u">Username</label>
+            <input id="u" class="input" name="u" inputmode="text" autocomplete="username" placeholder="e.g. demo" required />
+          </div>
+
+          <div>
+            <label for="p">Password</label>
+            <input id="p" class="input" name="p" type="password" autocomplete="current-password" placeholder="Your password" required />
+          </div>
+
+          <div class="row">
+           
+
+            <button id="go" class="btn primary" type="submit">Log in</button>
+          </div>
+
+          <div id="ok" class="ok"></div>
+          <div id="err" class="error"></div>
+        </form>
+      </div>
+
+      <div class="footer">
+  🔒 Videos are proprietary material belonging to Future Perfect Tuitions.
+  These must not be shared, copied, or distributed outside of Future Perfect Tuitions.
+  <br><br>
+  Access is provided only while the child is enrolled and will be withdrawn once the student is no longer on roll.
+</div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const API = "https://fpt-lessons-api.futureperfectlessons.workers.dev";
+
+  const form = document.getElementById("loginForm");
+  const uEl  = document.getElementById("u");
+  const pEl  = document.getElementById("p");
+  const goEl = document.getElementById("go");
+  const err  = document.getElementById("err");
+  const ok   = document.getElementById("ok");
+
+  function showErr(msg){
+    ok.style.display = "none";
+    ok.textContent = "";
+    err.style.display = "block";
+    err.textContent = msg;
+  }
+  function showOk(msg){
+    err.style.display = "none";
+    err.textContent = "";
+    ok.style.display = "block";
+    ok.textContent = msg;
+  }
+  function setBusy(b){
+    goEl.disabled = b;
+    uEl.disabled = b;
+    pEl.disabled = b;
+  }
+
+  // Optional convenience: remember last username only (NOT password)
+  try{
+    const lastU = localStorage.getItem("fpt_last_user") || "";
+    if(lastU) uEl.value = lastU;
+  }catch(e){}
+
+  async function login(u, p){
+    // Preferred: Basic Auth to /me
+    const auth = btoa(`${u}:${p}`);
+
+    const res = await fetch(`${API}/me`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Basic ${auth}`
+      }
+    });
+
+    // --- If your Worker DOES NOT support Basic Auth yet, use this fallback instead:
+    // const res = await fetch(`${API}/me?u=${encodeURIComponent(u)}&p=${encodeURIComponent(p)}`);
+
+    if(!res.ok){
+      const t = await res.text().catch(()=> "");
+      throw new Error(`Login failed (${res.status}). ${t}`.trim());
+    }
+    return res.json();
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const u = (uEl.value || "").trim();
+    const p = (pEl.value || "").trim();
+
+    if(!u || !p){
+      showErr("Please enter both username and password.");
+      return;
+    }
+
+    setBusy(true);
+    showOk("Checking your login…");
+
+    try{
+      const me = await login(u, p);
+
+      // Save username only (optional)
+      try{ localStorage.setItem("fpt_last_user", u); }catch(e){}
+
+      // Save credentials for THIS SESSION only (so chooser/lessons can call API without URL password)
+      sessionStorage.setItem("fpt_u", u);
+      sessionStorage.setItem("fpt_p", p);
+
+      // Go to chooser with just ?u= (no password in URL)
+      const url = new URL("chooser.html", location.href);
+      url.searchParams.set("u", u);
+
+      showOk(`Welcome${me && me.name ? ", " + me.name : ""}. Redirecting…`);
+      location.href = url.toString();
+
+    }catch(ex){
+      showErr(ex && ex.message ? ex.message : "Login failed.");
+      setBusy(false);
+      return;
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
