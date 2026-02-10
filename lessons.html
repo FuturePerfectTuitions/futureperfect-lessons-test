@@ -159,10 +159,43 @@
       background:#fff;
     }
 
+    .cardLeft{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
+    }
+
     .lessonTitle{
       font-size:18px;
       font-weight:800;
       line-height:1.25;
+    }
+
+    /* --- BADGE --- */
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      height:22px;
+      padding:0 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      border:1px solid var(--border);
+      color:var(--text);
+      background:#fff;
+      white-space:nowrap;
+      width:fit-content;
+    }
+
+    .badge.vr{
+      border-color: rgba(215,25,32,.35);
+      background: rgba(215,25,32,.06);
+    }
+
+    .badge.maths{
+      border-color: rgba(11,42,111,.35);
+      background: rgba(11,42,111,.06);
     }
 
     /* --- PLAYER --- */
@@ -226,38 +259,6 @@
       text-align:center;
       line-height:1.4;
     }
-
-    /* --- BADGE --- */
-.badge{
-  display:inline-flex;
-  align-items:center;
-  height:22px;
-  padding:0 10px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:800;
-  border:1px solid var(--border);
-  color:var(--text);
-  background:#fff;
-  white-space:nowrap;
-}
-
-.badge.vr{
-  border-color: rgba(215,25,32,.35);
-  background: rgba(215,25,32,.06);
-}
-
-.badge.maths{
-  border-color: rgba(11,42,111,.35);
-  background: rgba(11,42,111,.06);
-}
-
-    .cardLeft{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  min-width:0;
-}
   </style>
 </head>
 
@@ -316,15 +317,11 @@
 
 <script>
 (() => {
-  // TEST Worker API (your frosty-rain worker)
+  // TEST Worker API
   const API = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
   const qs = new URLSearchParams(location.search);
-
-  // IMPORTANT: we now support both Maths + VR branches
-  // - mode=maths (default)  year=Y4/Y5/Y6/Y411plus/Y511plus
-  // - mode=vr               year=VR_HOWTO / VR_Y4 / VR_Y5   (these are "lesson buckets" in KV)
-  const mode = (qs.get("mode") || "maths").trim().toLowerCase();
+  const mode = (qs.get("mode") || "maths").trim().toLowerCase(); // maths | vr
   const year = (qs.get("year") || "").trim();
   const baseYear = (qs.get("baseYear") || "").trim(); // used only to build the correct "Back" link for VR
 
@@ -343,46 +340,44 @@
   const closePlayerBtn = document.getElementById("closePlayerBtn");
 
   let lessons = [];
-function isVRMode(){
-  if(mode === "vr") return true;
-  if(String(year).startsWith("VR_")) return true;
-  return false;
-}
 
-function badgeInfo(){
-  return isVRMode()
-    ? { text: "VR", cls: "vr" }
-    : { text: "Maths", cls: "maths" };
-}
+  function isVRMode(){
+    if(mode === "vr") return true;
+    if(String(year).startsWith("VR_")) return true;
+    return false;
+  }
+
+  function badgeInfo(){
+    return isVRMode()
+      ? { text: "VR", cls: "vr" }
+      : { text: "Maths", cls: "maths" };
+  }
+
   function showError(msg){
     err.style.display = "block";
     err.textContent = msg;
   }
+
   function clearError(){
     err.style.display = "none";
     err.textContent = "";
   }
 
- function yearLabelToFull(y){
-  if(y === "Y411plus") return "Year 4 11+";
-  if(y === "Y511plus") return "Year 5 11+";
-  if(y === "VR_HOWTO") return "Verbal Reasoning – How to";
-  if(y === "VR_Y4") return "Verbal Reasoning – Year 4";
-  if(y === "VR_Y5") return "Verbal Reasoning – Year 5";
+  function yearLabelToFull(y){
+    if(y === "Y411plus") return "Year 4 11+";
+    if(y === "Y511plus") return "Year 5 11+";
+    if(y === "VR_HOWTO") return "Verbal Reasoning – How to";
+    if(y === "VR_Y4") return "Verbal Reasoning – Year 4";
+    if(y === "VR_Y5") return "Verbal Reasoning – Year 5";
 
-  const m = /^Y(\d+)$/.exec(y);
-  return m ? `Year ${m[1]}` : y;
-}
+    const m = /^Y(\d+)$/.exec(y);
+    return m ? `Year ${m[1]}` : y;
+  }
 
   function bucketLabel(){
-    // Nice heading labels depending on mode/year
-    if (mode === "vr"){
-      if (year === "VR_HOWTO") return "Verbal Reasoning – How to";
-      if (year === "VR_Y4") return "Verbal Reasoning – Year 4";
-      if (year === "VR_Y5") return "Verbal Reasoning – Year 5";
-      return "Verbal Reasoning";
+    if (isVRMode()){
+      return `${yearLabelToFull(year)}`;
     }
-    // maths
     return `Lessons – ${yearLabelToFull(year)}`;
   }
 
@@ -417,62 +412,67 @@ function badgeInfo(){
   }
 
   function setBackLink(){
-    // Maths path:
-    //   login -> chooser.html -> subject.html?year=Y4 -> lessons.html?year=Y4&mode=maths
-    // so back should go to subject.html?year=Y4
-    if (mode !== "vr"){
-      backBtn.textContent = "← Back";
-      backBtn.href = `subject.html?year=${encodeURIComponent(year)}`;
+    // For Maths pages, go back to year/subject flow:
+    // - If user came from Year chooser directly (Y4/Y5/Y6), subject.html may not exist for that year.
+    // We keep it simple:
+    //   - Maths: back to chooser.html (change year)
+    //   - VR: back to VR chooser (chooser.html?mode=vr&baseYear=...)
+    if (!isVRMode()){
+      backBtn.textContent = "← Change year";
+      backBtn.href = "chooser.html";
       return;
     }
 
-    // VR path:
-    //   login -> chooser.html -> subject.html?year=Y4 -> (VR) chooser.html?mode=vr&baseYear=Y4 -> lessons.html?year=VR_HOWTO&mode=vr&baseYear=Y4
-    // so back should go to chooser.html?mode=vr&baseYear=...
-    backBtn.textContent = "← Back";
+    backBtn.textContent = "← Back to VR menu";
     backBtn.href = `chooser.html?mode=vr&baseYear=${encodeURIComponent(baseYear || "")}`;
   }
 
- function render(){
-  const q = (search.value || "").trim().toLowerCase();
-  const filtered = lessons.filter(l => (l.title || "").toLowerCase().includes(q));
+  function render(){
+    const q = (search.value || "").trim().toLowerCase();
+    const filtered = lessons.filter(l => (l.title || "").toLowerCase().includes(q));
 
-  list.innerHTML = "";
+    list.innerHTML = "";
 
-  if (!filtered.length){
-    const empty = document.createElement("div");
-    empty.className = "card";
-    empty.innerHTML = `<div class="lessonTitle">No matching lessons</div>`;
-    list.appendChild(empty);
-    return;
+    if (!filtered.length){
+      const empty = document.createElement("div");
+      empty.className = "card";
+      empty.innerHTML = `<div class="lessonTitle">No matching lessons</div>`;
+      list.appendChild(empty);
+      return;
+    }
+
+    filtered.forEach(l => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const leftWrap = document.createElement("div");
+      leftWrap.className = "cardLeft";
+
+      const leftTitle = document.createElement("div");
+      leftTitle.className = "lessonTitle";
+      leftTitle.textContent = l.title || "Lesson";
+
+      const b = badgeInfo();
+      const badge = document.createElement("span");
+      badge.className = `badge ${b.cls}`;
+      badge.textContent = b.text;
+
+      leftWrap.appendChild(leftTitle);
+      leftWrap.appendChild(badge);
+
+      const btn = document.createElement("button");
+      btn.className = "btn primary";
+      btn.type = "button";
+      btn.textContent = "Watch lesson";
+      btn.disabled = !l.sp;
+
+      btn.addEventListener("click", () => openLesson(l));
+
+      card.appendChild(leftWrap);
+      card.appendChild(btn);
+      list.appendChild(card);
+    });
   }
-
-  filtered.forEach(l => {
-    const card = document.createElement("div");
-    card.className = "card";
-
-    const leftWrap = document.createElement("div");
-    leftWrap.className = "cardLeft";
-
-    const leftTitle = document.createElement("div");
-    leftTitle.className = "lessonTitle";
-    leftTitle.textContent = l.title || "Lesson";
-
-    const b = badgeInfo();
-    const badge = document.createElement("span");
-    badge.className = `badge ${b.cls}`;
-    badge.textContent = b.text;
-
-    leftWrap.appendChild(leftTitle);
-    leftWrap.appendChild(badge);
-
-    const btn = document.createElement("button");
-    btn.className = "btn primary";
-    btn.type = "button";
-    btn.textContent = "Watch lesson";
-    
-  });
-}
 
   async function load(){
     clearError();
