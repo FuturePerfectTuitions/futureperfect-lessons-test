@@ -243,7 +243,7 @@
       </div>
 
       <div class="actionRow">
-        <a id="backBtn" class="btn" href="chooser.html">← Change year</a>
+        <a id="backBtn" class="btn" href="chooser.html">← Back</a>
         <button id="logoutBtn" class="btn primary" type="button">Log out</button>
       </div>
 
@@ -284,10 +284,17 @@
 
 <script>
 (() => {
+  // TEST Worker API (your frosty-rain worker)
   const API = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
   const qs = new URLSearchParams(location.search);
+
+  // IMPORTANT: we now support both Maths + VR branches
+  // - mode=maths (default)  year=Y4/Y5/Y6/Y411plus/Y511plus
+  // - mode=vr               year=VR_HOWTO / VR_Y4 / VR_Y5   (these are "lesson buckets" in KV)
+  const mode = (qs.get("mode") || "maths").trim().toLowerCase();
   const year = (qs.get("year") || "").trim();
+  const baseYear = (qs.get("baseYear") || "").trim(); // used only to build the correct "Back" link for VR
 
   const heading = document.getElementById("heading");
   const sub = document.getElementById("sub");
@@ -319,6 +326,18 @@
     return m ? `Year ${m[1]}` : y;
   }
 
+  function bucketLabel(){
+    // Nice heading labels depending on mode/year
+    if (mode === "vr"){
+      if (year === "VR_HOWTO") return "Verbal Reasoning – How to";
+      if (year === "VR_Y4") return "Verbal Reasoning – Year 4";
+      if (year === "VR_Y5") return "Verbal Reasoning – Year 5";
+      return "Verbal Reasoning";
+    }
+    // maths
+    return `Lessons – ${yearLabelToFull(year)}`;
+  }
+
   function screenpalUrl(spId){
     const id = encodeURIComponent(spId);
     return `https://go.screenpal.com/player/${id}?ff=1&ahc=1&dcc=1&bg=transparent`;
@@ -347,6 +366,23 @@
     sessionStorage.removeItem("fpt_u");
     sessionStorage.removeItem("fpt_p");
     location.href = "index.html";
+  }
+
+  function setBackLink(){
+    // Maths path:
+    //   login -> chooser.html -> subject.html?year=Y4 -> lessons.html?year=Y4&mode=maths
+    // so back should go to subject.html?year=Y4
+    if (mode !== "vr"){
+      backBtn.textContent = "← Back";
+      backBtn.href = `subject.html?year=${encodeURIComponent(year)}`;
+      return;
+    }
+
+    // VR path:
+    //   login -> chooser.html -> subject.html?year=Y4 -> (VR) chooser.html?mode=vr&baseYear=Y4 -> lessons.html?year=VR_HOWTO&mode=vr&baseYear=Y4
+    // so back should go to chooser.html?mode=vr&baseYear=...
+    backBtn.textContent = "← Back";
+    backBtn.href = `chooser.html?mode=vr&baseYear=${encodeURIComponent(baseYear || "")}`;
   }
 
   function render(){
@@ -398,12 +434,12 @@
     if (!year){
       heading.textContent = "Lessons";
       sub.textContent = "Missing link details.";
-      showError("Use a link like: lessons.html?year=Y6");
+      showError("Use a link like: lessons.html?year=Y6&mode=maths");
       return;
     }
 
-    heading.textContent = `Lessons – ${yearLabelToFull(year)}`;
-    backBtn.href = "chooser.html";
+    heading.textContent = bucketLabel();
+    setBackLink();
     sub.textContent = `Loading lessons for ${auth.u}…`;
 
     const url = new URL(API + "/lessons");
