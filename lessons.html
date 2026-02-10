@@ -321,10 +321,16 @@
     err.textContent = "";
   }
 
-  function yearLabelToFull(y){
-    const m = /^Y(\d+)$/.exec(y);
-    return m ? `Year ${m[1]}` : y;
-  }
+ function yearLabelToFull(y){
+  if(y === "Y411plus") return "Year 4 11+";
+  if(y === "Y511plus") return "Year 5 11+";
+  if(y === "VR_HOWTO") return "Verbal Reasoning – How to";
+  if(y === "VR_Y4") return "Verbal Reasoning – Year 4";
+  if(y === "VR_Y5") return "Verbal Reasoning – Year 5";
+
+  const m = /^Y(\d+)$/.exec(y);
+  return m ? `Year ${m[1]}` : y;
+}
 
   function bucketLabel(){
     // Nice heading labels depending on mode/year
