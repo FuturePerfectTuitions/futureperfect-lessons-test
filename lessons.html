@@ -226,6 +226,38 @@
       text-align:center;
       line-height:1.4;
     }
+
+    /* --- BADGE --- */
+.badge{
+  display:inline-flex;
+  align-items:center;
+  height:22px;
+  padding:0 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  border:1px solid var(--border);
+  color:var(--text);
+  background:#fff;
+  white-space:nowrap;
+}
+
+.badge.vr{
+  border-color: rgba(215,25,32,.35);
+  background: rgba(215,25,32,.06);
+}
+
+.badge.maths{
+  border-color: rgba(11,42,111,.35);
+  background: rgba(11,42,111,.06);
+}
+
+    .cardLeft{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width:0;
+}
   </style>
 </head>
 
@@ -311,7 +343,19 @@
   const closePlayerBtn = document.getElementById("closePlayerBtn");
 
   let lessons = [];
+function isVRMode(){
+  // mode can be passed explicitly, but we also infer from year keys like VR_*
+  const mode = (qs.get("mode") || "").toLowerCase();
+  if(mode === "vr") return true;
+  if(String(year).startsWith("VR_")) return true;
+  return false;
+}
 
+function badgeInfo(){
+  return isVRMode()
+    ? { text: "VR", cls: "vr" }
+    : { text: "Maths", cls: "maths" };
+}
   function showError(msg){
     err.style.display = "block";
     err.textContent = msg;
@@ -409,14 +453,32 @@
       const card = document.createElement("div");
       card.className = "card";
 
-      const left = document.createElement("div");
-      left.className = "lessonTitle";
-      left.textContent = l.title || "Lesson";
+const leftWrap = document.createElement("div");
+leftWrap.className = "cardLeft";
 
-      const btn = document.createElement("button");
-      btn.className = "btn primary";
-      btn.type = "button";
-      btn.textContent = "Open lesson";
+const leftTitle = document.createElement("div");
+leftTitle.className = "lessonTitle";
+leftTitle.textContent = l.title || "Lesson";
+
+const b = badgeInfo();
+const badge = document.createElement("span");
+badge.className = `badge ${b.cls}`;
+badge.textContent = b.text;
+
+leftWrap.appendChild(leftTitle);
+leftWrap.appendChild(badge);
+
+const btn = document.createElement("button");
+btn.className = "btn primary";
+btn.type = "button";
+btn.textContent = "Watch lesson";
+btn.disabled = !l.sp;
+
+btn.addEventListener("click", () => openLesson(l));
+
+card.appendChild(leftWrap);
+card.appendChild(btn);
+list.appendChild(card);
       btn.disabled = !l.sp;
 
       btn.addEventListener("click", () => openLesson(l));
