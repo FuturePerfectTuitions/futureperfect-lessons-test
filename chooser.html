@@ -108,7 +108,7 @@
 
       <div class="top">
         <div>
-          <h1>Choose your year</h1>
+          <h1 id="h1">Choose your year</h1>
           <div class="muted" id="sub">Loading…</div>
         </div>
         <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions">
@@ -162,6 +162,10 @@
     return key;
   }
 
+  function isElevenPlusYear(y){
+    return y === "Y411plus" || y === "Y511plus";
+  }
+
   async function run(){
     const auth = getAuth();
     if(!auth){
@@ -175,16 +179,15 @@
     if(!meRes.ok){ logout(); return; }
     const me = await meRes.json();
 
-    const h1 = document.querySelector("h1");
+    const h1 = document.getElementById("h1");
     const sub = document.getElementById("sub");
     const wrap = document.getElementById("years");
     wrap.innerHTML = "";
 
-    // VR branch chooser
+    // -------- VR BRANCH CHOOSER (only reached from subject.html) --------
     if(mode === "vr"){
       h1.textContent = "Verbal Reasoning";
 
-      // If we came from subject.html we can show baseYear nicely
       if(baseYear){
         sub.textContent = `Hi ${me.name}, choose a Verbal Reasoning section (from ${yearLabel(baseYear)}).`;
       }else{
@@ -202,7 +205,7 @@
       return;
     }
 
-    // Default: Maths year chooser (normal login landing)
+    // -------- NORMAL YEAR CHOOSER --------
     h1.textContent = "Choose your year";
     sub.textContent = `Hi ${me.name}, which year's lessons would you like to study?`;
 
@@ -215,8 +218,17 @@
     mathsYears.forEach(y => {
       const a = document.createElement("a");
       a.className = "btn";
-      a.href = `subject.html?year=${encodeURIComponent(y)}`;
-      a.textContent = yearLabel(y);
+
+      // KEY CHANGE:
+      // - Only 11+ years go to subject.html (Maths + VR)
+      // - Normal years go straight to Maths lessons list
+      if(isElevenPlusYear(String(y))){
+        a.href = `subject.html?year=${encodeURIComponent(y)}`;
+      }else{
+        a.href = `lessons.html?year=${encodeURIComponent(y)}&mode=maths`;
+      }
+
+      a.textContent = yearLabel(String(y));
       wrap.appendChild(a);
     });
   }
