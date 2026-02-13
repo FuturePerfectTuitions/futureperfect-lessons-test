@@ -1,72 +1,145 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Select Level</title>
+  <title>Select Subject</title>
 
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      margin: 0;
-      padding: 40px;
-      background: #f7f7f7;
+    :root{
+      --red:#d71920;
+      --blue:#0b2a6f;
+      --bg:#f7f7f7;
+      --card:#ffffff;
+      --text:#111;
+      --muted:#666;
+      --shadow:0 14px 40px rgba(0,0,0,.10);
     }
 
-    .card {
-      max-width: 520px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:#fff;
+      color:var(--text);
     }
 
-    h1 {
-      margin-top: 0;
-      text-align: center;
+    /* Airmail border */
+    .airmail-wrap{
+      min-height:100vh;
+      padding:24px;
+      background:
+        repeating-linear-gradient(
+          45deg,
+          var(--red) 0 14px,
+          #ffffff 14px 28px,
+          var(--blue) 28px 42px,
+          #ffffff 42px 56px
+        );
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
 
-    .year {
-      display: block;
-      padding: 14px;
-      margin: 10px 0;
-      border-radius: 10px;
-      background: #0b2a6f;
-      color: white;
-      text-align: center;
-      text-decoration: none;
-      font-size: 16px;
+    .airmail-inner{
+      width:min(720px, 100%);
+      background:var(--bg);
+      border-radius:26px;
+      padding:18px;
     }
 
-    .year:hover {
-      background: #081f54;
+    .card{
+      background:var(--card);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:28px;
     }
 
-    .error {
-      margin-top: 20px;
-      padding: 14px;
-      background: #ffe3e3;
-      color: #7a0000;
-      border-radius: 10px;
-      text-align: center;
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:20px;
+    }
+
+    h1{
+      margin:0;
+      font-size:30px;
+      letter-spacing:-0.02em;
+    }
+
+    .btn{
+      padding:10px 14px;
+      border-radius:10px;
+      background:#ddd;
+      color:#222;
+      text-decoration:none;
+      font-size:14px;
+      cursor:pointer;
+      border:none;
+    }
+
+    .btn.primary{
+      background:var(--blue);
+      color:#fff;
+    }
+
+    .btn.primary:hover{
+      background:#081f54;
+    }
+
+    .subject{
+      display:block;
+      padding:18px;
+      margin:14px 0;
+      border-radius:14px;
+      background:var(--blue);
+      color:white;
+      text-align:center;
+      text-decoration:none;
+      font-size:20px;
+      font-weight:600;
+    }
+
+    .subject:hover{
+      background:#081f54;
+    }
+
+    .error{
+      margin-top:14px;
+      padding:12px;
+      border-radius:10px;
+      background:#ffe3e3;
+      color:#7a0000;
     }
   </style>
 </head>
 
 <body>
-  <div class="card">
-    <h1>Select Level</h1>
-    <div id="years"></div>
-    <div id="error"></div>
+  <div class="airmail-wrap">
+    <div class="airmail-inner">
+      <div class="card">
+
+        <div class="top">
+          <a id="backBtn" class="btn">← Back</a>
+          <button class="btn primary" onclick="logout()">Log out</button>
+        </div>
+
+        <h1 id="title">Select Subject</h1>
+
+        <div id="subjects"></div>
+        <div id="error"></div>
+
+      </div>
+    </div>
   </div>
 
   <script>
     const WORKER_BASE =
       "https://frosty-rain-828e.futureperfectlessons.workers.dev";
-
-    const params = new URLSearchParams(location.search);
-    const subject = params.get("subject") || "maths";
 
     const username = sessionStorage.getItem("fpt_user");
     const password = sessionStorage.getItem("fpt_pass");
@@ -79,42 +152,33 @@
       return "Basic " + btoa(username + ":" + password);
     }
 
-    function bucketLabel(code) {
-      if (!code) return code;
-
-      if (/^Y(\d)M$/.test(code)) {
-        const y = code.match(/^Y(\d)M$/)[1];
-        return "Year " + y + " Maths";
-      }
-
-      if (/^Y(\d)M11plus$/.test(code)) {
-        const y = code.match(/^Y(\d)M11plus$/)[1];
-        return "Year " + y + " 11+ Maths";
-      }
-
-      if (/^Y(\d)VR$/.test(code)) {
-        const y = code.match(/^Y(\d)VR$/)[1];
-        return "Year " + y + " Verbal Reasoning";
-      }
-
-      if (/^Y(\d)MAssT(\d)$/.test(code)) {
-        const m = code.match(/^Y(\d)MAssT(\d)$/);
-        return "Year " + m[1] + " Maths Assessment " + m[2];
-      }
-
-      if (code === "VR_HOWTO") {
-        return "How to do VR";
-      }
-
-      return code;
+    function logout() {
+      sessionStorage.clear();
+      location.href = "index.html";
     }
 
-    async function loadYears() {
+    const params = new URLSearchParams(location.search);
+    const year = params.get("year") || "";
+
+    document.getElementById("title").textContent =
+      "Select Subject – Year " + year.replace("Y","");
+
+    document.getElementById("backBtn").href =
+      "chooser.html";
+
+    function subjectLabel(s) {
+      if (s === "maths") return "Maths";
+      if (s === "vr") return "Verbal Reasoning";
+      if (s === "assessments") return "Assessments";
+      return s;
+    }
+
+    async function loadSubjects() {
       const errorEl = document.getElementById("error");
 
       try {
         const res = await fetch(
-          WORKER_BASE + "/years?subject=" + subject,
+          WORKER_BASE + "/subjects?year=" + encodeURIComponent(year),
           {
             headers: {
               Authorization: authHeader()
@@ -126,22 +190,23 @@
           throw new Error("Not authorised or failed to load.");
         }
 
-        const buckets = await res.json();
-        const container = document.getElementById("years");
+        const subjects = await res.json();
+        const container = document.getElementById("subjects");
 
-        if (!buckets.length) {
-          container.innerHTML = "<p>No levels available.</p>";
+        if (!subjects.length) {
+          container.innerHTML = "<p>No subjects available.</p>";
           return;
         }
 
-        buckets.forEach(code => {
-          const label = bucketLabel(code);
-
+        subjects.forEach(sub => {
           const a = document.createElement("a");
-          a.className = "year";
-          a.href = "lessons.html?subject=" + subject + "&bucket=" + code;
-          a.textContent = label;
-
+          a.className = "subject";
+          a.href =
+            "lessons.html?year=" +
+            encodeURIComponent(year) +
+            "&subject=" +
+            encodeURIComponent(sub);
+          a.textContent = subjectLabel(sub);
           container.appendChild(a);
         });
 
@@ -151,7 +216,7 @@
       }
     }
 
-    loadYears();
+    loadSubjects();
   </script>
 </body>
 </html>
