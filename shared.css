@@ -1,0 +1,177 @@
+/* =========================
+   Future Perfect Lessons
+   shared.css
+   Airmail border + core UI
+   ========================= */
+
+:root{
+  --red:#C8102E;
+  --blue:#012169;
+
+  --bg:#f6f7f9;
+  --card:#ffffff;
+  --text:#111;
+  --muted:#666;
+
+  --shadow:0 14px 40px rgba(0,0,0,.10);
+
+  --radius-outer:26px;
+  --radius-inner:22px;
+
+  --btn-radius:12px;
+}
+
+/* Reset (light) */
+*{ box-sizing:border-box; }
+html, body{ height:100%; }
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background:#fff;
+  color:var(--text);
+}
+
+/* =========================
+   Airmail frame (thin stripes)
+   ========================= */
+.airmail-wrap{
+  min-height:100vh;
+  padding:16px;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      var(--red) 0 8px,
+      #ffffff 8px 16px,
+      var(--blue) 16px 24px,
+      #ffffff 24px 32px
+    );
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.airmail-inner{
+  width:min(1000px, 100%);
+  background:var(--bg);
+  border-radius:var(--radius-outer);
+  padding:22px;
+}
+
+/* Main card */
+.card{
+  background:var(--card);
+  border-radius:var(--radius-inner);
+  box-shadow:var(--shadow);
+  padding:28px;
+}
+
+/* Top row */
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:18px;
+}
+
+/* Titles */
+h1{
+  margin:0;
+  font-size:32px;
+  letter-spacing:-0.02em;
+}
+.subhead{
+  margin:10px 0 0;
+  color:var(--muted);
+}
+
+/* Buttons / links */
+.btn{
+  display:inline-block;
+  padding:10px 14px;
+  border-radius:10px;
+  background:#e6e6e6;
+  color:#222;
+  text-decoration:none;
+  font-size:14px;
+  border:0;
+  cursor:pointer;
+}
+
+.btn.primary{
+  background:var(--blue);
+  color:#fff;
+}
+.btn.primary:hover{ filter:brightness(0.95); }
+
+/* Big choice buttons (Year/Subject) */
+.choice{
+  display:block;
+  padding:16px;
+  margin:12px 0;
+  border-radius:var(--btn-radius);
+  background:var(--blue);
+  color:#fff;
+  text-align:center;
+  text-decoration:none;
+  font-size:18px;
+  font-weight:700;
+}
+.choice:hover{ filter:brightness(0.95); }
+
+/* Inputs */
+.input{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:1px solid #d8d8d8;
+  font-size:15px;
+  outline:none;
+}
+.input:focus{
+  border-color:rgba(1,33,105,.35);
+  box-shadow:0 0 0 4px rgba(1,33,105,.10);
+}
+
+/* Error box */
+.error{
+  margin-top:14px;
+  padding:12px;
+  border-radius:12px;
+  background:#ffe3e3;
+  color:#7a0000;
+}
+
+/* Search */
+.search{
+  margin:18px 0;
+}
+.search input{
+  width:100%;
+  padding:14px;
+  border:1px solid #ccc;
+  border-radius:12px;
+  font-size:16px;
+}
+
+/* Lists */
+.item{
+  padding:14px 0;
+  border-bottom:1px solid #eee;
+}
+.item a{
+  color:var(--blue);
+  text-decoration:none;
+  font-weight:650;
+}
+.item a:hover{ text-decoration:underline; }
+
+/* Footer note */
+.note{
+  margin-top:18px;
+  color:var(--muted);
+  font-size:14px;
+  text-align:center;
+  line-height:1.4;
+}
