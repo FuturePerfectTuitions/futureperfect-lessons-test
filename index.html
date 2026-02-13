@@ -5,122 +5,45 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Future Perfect – Student Login</title>
 
-  <style>
-    :root{
-      --red:#d71920;
-      --blue:#0b2a6f;
-      --bg:#f7f7f7;
-      --card:#ffffff;
-      --text:#111;
-      --muted:#666;
-      --shadow:0 14px 40px rgba(0,0,0,.10);
-    }
-
-    *{ box-sizing:border-box; }
-
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background:#fff;
-      color:var(--text);
-    }
-
-    /* Airmail border */
-    .airmail-wrap{
-      min-height:100vh;
-      padding:24px;
-      background:
-        repeating-linear-gradient(
-          45deg,
-          var(--red) 0 14px,
-          #ffffff 14px 28px,
-          var(--blue) 28px 42px,
-          #ffffff 42px 56px
-        );
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    .airmail-inner{
-      width:min(480px, 100%);
-      background:var(--bg);
-      border-radius:26px;
-      padding:18px;
-    }
-
-    .card{
-      background:var(--card);
-      border-radius:22px;
-      box-shadow:var(--shadow);
-      padding:34px 28px;
-      text-align:center;
-    }
-
-    .logo{
-      max-width:220px;
-      margin:0 auto 18px;
-    }
-
-    h1{
-      margin:0 0 20px;
-      font-size:28px;
-      letter-spacing:-0.02em;
-    }
-
-    input{
-      width:100%;
-      padding:14px;
-      margin:10px 0;
-      border-radius:10px;
-      border:1px solid #ddd;
-      font-size:15px;
-    }
-
-    button{
-      width:100%;
-      margin-top:10px;
-      padding:14px;
-      border:none;
-      border-radius:12px;
-      background:var(--blue);
-      color:white;
-      font-size:16px;
-      font-weight:600;
-      cursor:pointer;
-    }
-
-    button:hover{
-      opacity:.92;
-    }
-
-    .error{
-      margin-top:14px;
-      padding:12px;
-      background:#ffe3e3;
-      color:#7a0000;
-      border-radius:10px;
-      display:none;
-      font-size:14px;
-    }
-  </style>
+  <link rel="stylesheet" href="shared.css" />
 </head>
 
 <body>
   <div class="airmail-wrap">
     <div class="airmail-inner">
-      <div class="card">
+      <div class="card" style="max-width:520px;margin:auto;text-align:center;">
 
-        <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect" />
+        <img src="assets/fpt-logo.png" alt="Future Perfect" style="max-width:220px;margin:0 auto 18px;" />
 
         <h1>Student Login</h1>
+        <p class="subhead">
+          Please enter your username and password to access your lesson videos.
+        </p>
 
-        <input id="user" placeholder="Username" />
-        <input id="pass" type="password" placeholder="Password" />
+        <div style="margin-top:20px;">
+          <label style="display:block;text-align:left;margin-bottom:6px;font-weight:600;">Username</label>
+          <input id="user" class="input" placeholder="Username" />
+        </div>
 
-        <button onclick="login()">Log in</button>
+        <div style="margin-top:14px;">
+          <label style="display:block;text-align:left;margin-bottom:6px;font-weight:600;">Password</label>
+          <input id="pass" type="password" class="input" placeholder="Password" />
+        </div>
 
-        <div id="error" class="error">Invalid login</div>
+        <button class="btn primary" style="width:220px;margin-top:18px;font-size:16px;" onclick="login()">
+          Log in
+        </button>
+
+        <div id="error" class="error" style="display:none;">
+          Invalid login
+        </div>
+
+        <div class="note">
+          🔒 Videos are proprietary material belonging to Future Perfect Tuitions.
+          These must not be shared, copied, or distributed outside of Future Perfect Tuitions.
+          <br><br>
+          Access is provided only while the child is enrolled and will be withdrawn once the student is no longer on roll.
+        </div>
 
       </div>
     </div>
