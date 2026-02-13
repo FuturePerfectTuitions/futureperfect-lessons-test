@@ -1,191 +1,166 @@
 /* =========================
-   Future Perfect Lessons
-   shared.css
-   Thin airmail border + UI
+   Future Perfect Shared CSS
+   Thin Airmail Border Style
    ========================= */
 
-:root{
-  --red:#C8102E;
-  --blue:#012169;
-
-  --bg:#f6f7f9;
-  --card:#ffffff;
-  --text:#111;
-  --muted:#666;
-
-  --shadow:0 14px 40px rgba(0,0,0,.10);
-
-  --radius-outer:18px;
-  --radius-inner:20px;
-
-  --btn-radius:12px;
+:root {
+  --red: #C8102E;
+  --blue: #012169;
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --text: #0b1b33;
+  --muted: #6b7280;
 }
 
 /* Reset */
-*{ box-sizing:border-box; }
-html, body{ height:100%; }
+* {
+  box-sizing: border-box;
+}
 
-body{
-  margin:0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background:#fff;
-  color:var(--text);
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
 }
 
 /* =========================
-   Airmail border – thin style
+   Thin Airmail Border
    ========================= */
-.airmail-wrap{
-  min-height:100vh;
-  padding:8px;
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  padding: 10px; /* thickness of border */
+
   background:
     repeating-linear-gradient(
-      45deg,
-      var(--red) 0 6px,
-      #ffffff 6px 12px,
-      var(--blue) 12px 18px,
-      #ffffff 18px 24px
+      135deg,
+      var(--red) 0px,
+      var(--red) 12px,
+      white 12px,
+      white 24px,
+      var(--blue) 24px,
+      var(--blue) 36px,
+      white 36px,
+      white 48px
     );
-  display:flex;
-  align-items:center;
-  justify-content:center;
+
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
-.airmail-inner{
-  width:min(1000px, 100%);
-  background:var(--bg);
-  border-radius:var(--radius-outer);
-  padding:18px;
+/* =========================
+   Card Layout
+   ========================= */
+
+.card {
+  max-width: 620px;
+  margin: 80px auto;
+  padding: 48px 40px;
+  background: var(--card);
+  border-radius: 26px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.08);
+  text-align: center;
 }
 
-/* Main card */
-.card{
-  background:var(--card);
-  border-radius:var(--radius-inner);
-  box-shadow:var(--shadow);
-  padding:28px;
+/* Logo */
+.logo {
+  height: 46px;
+  margin-bottom: 18px;
 }
 
-/* Top row */
-.top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-bottom:18px;
+/* Typography */
+h1 {
+  margin: 10px 0 10px;
+  font-size: 34px;
 }
 
-/* Titles */
-h1{
-  margin:0;
-  font-size:32px;
-  letter-spacing:-0.02em;
+.sub {
+  color: var(--muted);
+  margin-bottom: 28px;
 }
 
-.subhead{
-  margin:10px 0 0;
-  color:var(--muted);
+/* Form */
+.form {
+  text-align: left;
+  margin-top: 20px;
 }
 
-/* Buttons */
-.btn{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:10px;
-  background:#e6e6e6;
-  color:#222;
-  text-decoration:none;
-  font-size:14px;
-  border:0;
-  cursor:pointer;
+label {
+  display: block;
+  font-weight: 600;
+  margin: 16px 0 6px;
 }
 
-.btn.primary{
-  background:var(--blue);
-  color:#fff;
+input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #eef2f7;
+  font-size: 16px;
 }
 
-.btn.primary:hover{
-  filter:brightness(0.95);
+button {
+  width: 100%;
+  margin-top: 22px;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: var(--blue);
+  color: white;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-/* Large choice buttons (Year / Subject) */
-.choice{
-  display:block;
-  padding:16px;
-  margin:12px 0;
-  border-radius:var(--btn-radius);
-  background:var(--blue);
-  color:#fff;
-  text-align:center;
-  text-decoration:none;
-  font-size:18px;
-  font-weight:700;
-}
-
-.choice:hover{
-  filter:brightness(0.95);
-}
-
-/* Inputs */
-.input{
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid #d8d8d8;
-  font-size:15px;
-  outline:none;
-}
-
-.input:focus{
-  border-color:rgba(1,33,105,.35);
-  box-shadow:0 0 0 4px rgba(1,33,105,.10);
+button:hover {
+  opacity: 0.92;
 }
 
 /* Error box */
-.error{
-  margin-top:14px;
-  padding:12px;
-  border-radius:12px;
-  background:#ffe3e3;
-  color:#7a0000;
+.error {
+  margin-top: 16px;
+  padding: 14px;
+  background: #ffe3e3;
+  color: #7a0000;
+  border-radius: 12px;
+  text-align: center;
 }
 
-/* Search */
-.search{
-  margin:18px 0;
+/* Footer text */
+.footer {
+  margin-top: 28px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
-.search input{
-  width:100%;
-  padding:14px;
-  border:1px solid #ccc;
-  border-radius:12px;
-  font-size:16px;
+/* =========================
+   Year / Subject buttons
+   ========================= */
+
+.year,
+.subject {
+  display: block;
+  padding: 14px;
+  margin: 10px 0;
+  border-radius: 12px;
+  background: var(--blue);
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
 }
 
-/* Lesson list */
-.item{
-  padding:14px 0;
-  border-bottom:1px solid #eee;
-}
-
-.item a{
-  color:var(--blue);
-  text-decoration:none;
-  font-weight:650;
-}
-
-.item a:hover{
-  text-decoration:underline;
-}
-
-/* Footer note */
-.note{
-  margin-top:18px;
-  color:var(--muted);
-  font-size:14px;
-  text-align:center;
-  line-height:1.4;
+.year:hover,
+.subject:hover {
+  opacity: 0.92;
 }
