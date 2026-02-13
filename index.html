@@ -5,48 +5,39 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Future Perfect – Student Login</title>
 
+  <!-- Shared styles -->
   <link rel="stylesheet" href="shared.css" />
 </head>
-
 <body>
-  <div class="airmail-wrap">
-    <div class="airmail-inner">
-      <div class="card" style="max-width:520px;margin:auto;text-align:center;">
+  <div class="card">
+    <img src="fpt-logo.png" class="logo" alt="Future Perfect" />
 
-        <img src="assets/fpt-logo.png" alt="Future Perfect" style="max-width:220px;margin:0 auto 18px;" />
+    <h1>Student Login</h1>
+    <p class="sub">
+      Please enter your username and password to access your lesson videos.
+    </p>
 
-        <h1>Student Login</h1>
-        <p class="subhead">
-          Please enter your username and password to access your lesson videos.
-        </p>
+    <div class="form">
+      <label>Username</label>
+      <input id="user" type="text" />
 
-        <div style="margin-top:20px;">
-          <label style="display:block;text-align:left;margin-bottom:6px;font-weight:600;">Username</label>
-          <input id="user" class="input" placeholder="Username" />
-        </div>
+      <label>Password</label>
+      <input id="pass" type="password" />
 
-        <div style="margin-top:14px;">
-          <label style="display:block;text-align:left;margin-bottom:6px;font-weight:600;">Password</label>
-          <input id="pass" type="password" class="input" placeholder="Password" />
-        </div>
+      <button onclick="login()">Log in</button>
 
-        <button class="btn primary" style="width:220px;margin-top:18px;font-size:16px;" onclick="login()">
-          Log in
-        </button>
-
-        <div id="error" class="error" style="display:none;">
-          Invalid login
-        </div>
-
-        <div class="note">
-          🔒 Videos are proprietary material belonging to Future Perfect Tuitions.
-          These must not be shared, copied, or distributed outside of Future Perfect Tuitions.
-          <br><br>
-          Access is provided only while the child is enrolled and will be withdrawn once the student is no longer on roll.
-        </div>
-
+      <div id="error" class="error" style="display:none;">
+        Invalid login
       </div>
     </div>
+
+    <p class="footer">
+      🔒 Videos are proprietary material belonging to Future Perfect Tuitions.
+      These must not be shared, copied, or distributed outside of Future Perfect Tuitions.
+      <br /><br />
+      Access is provided only while the child is enrolled and will be withdrawn
+      once the student is no longer on roll.
+    </p>
   </div>
 
   <script>
@@ -61,21 +52,18 @@
       errorEl.style.display = "none";
 
       try {
-        const res = await fetch(WORKER_BASE + "/login", {
+        const res = await fetch(WORKER_BASE + "/me", {
           headers: {
             Authorization: "Basic " + btoa(u + ":" + p)
           }
         });
 
-        if (!res.ok) {
-          throw new Error();
-        }
+        if (!res.ok) throw new Error();
 
         sessionStorage.setItem("fpt_user", u);
         sessionStorage.setItem("fpt_pass", p);
 
         location.href = "chooser.html";
-
       } catch {
         errorEl.style.display = "block";
       }
