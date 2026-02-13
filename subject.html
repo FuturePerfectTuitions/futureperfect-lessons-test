@@ -61,88 +61,100 @@
     <div id="error"></div>
   </div>
 
-  <script>
-    const WORKER_BASE =
-      "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+  Here is the same <script> section, properly formatted and indented for readability.
+You can copy this directly and paste it inside your subject.html.
 
-    const params = new URLSearchParams(location.search);
-    const subject = params.get("subject") || "maths";
+<script>
+  const WORKER_BASE =
+    "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
-    /* -------------------------
-       Label conversion
-    ------------------------- */
-    function bucketLabel(code) {
-      if (!code) return code;
+  const params = new URLSearchParams(location.search);
+  const subject = params.get("subject") || "maths";
 
-      if (/^Y(\d)M$/.test(code)) {
-        const y = code.match(/^Y(\d)M$/)[1];
-        return `Year ${y} Maths`;
-      }
+  const username = sessionStorage.getItem("fpt_user");
+  const password = sessionStorage.getItem("fpt_pass");
 
-      if (/^Y(\d)M11plus$/.test(code)) {
-        const y = code.match(/^Y(\d)M11plus$/)[1];
-        return `Year ${y} 11+ Maths`;
-      }
+  if (!username || !password) {
+    location.href = "index.html";
+  }
 
-      if (/^Y(\d)VR$/.test(code)) {
-        const y = code.match(/^Y(\d)VR$/)[1];
-        return `Year ${y} Verbal Reasoning`;
-      }
+  function authHeader() {
+    return "Basic " + btoa(username + ":" + password);
+  }
 
-      if (/^Y(\d)MAssT(\d)$/.test(code)) {
-        const m = code.match(/^Y(\d)MAssT(\d)$/);
-        return `Year ${m[1]} Maths Assessment ${m[2]}`;
-      }
+  function bucketLabel(code) {
+    if (!code) return code;
 
-      if (code === "VR_HOWTO") {
-        return "How to do VR";
-      }
-
-      return code;
+    if (/^Y(\d)M$/.test(code)) {
+      const y = code.match(/^Y(\d)M$/)[1];
+      return "Year " + y + " Maths";
     }
 
-    /* -------------------------
-       Load years from worker
-    ------------------------- */
-    async function loadYears() {
-      const errorEl = document.getElementById("error");
-
-      try {
-        const res = await fetch(
-          `${WORKER_BASE}/years?subject=${subject}`,
-          { credentials: "include" }
-        );
-
-        if (!res.ok) {
-          throw new Error("Not authorised or failed to load.");
-        }
-
-        const buckets = await res.json();
-        const container = document.getElementById("years");
-
-        if (!buckets.length) {
-          container.innerHTML = "<p>No levels available.</p>";
-          return;
-        }
-
-        buckets.forEach(code => {
-          const label = bucketLabel(code);
-
-          const a = document.createElement("a");
-          a.className = "year";
-          a.href = `lessons.html?subject=${subject}&bucket=${code}`;
-          a.textContent = label;
-
-          container.appendChild(a);
-        });
-
-      } catch (err) {
-        errorEl.className = "error";
-        errorEl.textContent = err.message;
-      }
+    if (/^Y(\d)M11plus$/.test(code)) {
+      const y = code.match(/^Y(\d)M11plus$/)[1];
+      return "Year " + y + " 11+ Maths";
     }
 
-    loadYears();
-  </script>
+    if (/^Y(\d)VR$/.test(code)) {
+      const y = code.match(/^Y(\d)VR$/)[1];
+      return "Year " + y + " Verbal Reasoning";
+    }
+
+    if (/^Y(\d)MAssT(\d)$/.test(code)) {
+      const m = code.match(/^Y(\d)MAssT(\d)$/);
+      return "Year " + m[1] + " Maths Assessment " + m[2];
+    }
+
+    if (code === "VR_HOWTO") {
+      return "How to do VR";
+    }
+
+    return code;
+  }
+
+  async function loadYears() {
+    const errorEl = document.getElementById("error");
+
+    try {
+      const res = await fetch(
+        WORKER_BASE + "/years?subject=" + subject,
+        {
+          headers: {
+            Authorization: authHeader()
+          }
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Not authorised or failed to load.");
+      }
+
+      const buckets = await res.json();
+      const container = document.getElementById("years");
+
+      if (!buckets.length) {
+        container.innerHTML = "<p>No levels available.</p>";
+        return;
+      }
+
+      buckets.forEach(code => {
+        const label = bucketLabel(code);
+
+        const a = document.createElement("a");
+        a.className = "year";
+        a.href = "lessons.html?subject=" + subject + "&bucket=" + code;
+        a.textContent = label;
+
+        container.appendChild(a);
+      });
+
+    } catch (err) {
+      errorEl.className = "error";
+      errorEl.textContent = err.message;
+    }
+  }
+
+  loadYears();
+</script>
 </body>
 </html>
