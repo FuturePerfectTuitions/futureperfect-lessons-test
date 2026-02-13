@@ -1,533 +1,238 @@
+```html
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Future Perfect – Lessons</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lessons</title>
 
-  <style>
-    :root{
-      --red:#d71920;
-      --blue:#0b2a6f;
-      --border:#e7e7e7;
-      --text:#111;
-      --muted:#666;
-      --bg:#ffffff;
-    }
+<style>
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 40px;
+  background: #f7f7f7;
+}
 
-    *{ box-sizing:border-box; }
+.card {
+  max-width: 900px;
+  margin: auto;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
 
-    body{
-      margin:0;
-      padding:24px;
-      font-family:"Segoe UI", Arial, sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
+h1 {
+  margin-top: 0;
+}
 
-    .frame{
-      max-width:1200px;
-      margin:0 auto;
-      padding:10px;
-      border-radius:22px;
-      background:repeating-linear-gradient(
-        45deg,
-        var(--red) 0 14px,
-        #fff 14px 28px,
-        var(--blue) 28px 42px,
-        #fff 42px 56px
-      );
-    }
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
 
-    .panel{
-      background:#fff;
-      border-radius:18px;
-      padding:20px;
-      border:1px solid var(--border);
-    }
+button {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: #0b2a6f;
+  color: white;
+  cursor: pointer;
+}
 
-    /* --- TOP STACK (logo, title, buttons) --- */
-    .logoRow{
-      display:flex;
-      align-items:center;
-      justify-content:flex-start;
-      margin-bottom:10px;
-    }
+button.secondary {
+  background: #ddd;
+  color: #222;
+}
 
-    .logo{
-      height:48px;
-      width:auto;
-      display:block;
-    }
+button:hover {
+  opacity: 0.9;
+}
 
-    .titleRow{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      margin-bottom:14px;
-    }
+.search {
+  margin: 20px 0;
+}
 
-    h1{
-      margin:0;
-      font-size:28px;
-      line-height:1.2;
-      letter-spacing:-0.2px;
-    }
+.search input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
 
-    .sub{
-      margin:0;
-      color:var(--muted);
-      font-size:14px;
-    }
+.lesson {
+  padding: 14px;
+  border-bottom: 1px solid #eee;
+}
 
-    .actionRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin:14px 0 16px 0;
-      flex-wrap:wrap;
-    }
+.lesson a {
+  color: #0b2a6f;
+  text-decoration: none;
+  font-weight: 600;
+}
 
-    .btn{
-      border:1px solid var(--border);
-      background:#fff;
-      padding:10px 14px;
-      border-radius:12px;
-      font-weight:700;
-      cursor:pointer;
-      text-decoration:none;
-      color:var(--text);
-      user-select:none;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
+.lesson a:hover {
+  text-decoration: underline;
+}
 
-    .btn.primary{
-      background:var(--blue);
-      color:#fff;
-      border-color:transparent;
-    }
-
-    .btn:active{ transform:translateY(1px); }
-
-    /* --- SEARCH --- */
-    .searchWrap{
-      position:relative;
-      margin-bottom:18px;
-    }
-
-    .searchIcon{
-      position:absolute;
-      top:50%;
-      left:14px;
-      transform:translateY(-50%);
-      font-size:18px;
-      color:var(--muted);
-      pointer-events:none;
-    }
-
-    .searchInput{
-      width:100%;
-      padding:14px 16px 14px 44px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      font-size:15px;
-      outline:none;
-    }
-
-    .searchInput:focus{
-      border-color:#cfcfcf;
-      box-shadow:0 0 0 4px rgba(11,42,111,0.08);
-    }
-
-    /* --- LIST --- */
-    .list{
-      display:grid;
-      gap:14px;
-    }
-
-    .card{
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      background:#fff;
-    }
-
-    .cardLeft{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-width:0;
-    }
-
-    .lessonTitle{
-      font-size:18px;
-      font-weight:800;
-      line-height:1.25;
-    }
-
-    /* --- BADGE --- */
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      height:22px;
-      padding:0 10px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:800;
-      border:1px solid var(--border);
-      color:var(--text);
-      background:#fff;
-      white-space:nowrap;
-      width:fit-content;
-    }
-
-    .badge.vr{
-      border-color: rgba(215,25,32,.35);
-      background: rgba(215,25,32,.06);
-    }
-
-    .badge.maths{
-      border-color: rgba(11,42,111,.35);
-      background: rgba(11,42,111,.06);
-    }
-
-    /* --- PLAYER --- */
-    .playerWrap{
-      margin-top:20px;
-      border:1px solid var(--border);
-      border-radius:18px;
-      overflow:hidden;
-      display:none;
-      background:#fff;
-    }
-
-    .playerHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px 14px;
-      border-bottom:1px solid var(--border);
-    }
-
-    .playerTitle{
-      font-weight:900;
-      min-width:0;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-
-    .playerBox{
-      position:relative;
-      width:100%;
-      padding-top:56.25%;
-      background:#000;
-    }
-
-    iframe{
-      position:absolute;
-      top:0; left:0;
-      width:100%;
-      height:100%;
-      border:0;
-    }
-
-    /* --- MESSAGES --- */
-    .error{
-      margin:14px 0 0 0;
-      padding:14px;
-      border-radius:14px;
-      background:#fff4f4;
-      border:1px solid #f0bcbc;
-      color:#7a0b0b;
-      font-weight:700;
-      display:none;
-    }
-
-    .notice{
-      margin-top:14px;
-      font-size:12px;
-      color:var(--muted);
-      text-align:center;
-      line-height:1.4;
-    }
-  </style>
+.error {
+  margin-top: 20px;
+  padding: 14px;
+  background: #ffe3e3;
+  color: #7a0000;
+  border-radius: 10px;
+}
+</style>
 </head>
 
 <body>
-  <div class="frame">
-    <div class="panel">
+<div class="card">
 
-      <div class="logoRow">
-        <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions">
-      </div>
-
-      <div class="titleRow">
-        <h1 id="heading">Lessons</h1>
-        <p class="sub" id="sub">Loading…</p>
-      </div>
-
-      <div class="actionRow">
-        <a id="backBtn" class="btn" href="chooser.html">← Back</a>
-        <button id="logoutBtn" class="btn primary" type="button">Log out</button>
-      </div>
-
-      <div class="searchWrap">
-        <div class="searchIcon">🔍</div>
-        <input
-          id="searchInput"
-          class="searchInput"
-          type="search"
-          placeholder="Search lessons (e.g. Fractions, Algebra, BIDMAS)…"
-          autocomplete="off"
-        />
-      </div>
-
-      <div id="errorBox" class="error"></div>
-
-      <div id="list" class="list" aria-live="polite"></div>
-
-      <div id="playerWrap" class="playerWrap">
-        <div class="playerHeader">
-          <div class="playerTitle" id="playerTitle">Lesson</div>
-          <button id="closePlayerBtn" class="btn" type="button">Close</button>
-        </div>
-        <div class="playerBox">
-          <iframe id="player" allowfullscreen="true" scrolling="no"></iframe>
-        </div>
-      </div>
-
-      <div class="notice">
-        🔒 Videos are proprietary material belonging to Future Perfect Tuitions.
-        These must not be shared, copied, or distributed outside of Future Perfect Tuitions.
-        <br><br>
-        Access is provided only while the child is enrolled and will be withdrawn once the student is no longer on roll.
-      </div>
-
+  <div class="topbar">
+    <div>
+      <button class="secondary" onclick="goBack()">← Change level</button>
+    </div>
+    <div>
+      <button onclick="logout()">Log out</button>
     </div>
   </div>
 
+  <h1 id="title">Lessons</h1>
+
+  <div class="search">
+    <input
+      id="search"
+      type="text"
+      placeholder="Search lessons (e.g. Fractions, Algebra, BIDMAS)…"
+    />
+  </div>
+
+  <div id="lessons"></div>
+  <div id="error"></div>
+
+</div>
+
 <script>
-(() => {
-  // TEST Worker API
-  const API = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+const params = new URLSearchParams(location.search);
+const subject = params.get("subject") || "maths";
+const bucket = params.get("bucket");
 
-  const qs = new URLSearchParams(location.search);
-  const mode = (qs.get("mode") || "maths").trim().toLowerCase(); // maths | vr
-  const year = (qs.get("year") || "").trim();
-  const baseYear = (qs.get("baseYear") || "").trim(); // used only to build the correct "Back" link for VR
+const lessonsEl = document.getElementById("lessons");
+const errorEl = document.getElementById("error");
+const searchInput = document.getElementById("search");
 
-  const heading = document.getElementById("heading");
-  const sub = document.getElementById("sub");
-  const list = document.getElementById("list");
-  const err = document.getElementById("errorBox");
-  const search = document.getElementById("searchInput");
+/* -------------------------
+   Label conversion
+------------------------- */
+function bucketLabel(code) {
+  if (!code) return code;
 
-  const backBtn = document.getElementById("backBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-
-  const playerWrap = document.getElementById("playerWrap");
-  const player = document.getElementById("player");
-  const playerTitle = document.getElementById("playerTitle");
-  const closePlayerBtn = document.getElementById("closePlayerBtn");
-
-  let lessons = [];
-
-  function isVRMode(){
-    if(mode === "vr") return true;
-    if(String(year).startsWith("VR_")) return true;
-    return false;
+  if (/^Y(\d)M$/.test(code)) {
+    const y = code.match(/^Y(\d)M$/)[1];
+    return `Year ${y} Maths`;
   }
 
-  function badgeInfo(){
-    return isVRMode()
-      ? { text: "VR", cls: "vr" }
-      : { text: "Maths", cls: "maths" };
+  if (/^Y(\d)M11plus$/.test(code)) {
+    const y = code.match(/^Y(\d)M11plus$/)[1];
+    return `Year ${y} 11+ Maths`;
   }
 
-  function showError(msg){
-    err.style.display = "block";
-    err.textContent = msg;
+  if (/^Y(\d)VR$/.test(code)) {
+    const y = code.match(/^Y(\d)VR$/)[1];
+    return `Year ${y} Verbal Reasoning`;
   }
 
-  function clearError(){
-    err.style.display = "none";
-    err.textContent = "";
+  if (/^Y(\d)MAssT(\d)$/.test(code)) {
+    const m = code.match(/^Y(\d)MAssT(\d)$/);
+    return `Year ${m[1]} Maths Assessment ${m[2]}`;
   }
 
-  function yearLabelToFull(y){
-    if(y === "Y411plus") return "Year 4 11+";
-    if(y === "Y511plus") return "Year 5 11+";
-    if(y === "VR_HOWTO") return "Verbal Reasoning – How to";
-    if(y === "VR_Y4") return "Verbal Reasoning – Year 4";
-    if(y === "VR_Y5") return "Verbal Reasoning – Year 5";
+  return code;
+}
 
-    const m = /^Y(\d+)$/.exec(y);
-    return m ? `Year ${m[1]}` : y;
-  }
+/* -------------------------
+   Page title
+------------------------- */
+document.getElementById("title").textContent =
+  "Lessons – " + bucketLabel(bucket);
 
-  function bucketLabel(){
-    if (isVRMode()){
-      return `${yearLabelToFull(year)}`;
-    }
-    return `Lessons – ${yearLabelToFull(year)}`;
-  }
+/* -------------------------
+   Load lessons
+------------------------- */
+let allLessons = [];
 
-  function screenpalUrl(spId){
-    const id = encodeURIComponent(spId);
-    return `https://go.screenpal.com/player/${id}?ff=1&ahc=1&dcc=1&bg=transparent`;
-  }
+async function loadLessons() {
+  try {
+    const res = await fetch(
+      `/lessons?subject=${subject}&bucket=${bucket}`,
+      { credentials: "include" }
+    );
 
-  function openLesson(lesson){
-    playerTitle.textContent = lesson.title || "Lesson";
-    player.src = screenpalUrl(lesson.sp);
-    playerWrap.style.display = "block";
-    playerWrap.scrollIntoView({ behavior:"smooth", block:"start" });
-  }
-
-  function closePlayer(){
-    player.src = "about:blank";
-    playerWrap.style.display = "none";
-  }
-
-  function getAuth(){
-    const u = (sessionStorage.getItem("fpt_u") || "").trim();
-    const p = (sessionStorage.getItem("fpt_p") || "").trim();
-    if(!u || !p) return null;
-    return { u, header: "Basic " + btoa(u + ":" + p) };
-  }
-
-  function logout(){
-    sessionStorage.removeItem("fpt_u");
-    sessionStorage.removeItem("fpt_p");
-    location.href = "index.html";
-  }
-
-  function setBackLink(){
-    // For Maths pages, go back to year/subject flow:
-    // - If user came from Year chooser directly (Y4/Y5/Y6), subject.html may not exist for that year.
-    // We keep it simple:
-    //   - Maths: back to chooser.html (change year)
-    //   - VR: back to VR chooser (chooser.html?mode=vr&baseYear=...)
-    if (!isVRMode()){
-      backBtn.textContent = "← Change year";
-      backBtn.href = "chooser.html";
-      return;
+    if (!res.ok) {
+      throw new Error(`Failed to load lessons (${res.status}).`);
     }
 
-    backBtn.textContent = "← Back to VR menu";
-    backBtn.href = `chooser.html?mode=vr&baseYear=${encodeURIComponent(baseYear || "")}`;
+    allLessons = await res.json();
+    renderLessons(allLessons);
+
+  } catch (err) {
+    errorEl.className = "error";
+    errorEl.textContent = err.message;
+  }
+}
+
+function renderLessons(list) {
+  lessonsEl.innerHTML = "";
+
+  if (!list.length) {
+    lessonsEl.innerHTML = "<p>No lessons available.</p>";
+    return;
   }
 
-  function render(){
-    const q = (search.value || "").trim().toLowerCase();
-    const filtered = lessons.filter(l => (l.title || "").toLowerCase().includes(q));
+  list.forEach(lesson => {
+    const div = document.createElement("div");
+    div.className = "lesson";
 
-    list.innerHTML = "";
+    const a = document.createElement("a");
+    a.href = `open.html?sp=${lesson.sp}`;
+    a.textContent = lesson.title;
 
-    if (!filtered.length){
-      const empty = document.createElement("div");
-      empty.className = "card";
-      empty.innerHTML = `<div class="lessonTitle">No matching lessons</div>`;
-      list.appendChild(empty);
-      return;
-    }
+    div.appendChild(a);
+    lessonsEl.appendChild(div);
+  });
+}
 
-    filtered.forEach(l => {
-      const card = document.createElement("div");
-      card.className = "card";
+/* -------------------------
+   Search
+------------------------- */
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.toLowerCase();
 
-      const leftWrap = document.createElement("div");
-      leftWrap.className = "cardLeft";
+  const filtered = allLessons.filter(l =>
+    l.title.toLowerCase().includes(q)
+  );
 
-      const leftTitle = document.createElement("div");
-      leftTitle.className = "lessonTitle";
-      leftTitle.textContent = l.title || "Lesson";
+  renderLessons(filtered);
+});
 
-      const b = badgeInfo();
-      const badge = document.createElement("span");
-      badge.className = `badge ${b.cls}`;
-      badge.textContent = b.text;
+/* -------------------------
+   Navigation
+------------------------- */
+function goBack() {
+  window.location.href = `subject.html?subject=${subject}`;
+}
 
-      leftWrap.appendChild(leftTitle);
-      leftWrap.appendChild(badge);
+function logout() {
+  window.location.href = "/";
+}
 
-      const btn = document.createElement("button");
-      btn.className = "btn primary";
-      btn.type = "button";
-      btn.textContent = "Watch lesson";
-      btn.disabled = !l.sp;
-
-      btn.addEventListener("click", () => openLesson(l));
-
-      card.appendChild(leftWrap);
-      card.appendChild(btn);
-      list.appendChild(card);
-    });
-  }
-
-  async function load(){
-    clearError();
-    closePlayer();
-
-    const auth = getAuth();
-    if(!auth){
-      location.href = "index.html";
-      return;
-    }
-
-    if (!year){
-      heading.textContent = "Lessons";
-      sub.textContent = "Missing link details.";
-      showError("Use a link like: lessons.html?year=Y6&mode=maths");
-      return;
-    }
-
-    heading.textContent = bucketLabel();
-    setBackLink();
-    sub.textContent = `Loading lessons for ${auth.u}…`;
-
-    const url = new URL(API + "/lessons");
-    url.searchParams.set("year", year);
-
-    const res = await fetch(url.toString(), {
-      method: "GET",
-      headers: { "Authorization": auth.header }
-    });
-
-    if(!res.ok){
-      showError(`Failed to load lessons (${res.status}).`);
-      sub.textContent = "Could not load lessons.";
-      if (res.status === 401) logout();
-      return;
-    }
-
-    const data = await res.json();
-    if(!Array.isArray(data)){
-      showError("API returned unexpected data.");
-      sub.textContent = "Could not load lessons.";
-      return;
-    }
-
-    lessons = data;
-    sub.textContent = `Showing ${lessons.length} lesson(s) for ${auth.u}.`;
-    render();
-  }
-
-  search.addEventListener("input", render);
-  closePlayerBtn.addEventListener("click", closePlayer);
-  logoutBtn.addEventListener("click", logout);
-
-  load();
-})();
+loadLessons();
 </script>
 </body>
 </html>
+```
