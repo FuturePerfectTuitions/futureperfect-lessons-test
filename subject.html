@@ -1,216 +1,126 @@
+```html
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Future Perfect – Choose Subject</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Select Year</title>
 
-  <style>
-    :root{
-      --red:#d71920;
-      --blue:#0b2a6f;
-      --border:#e5e5e5;
-      --text:#111;
-      --muted:#666;
-    }
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      padding:24px;
-      font-family:"Segoe UI",Arial,sans-serif;
-      background:#fff;
-      color:var(--text);
-    }
-    .frame{
-      max-width:1000px;
-      margin:0 auto;
-      padding:10px;
-      border-radius:22px;
-      background:repeating-linear-gradient(
-        45deg,
-        var(--red) 0 14px,
-        #fff 14px 28px,
-        var(--blue) 28px 42px,
-        #fff 42px 56px
-      );
-    }
-    .panel{
-      background:#fff;
-      border-radius:16px;
-      padding:18px;
-      border:1px solid var(--border);
-    }
-    .top{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:14px;
-      margin-bottom:12px;
-    }
-    .logo{ height:46px; }
-    h1{ margin:0; font-size:22px; }
-    .muted{
-      color:var(--muted);
-      font-size:14px;
-      margin-top:4px;
-    }
-    .actionRow{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      margin:10px 0 18px 0;
-      flex-wrap:wrap;
-    }
-    .btnSmall{
-      padding:10px 14px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:#fff;
-      color:var(--text);
-      font-weight:700;
-      cursor:pointer;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
-    .btnSmall.primary{
-      background:var(--blue);
-      color:#fff;
-      border-color:transparent;
-    }
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:12px;
-      margin-top:10px;
-    }
-    .btn{
-      padding:16px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background:#fff;
-      text-align:center;
-      font-weight:800;
-      text-decoration:none;
-      color:var(--text);
-      cursor:pointer;
-    }
-    .btn.primary{
-      background:var(--blue);
-      color:#fff;
-      border-color:transparent;
-    }
-    .notice{
-      margin-top:18px;
-      font-size:12px;
-      color:var(--muted);
-      text-align:center;
-      line-height:1.4;
-    }
-  </style>
+<style>
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 40px;
+  background: #f7f7f7;
+}
+
+.card {
+  max-width: 520px;
+  margin: auto;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+h1 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.year {
+  display: block;
+  padding: 14px;
+  margin: 10px 0;
+  border-radius: 10px;
+  background: #0b2a6f;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.year:hover {
+  background: #081f54;
+}
+</style>
 </head>
 
 <body>
-  <div class="frame">
-    <div class="panel">
-
-      <div class="top">
-        <div>
-          <h1 id="h1">Choose a subject</h1>
-          <div class="muted" id="sub">Loading…</div>
-        </div>
-        <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions">
-      </div>
-
-      <div class="actionRow">
-        <a class="btnSmall" href="chooser.html">← Change year</a>
-        <button id="logoutBtn" class="btnSmall primary" type="button">Log out</button>
-      </div>
-
-      <div class="grid">
-        <a id="mathsBtn" class="btn primary" href="#">Maths</a>
-        <a id="vrBtn" class="btn" href="#">Verbal Reasoning</a>
-      </div>
-
-      <div class="notice">
-        🔒 Videos are proprietary material belonging to Future Perfect Tuitions.
-        These must not be shared, copied, or distributed outside of Future Perfect Tuitions.
-        <br><br>
-        Access is provided only while the child is enrolled and will be withdrawn once the student is no longer on roll.
-      </div>
-
-    </div>
-  </div>
+<div class="card">
+  <h1>Select Level</h1>
+  <div id="years"></div>
+</div>
 
 <script>
-  const API = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+const params = new URLSearchParams(location.search);
+const subject = params.get("subject") || "maths";
 
-  const qs = new URLSearchParams(location.search);
-  const year = (qs.get("year") || "").trim();
+/* -------------------------
+   Label conversion function
+------------------------- */
+function bucketLabel(code) {
+  if (!code) return code;
 
-  function logout(){
-    sessionStorage.removeItem("fpt_u");
-    sessionStorage.removeItem("fpt_p");
-    location.href = "index.html";
+  // Year 4 Maths
+  if (/^Y(\d)M$/.test(code)) {
+    const year = code.match(/^Y(\d)M$/)[1];
+    return `Year ${year} Maths`;
   }
 
-  function getAuth(){
-    const u = sessionStorage.getItem("fpt_u");
-    const p = sessionStorage.getItem("fpt_p");
-    if(!u || !p) return null;
-    return { header: "Basic " + btoa(u + ":" + p) };
+  // Year 4 11+ Maths
+  if (/^Y(\d)M11plus$/.test(code)) {
+    const year = code.match(/^Y(\d)M11plus$/)[1];
+    return `Year ${year} 11+ Maths`;
   }
 
-  function yearLabelToFull(y){
-    const m = /^Y(\d+)$/.exec(y);
-    return m ? `Year ${m[1]}` : y;
+  // Year 4 VR
+  if (/^Y(\d)VR$/.test(code)) {
+    const year = code.match(/^Y(\d)VR$/)[1];
+    return `Year ${year} Verbal Reasoning`;
   }
 
-  function isElevenPlusYear(y){
-    return y === "Y411plus" || y === "Y511plus";
+  // Assessments
+  if (/^Y(\d)MAssT(\d)$/.test(code)) {
+    const match = code.match(/^Y(\d)MAssT(\d)$/);
+    return `Year ${match[1]} Maths Assessment ${match[2]}`;
   }
 
-  async function run(){
-    const auth = getAuth();
-    if(!auth){ location.href = "index.html"; return; }
+  // fallback
+  return code;
+}
 
-    document.getElementById("logoutBtn").onclick = logout;
+/* -------------------------
+   Fetch years from worker
+------------------------- */
+async function loadYears() {
+  const res = await fetch(
+    `https://frosty-rain-828e.<your-subdomain>.workers.dev/years?subject=${subject}`,
+    { credentials: "include" }
+  );
 
-    if(!year){
-      document.getElementById("sub").textContent = "Missing year. Please go back and choose a year.";
-      document.getElementById("mathsBtn").style.pointerEvents = "none";
-      document.getElementById("vrBtn").style.pointerEvents = "none";
-      return;
-    }
+  if (!res.ok) {
+    document.getElementById("years").innerHTML = "Not authorised";
+    return;
+ hookup };
 
-    // HARD RULE:
-    // Only Y411plus/Y511plus are allowed to see subject choice.
-    // Anything else should go straight to Maths lessons list.
-    if(!isElevenPlusYear(year)){
-      location.replace(`lessons.html?year=${encodeURIComponent(year)}&mode=maths`);
-      return;
-    }
+  const buckets = await res.json();
+  const container = document.getElementById("years");
 
-    // Friendly greeting
-    const meRes = await fetch(`${API}/me`, { headers:{ Authorization: auth.header } });
-    if(!meRes.ok){ logout(); return; }
-    const me = await meRes.json();
+  buckets.forEach(code => {
+    const label = bucketLabel(code);
 
-    document.getElementById("sub").textContent =
-      `Hi ${me.name}, for ${yearLabelToFull(year)} what would you like to study?`;
+    const a = document.createElement("a");
+    a.className = "year";
+    a.href = `lessons.html?subject=${subject}&bucket=${code}`;
+    a.textContent = label;
 
-    // Maths: go straight to lessons for that year
-    document.getElementById("mathsBtn").href =
-      `lessons.html?year=${encodeURIComponent(year)}&mode=maths`;
+    container.appendChild(a);
+  });
+}
 
-    // VR: go to VR branch chooser (reuse chooser.html in VR mode)
-    document.getElementById("vrBtn").href =
-      `chooser.html?mode=vr&baseYear=${encodeURIComponent(year)}`;
-  }
-
-  run();
+loadYears();
 </script>
 </body>
 </html>
+```
