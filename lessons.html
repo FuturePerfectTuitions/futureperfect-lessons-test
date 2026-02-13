@@ -119,8 +119,18 @@ button:hover {
 
 <script>
 const params = new URLSearchParams(location.search);
-const subject = params.get("subject") || "maths";
-const bucket = params.get("bucket");
+
+/* -------------------------
+   Backwards-compatible params
+------------------------- */
+const subject =
+  params.get("subject") ||
+  params.get("mode") ||
+  "maths";
+
+const bucket =
+  params.get("bucket") ||
+  params.get("year");
 
 const lessonsEl = document.getElementById("lessons");
 const errorEl = document.getElementById("error");
@@ -236,3 +246,29 @@ loadLessons();
 </body>
 </html>
 ```
+
+---
+
+After you paste this:
+
+1. Commit to GitHub
+2. Wait for deployment
+3. Hard refresh:
+
+   ```
+   Ctrl + Shift + R
+   ```
+
+You should now see:
+
+```
+Lessons – Year 4 Maths
+```
+
+with the lesson list loading correctly.
+
+If you want, next we can build:
+
+* A visual **admin dashboard** to assign lesson buckets
+* Student progress ticks
+* Parent-facing progress reports automatically generated from this system.
