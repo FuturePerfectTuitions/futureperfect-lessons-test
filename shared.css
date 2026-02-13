@@ -1,7 +1,7 @@
 /* =========================
    Future Perfect Lessons
    shared.css
-   Airmail border + core UI
+   Thin airmail border + UI
    ========================= */
 
 :root{
@@ -15,15 +15,16 @@
 
   --shadow:0 14px 40px rgba(0,0,0,.10);
 
-  --radius-outer:26px;
-  --radius-inner:22px;
+  --radius-outer:18px;
+  --radius-inner:20px;
 
   --btn-radius:12px;
 }
 
-/* Reset (light) */
+/* Reset */
 *{ box-sizing:border-box; }
 html, body{ height:100%; }
+
 body{
   margin:0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -32,18 +33,18 @@ body{
 }
 
 /* =========================
-   Airmail frame (thin stripes)
+   Airmail border – thin style
    ========================= */
 .airmail-wrap{
   min-height:100vh;
-  padding:16px;
+  padding:8px;
   background:
     repeating-linear-gradient(
       45deg,
-      var(--red) 0 8px,
-      #ffffff 8px 16px,
-      var(--blue) 16px 24px,
-      #ffffff 24px 32px
+      var(--red) 0 6px,
+      #ffffff 6px 12px,
+      var(--blue) 12px 18px,
+      #ffffff 18px 24px
     );
   display:flex;
   align-items:center;
@@ -54,7 +55,7 @@ body{
   width:min(1000px, 100%);
   background:var(--bg);
   border-radius:var(--radius-outer);
-  padding:22px;
+  padding:18px;
 }
 
 /* Main card */
@@ -81,12 +82,13 @@ h1{
   font-size:32px;
   letter-spacing:-0.02em;
 }
+
 .subhead{
   margin:10px 0 0;
   color:var(--muted);
 }
 
-/* Buttons / links */
+/* Buttons */
 .btn{
   display:inline-block;
   padding:10px 14px;
@@ -103,9 +105,12 @@ h1{
   background:var(--blue);
   color:#fff;
 }
-.btn.primary:hover{ filter:brightness(0.95); }
 
-/* Big choice buttons (Year/Subject) */
+.btn.primary:hover{
+  filter:brightness(0.95);
+}
+
+/* Large choice buttons (Year / Subject) */
 .choice{
   display:block;
   padding:16px;
@@ -118,7 +123,10 @@ h1{
   font-size:18px;
   font-weight:700;
 }
-.choice:hover{ filter:brightness(0.95); }
+
+.choice:hover{
+  filter:brightness(0.95);
+}
 
 /* Inputs */
 .input{
@@ -129,6 +137,7 @@ h1{
   font-size:15px;
   outline:none;
 }
+
 .input:focus{
   border-color:rgba(1,33,105,.35);
   box-shadow:0 0 0 4px rgba(1,33,105,.10);
@@ -147,6 +156,7 @@ h1{
 .search{
   margin:18px 0;
 }
+
 .search input{
   width:100%;
   padding:14px;
@@ -155,17 +165,21 @@ h1{
   font-size:16px;
 }
 
-/* Lists */
+/* Lesson list */
 .item{
   padding:14px 0;
   border-bottom:1px solid #eee;
 }
+
 .item a{
   color:var(--blue);
   text-decoration:none;
   font-weight:650;
 }
-.item a:hover{ text-decoration:underline; }
+
+.item a:hover{
+  text-decoration:underline;
+}
 
 /* Footer note */
 .note{
