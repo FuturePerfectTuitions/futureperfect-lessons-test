@@ -1,273 +1,253 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Lessons</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lessons</title>
 
-<style>
-body {
-  font-family: system-ui, sans-serif;
-  margin: 0;
-  padding: 40px;
-  background: #f7f7f7;
-}
+  <style>
+    :root{
+      --red:#d71920;
+      --blue:#0b2a6f;
+      --bg:#f7f7f7;
+      --card:#ffffff;
+      --text:#111;
+      --muted:#666;
+      --shadow:0 14px 40px rgba(0,0,0,.10);
+    }
 
-.card {
-  max-width: 900px;
-  margin: auto;
-  background: white;
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-}
+    *{ box-sizing:border-box; }
 
-h1 {
-  margin-top: 0;
-}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:#fff;
+      color:var(--text);
+    }
 
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
-}
+    /* Airmail border */
+    .airmail-wrap{
+      min-height:100vh;
+      padding:24px;
+      background:
+        repeating-linear-gradient(
+          45deg,
+          var(--red) 0 14px,
+          #ffffff 14px 28px,
+          var(--blue) 28px 42px,
+          #ffffff 42px 56px
+        );
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
 
-button {
-  padding: 10px 16px;
-  border-radius: 10px;
-  border: none;
-  background: #0b2a6f;
-  color: white;
-  cursor: pointer;
-}
+    .airmail-inner{
+      width:min(1000px, 100%);
+      background:var(--bg);
+      border-radius:26px;
+      padding:18px;
+    }
 
-button.secondary {
-  background: #ddd;
-  color: #222;
-}
+    .card{
+      background:var(--card);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:28px;
+    }
 
-button:hover {
-  opacity: 0.9;
-}
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:20px;
+    }
 
-.search {
-  margin: 20px 0;
-}
+    h1{
+      margin:0;
+      font-size:28px;
+      letter-spacing:-0.02em;
+    }
 
-.search input {
-  width: 100%;
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-}
+    .btn{
+      padding:10px 14px;
+      border-radius:10px;
+      background:#ddd;
+      color:#222;
+      text-decoration:none;
+      font-size:14px;
+      cursor:pointer;
+      border:none;
+    }
 
-.lesson {
-  padding: 14px;
-  border-bottom: 1px solid #eee;
-}
+    .btn.primary{
+      background:var(--blue);
+      color:#fff;
+    }
 
-.lesson a {
-  color: #0b2a6f;
-  text-decoration: none;
-  font-weight: 600;
-}
+    .btn.primary:hover{
+      background:#081f54;
+    }
 
-.lesson a:hover {
-  text-decoration: underline;
-}
+    .search{
+      margin:18px 0;
+      display:none;
+    }
 
-.error {
-  margin-top: 20px;
-  padding: 14px;
-  background: #ffe3e3;
-  color: #7a0000;
-  border-radius: 10px;
-}
-</style>
+    .search input{
+      width:100%;
+      padding:14px;
+      border:1px solid #ccc;
+      border-radius:10px;
+      font-size:16px;
+    }
+
+    .item{
+      padding:14px;
+      border-bottom:1px solid #eee;
+    }
+
+    .item a{
+      color:var(--blue);
+      text-decoration:none;
+      font-weight:600;
+    }
+
+    .item a:hover{
+      text-decoration:underline;
+    }
+
+    .error{
+      margin-top:14px;
+      padding:12px;
+      border-radius:10px;
+      background:#ffe3e3;
+      color:#7a0000;
+    }
+  </style>
 </head>
 
 <body>
-<div class="card">
+  <div class="airmail-wrap">
+    <div class="airmail-inner">
+      <div class="card">
 
-  <div class="topbar">
-    <div>
-      <button class="secondary" onclick="goBack()">← Change level</button>
-    </div>
-    <div>
-      <button onclick="logout()">Log out</button>
+        <div class="top">
+          <a id="backBtn" class="btn">← Back</a>
+          <button class="btn primary" onclick="logout()">Log out</button>
+        </div>
+
+        <h1 id="title">Lessons</h1>
+
+        <div class="search" id="searchWrap">
+          <input id="search" type="text" placeholder="Search lessons…" />
+        </div>
+
+        <div id="list"></div>
+        <div id="error"></div>
+
+      </div>
     </div>
   </div>
 
-  <h1 id="title">Lessons</h1>
+  <script>
+    const WORKER_BASE =
+      "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
-  <div class="search">
-    <input
-      id="search"
-      type="text"
-      placeholder="Search lessons (e.g. Fractions, Algebra, BIDMAS)…"
-    />
-  </div>
+    const username = sessionStorage.getItem("fpt_user");
+    const password = sessionStorage.getItem("fpt_pass");
 
-  <div id="lessons"></div>
-  <div id="error"></div>
-
-</div>
-
-<script>
-const params = new URLSearchParams(location.search);
-
-/* -------------------------
-   Backwards-compatible params
-------------------------- */
-const subject =
-  params.get("subject") ||
-  params.get("mode") ||
-  "maths";
-
-const bucket =
-  params.get("bucket") ||
-  params.get("year");
-
-const lessonsEl = document.getElementById("lessons");
-const errorEl = document.getElementById("error");
-const searchInput = document.getElementById("search");
-
-/* -------------------------
-   Label conversion
-------------------------- */
-function bucketLabel(code) {
-  if (!code) return code;
-
-  if (/^Y(\d)M$/.test(code)) {
-    const y = code.match(/^Y(\d)M$/)[1];
-    return `Year ${y} Maths`;
-  }
-
-  if (/^Y(\d)M11plus$/.test(code)) {
-    const y = code.match(/^Y(\d)M11plus$/)[1];
-    return `Year ${y} 11+ Maths`;
-  }
-
-  if (/^Y(\d)VR$/.test(code)) {
-    const y = code.match(/^Y(\d)VR$/)[1];
-    return `Year ${y} Verbal Reasoning`;
-  }
-
-  if (/^Y(\d)MAssT(\d)$/.test(code)) {
-    const m = code.match(/^Y(\d)MAssT(\d)$/);
-    return `Year ${m[1]} Maths Assessment ${m[2]}`;
-  }
-
-  return code;
-}
-
-/* -------------------------
-   Page title
-------------------------- */
-document.getElementById("title").textContent =
-  "Lessons – " + bucketLabel(bucket);
-
-/* -------------------------
-   Load lessons
-------------------------- */
-let allLessons = [];
-
-async function loadLessons() {
-  try {
-    const res = await fetch(
-      `/lessons?subject=${subject}&bucket=${bucket}`,
-      { credentials: "include" }
-    );
-
-    if (!res.ok) {
-      throw new Error(`Failed to load lessons (${res.status}).`);
+    if (!username || !password) {
+      location.href = "index.html";
     }
 
-    allLessons = await res.json();
-    renderLessons(allLessons);
+    function authHeader() {
+      return "Basic " + btoa(username + ":" + password);
+    }
 
-  } catch (err) {
-    errorEl.className = "error";
-    errorEl.textContent = err.message;
-  }
-}
+    function logout() {
+      sessionStorage.clear();
+      location.href = "index.html";
+    }
 
-function renderLessons(list) {
-  lessonsEl.innerHTML = "";
+    const params = new URLSearchParams(location.search);
+    const year = params.get("year") || "";
+    const subject = (params.get("subject") || "").toLowerCase();
 
-  if (!list.length) {
-    lessonsEl.innerHTML = "<p>No lessons available.</p>";
-    return;
-  }
+    function subjectLabel(s) {
+      if (s === "maths") return "Maths";
+      if (s === "vr") return "Verbal Reasoning";
+      if (s === "assessments") return "Assessments";
+      return s;
+    }
 
-  list.forEach(lesson => {
-    const div = document.createElement("div");
-    div.className = "lesson";
+    document.getElementById("title").textContent =
+      "Year " + year.replace("Y","") + " – " + subjectLabel(subject);
 
-    const a = document.createElement("a");
-    a.href = `open.html?sp=${lesson.sp}`;
-    a.textContent = lesson.title;
+    document.getElementById("backBtn").href =
+      "subject.html?year=" + encodeURIComponent(year);
 
-    div.appendChild(a);
-    lessonsEl.appendChild(div);
-  });
-}
+    const errorEl = document.getElementById("error");
+    const listEl = document.getElementById("list");
+    const searchWrap = document.getElementById("searchWrap");
 
-/* -------------------------
-   Search
-------------------------- */
-searchInput.addEventListener("input", () => {
-  const q = searchInput.value.toLowerCase();
+    let allLessons = [];
 
-  const filtered = allLessons.filter(l =>
-    l.title.toLowerCase().includes(q)
-  );
+    async function loadLessons() {
+      try {
+        const res = await fetch(
+          WORKER_BASE + "/lessons?subject=" +
+          encodeURIComponent(subject) +
+          "&year=" + encodeURIComponent(year),
+          {
+            headers: { Authorization: authHeader() }
+          }
+        );
 
-  renderLessons(filtered);
-});
+        if (!res.ok) throw new Error("Failed to load lessons.");
 
-/* -------------------------
-   Navigation
-------------------------- */
-function goBack() {
-  window.location.href = `subject.html?subject=${subject}`;
-}
+        allLessons = await res.json();
+        searchWrap.style.display = "block";
+        renderLessons(allLessons);
 
-function logout() {
-  window.location.href = "/";
-}
+      } catch (err) {
+        errorEl.className = "error";
+        errorEl.textContent = err.message || "Failed to fetch.";
+      }
+    }
 
-loadLessons();
-</script>
+    function renderLessons(list) {
+      listEl.innerHTML = "";
+
+      if (!list.length) {
+        listEl.innerHTML = "<p>No lessons available.</p>";
+        return;
+      }
+
+      list.forEach(lesson => {
+        const div = document.createElement("div");
+        div.className = "item";
+
+        const a = document.createElement("a");
+        a.href = "open.html?sp=" + encodeURIComponent(lesson.sp);
+        a.textContent = lesson.title;
+
+        div.appendChild(a);
+        listEl.appendChild(div);
+      });
+    }
+
+    document.getElementById("search").addEventListener("input", () => {
+      const q = document.getElementById("search").value.toLowerCase();
+      const filtered = allLessons.filter(l =>
+        (l.title || "").toLowerCase().includes(q)
+      );
+      renderLessons(filtered);
+    });
+
+    loadLessons();
+  </script>
 </body>
 </html>
-```
-
----
-
-After you paste this:
-
-1. Commit to GitHub
-2. Wait for deployment
-3. Hard refresh:
-
-   ```
-   Ctrl + Shift + R
-   ```
-
-You should now see:
-
-```
-Lessons – Year 4 Maths
-```
-
-with the lesson list loading correctly.
-
-If you want, next we can build:
-
-* A visual **admin dashboard** to assign lesson buckets
-* Student progress ticks
-* Parent-facing progress reports automatically generated from this system.
