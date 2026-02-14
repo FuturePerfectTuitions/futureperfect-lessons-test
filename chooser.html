@@ -5,8 +5,30 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Select Year</title>
 
-  <!-- Shared styles -->
   <link rel="stylesheet" href="shared.css" />
+
+  <style>
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:18px;
+    }
+    .logout{
+      width:auto;
+      padding:10px 14px;
+      border-radius:12px;
+      font-size:14px;
+      line-height:1;
+      background: var(--blue);
+      color:#fff;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .logout:hover{ opacity:.92; }
+  </style>
 </head>
 
 <body>
@@ -39,15 +61,14 @@
       location.href = "index.html";
     }
 
-    // Turn Y4M / Y4VR / Y4MAssT1 / Y4M11plus -> Year 4, etc.
-    function yearFromBucket(bucket) {
-      const m = String(bucket || "").match(/^Y(\d)/);
-      return m ? `Y${m[1]}` : null;
-    }
+    function yearLabel(code) {
+      const c = String(code || "");
+      const m = c.match(/^Y(\d)(?:_11plus)?$/i);
+      if (!m) return c;
 
-    function yearLabel(yCode) {
-      const m = String(yCode || "").match(/^Y(\d)$/);
-      return m ? `Year ${m[1]}` : yCode;
+      const year = m[1];
+      const is11 = /_11plus$/i.test(c);
+      return is11 ? `Year ${year} 11+` : `Year ${year}`;
     }
 
     async function loadYears() {
@@ -63,20 +84,12 @@
           headers: { Authorization: authHeader() }
         });
 
-        if (!res.ok) {
-          throw new Error("Not authorised or failed to load.");
-        }
+        if (!res.ok) throw new Error("Not authorised or failed to load.");
 
-        const buckets = await res.json();
+        const years = await res.json();
 
-        const years = [...new Set(
-          buckets
-            .map(yearFromBucket)
-            .filter(Boolean)
-        )].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-
-        if (!years.length) {
-          container.innerHTML = "<p class='sub' style='text-align:center;margin:0;'>No years available.</p>";
+        if (!years || !years.length) {
+          container.innerHTML = "<p class='sub' style='margin:0;'>No years available.</p>";
           return;
         }
 
@@ -96,29 +109,5 @@
 
     loadYears();
   </script>
-
-  <style>
-    /* Page-specific (kept minimal; shared.css does the main styling) */
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom:18px;
-    }
-    .logout{
-      width:auto;
-      padding:10px 14px;
-      border-radius:12px;
-      font-size:14px;
-      line-height:1;
-      background: var(--blue);
-      color:#fff;
-      border:none;
-      cursor:pointer;
-      font-weight:600;
-    }
-    .logout:hover{ opacity:.92; }
-  </style>
 </body>
 </html>
