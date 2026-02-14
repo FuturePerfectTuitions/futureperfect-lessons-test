@@ -6,107 +6,27 @@
   <title>Lessons</title>
 
   <link rel="stylesheet" href="shared.css" />
-
-  <style>
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-bottom:18px;
-    }
-
-    .btn{
-      padding:10px 14px;
-      border-radius:12px;
-      background:#e5e7eb;
-      color:#111;
-      text-decoration:none;
-      font-size:14px;
-      cursor:pointer;
-      border:none;
-      font-weight:600;
-      width:auto;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      line-height:1;
-    }
-
-    .btn.primary{
-      background:var(--blue);
-      color:#fff;
-    }
-    .btn.primary:hover{ opacity:.92; }
-
-    .title{
-      margin:0 0 16px;
-      font-size:28px;
-      letter-spacing:-0.02em;
-      text-align:left;
-    }
-
-    .searchWrap{
-      margin:18px 0 10px;
-      display:none;
-    }
-    .searchWrap input{
-      width:100%;
-      padding:14px;
-      border-radius:14px;
-      border:1px solid #e5e7eb;
-      background:#eef2f7;
-      font-size:16px;
-    }
-
-    .list{
-      margin-top:10px;
-      border-top:1px solid #eef2f7;
-    }
-
-    .item{
-      padding:14px 4px;
-      border-bottom:1px solid #eef2f7;
-    }
-
-    .item a{
-      color:var(--blue);
-      text-decoration:none;
-      font-weight:700;
-    }
-    .item a:hover{ text-decoration:underline; }
-
-    .empty{
-      margin:16px 0 0;
-      color:var(--muted);
-      text-align:left;
-    }
-  </style>
 </head>
-
 <body>
   <div class="card">
+
     <div class="header">
-  <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
-</div>
-    <div class="topbar">
+      <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
+    </div>
+
+    <div class="top">
       <a id="backBtn" class="btn">← Back</a>
       <button class="btn primary" onclick="logout()">Log out</button>
     </div>
 
-    <h1 id="title" class="title">Lessons</h1>
-
-    <div class="searchWrap" id="searchWrap">
-      <input id="search" type="text" placeholder="Search..." />
-    </div>
-
-    <div id="list" class="list"></div>
-    <div id="error" class="error" style="display:none;"></div>
+    <h1 id="title">Lessons</h1>
+    <div id="list"></div>
+    <div id="error"></div>
   </div>
 
   <script>
-    const WORKER_BASE = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+    const WORKER_BASE =
+      "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
     const username = sessionStorage.getItem("fpt_user");
     const password = sessionStorage.getItem("fpt_pass");
@@ -125,109 +45,56 @@
     }
 
     const params = new URLSearchParams(location.search);
-    const year = params.get("year") || "";
-    const subject = (params.get("subject") || "").toLowerCase();
-    const option = (params.get("option") || "").toLowerCase(); // lessons | assessments | howto
-
-    function yearLabel(code) {
-      const c = String(code || "");
-      const m = c.match(/^Y(\d)(?:_11plus)?$/i);
-      if (!m) return c;
-      const y = m[1];
-      const is11 = /_11plus$/i.test(c);
-      return is11 ? `Year ${y} 11+` : `Year ${y}`;
-    }
-
-    function subjectLabel(s) {
-      if (s === "maths") return "Maths";
-      if (s === "vr") return "Verbal Reasoning";
-      return s || "";
-    }
-
-    function optionLabel(o) {
-      if (o === "lessons") return "Lessons";
-      if (o === "assessments") return "Assessments";
-      if (o === "howto") return "How-To";
-      return o || "";
-    }
+    const year = params.get("year");
+    const subject = params.get("subject");
+    const type = params.get("type");
 
     document.getElementById("title").textContent =
-      yearLabel(year) + " • " + subjectLabel(subject) + " • " + optionLabel(option);
+      year.replace("Y","Year ") + " – " + subject;
 
     document.getElementById("backBtn").href =
-      "options.html?year=" + encodeURIComponent(year) +
-      "&subject=" + encodeURIComponent(subject);
+      "options.html?year=" +
+      encodeURIComponent(year) +
+      "&subject=" +
+      encodeURIComponent(subject);
 
-    const errorEl = document.getElementById("error");
     const listEl = document.getElementById("list");
-    const searchWrap = document.getElementById("searchWrap");
-
-    let allLessons = [];
-
-    function showError(msg) {
-      errorEl.style.display = "block";
-      errorEl.textContent = msg || "Failed to fetch.";
-    }
-
-    function clearError() {
-      errorEl.style.display = "none";
-      errorEl.textContent = "";
-    }
-
-    function renderLessons(list) {
-      listEl.innerHTML = "";
-
-      if (!list || !list.length) {
-        const p = document.createElement("p");
-        p.className = "empty";
-        p.textContent = "No items available.";
-        listEl.appendChild(p);
-        return;
-      }
-
-      list.forEach(lesson => {
-        const div = document.createElement("div");
-        div.className = "item";
-
-        const a = document.createElement("a");
-        a.href = "open.html?sp=" + encodeURIComponent(lesson.sp);
-        a.textContent = lesson.title || "Untitled";
-
-        div.appendChild(a);
-        listEl.appendChild(div);
-      });
-    }
+    const errorEl = document.getElementById("error");
 
     async function loadLessons() {
-      clearError();
-      searchWrap.style.display = "none";
-
       try {
         const res = await fetch(
-          WORKER_BASE + "/lessons?year=" + encodeURIComponent(year) +
-          "&subject=" + encodeURIComponent(subject) +
-          "&option=" + encodeURIComponent(option),
+          WORKER_BASE +
+          "/lessons?year=" +
+          encodeURIComponent(year) +
+          "&subject=" +
+          encodeURIComponent(subject) +
+          "&type=" +
+          encodeURIComponent(type),
           { headers: { Authorization: authHeader() } }
         );
 
         if (!res.ok) throw new Error("Failed to load.");
 
-        allLessons = await res.json();
-        searchWrap.style.display = "block";
-        renderLessons(allLessons);
+        const lessons = await res.json();
+
+        lessons.forEach(lesson => {
+          const div = document.createElement("div");
+          div.className = "item";
+
+          const a = document.createElement("a");
+          a.href = "open.html?sp=" + encodeURIComponent(lesson.sp);
+          a.textContent = lesson.title;
+
+          div.appendChild(a);
+          listEl.appendChild(div);
+        });
 
       } catch (err) {
-        showError(err.message);
+        errorEl.className = "error";
+        errorEl.textContent = err.message;
       }
     }
-
-    document.getElementById("search").addEventListener("input", () => {
-      const q = document.getElementById("search").value.toLowerCase();
-      const filtered = allLessons.filter(l =>
-        (l.title || "").toLowerCase().includes(q)
-      );
-      renderLessons(filtered);
-    });
 
     loadLessons();
   </script>
