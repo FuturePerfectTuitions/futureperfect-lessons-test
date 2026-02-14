@@ -6,47 +6,26 @@
   <title>Select Year</title>
 
   <link rel="stylesheet" href="shared.css" />
-
-  <style>
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom:18px;
-    }
-    .logout{
-      width:auto;
-      padding:10px 14px;
-      border-radius:12px;
-      font-size:14px;
-      line-height:1;
-      background: var(--blue);
-      color:#fff;
-      border:none;
-      cursor:pointer;
-      font-weight:600;
-    }
-    .logout:hover{ opacity:.92; }
-  </style>
 </head>
-
 <body>
   <div class="card">
+
     <div class="header">
-  <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
-</div>
-    <div class="topbar">
+      <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
+    </div>
+
+    <div class="top">
       <h1>Select Year</h1>
-      <button class="logout" onclick="logout()">Log out</button>
+      <button class="btn primary" onclick="logout()">Log out</button>
     </div>
 
     <div id="years"></div>
-    <div id="error" class="error" style="display:none;"></div>
+    <div id="error"></div>
   </div>
 
   <script>
-    const WORKER_BASE = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+    const WORKER_BASE =
+      "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
     const username = sessionStorage.getItem("fpt_user");
     const password = sessionStorage.getItem("fpt_pass");
@@ -64,49 +43,31 @@
       location.href = "index.html";
     }
 
-    function yearLabel(code) {
-      const c = String(code || "");
-      const m = c.match(/^Y(\d)(?:_11plus)?$/i);
-      if (!m) return c;
-
-      const year = m[1];
-      const is11 = /_11plus$/i.test(c);
-      return is11 ? `Year ${year} 11+` : `Year ${year}`;
-    }
-
     async function loadYears() {
       const errorEl = document.getElementById("error");
-      const container = document.getElementById("years");
-
-      errorEl.style.display = "none";
-      errorEl.textContent = "";
-      container.innerHTML = "";
 
       try {
-        const res = await fetch(WORKER_BASE + "/years", {
-          headers: { Authorization: authHeader() }
-        });
+        const res = await fetch(
+          WORKER_BASE + "/years",
+          { headers: { Authorization: authHeader() } }
+        );
 
-        if (!res.ok) throw new Error("Not authorised or failed to load.");
+        if (!res.ok) throw new Error("Failed to load.");
 
         const years = await res.json();
+        const container = document.getElementById("years");
 
-        if (!years || !years.length) {
-          container.innerHTML = "<p class='sub' style='margin:0;'>No years available.</p>";
-          return;
-        }
-
-        years.forEach(y => {
+        years.forEach(year => {
           const a = document.createElement("a");
           a.className = "year";
-          a.href = "subject.html?year=" + encodeURIComponent(y);
-          a.textContent = yearLabel(y);
+          a.href = "subject.html?year=" + encodeURIComponent(year);
+          a.textContent = year.replace("Y", "Year ");
           container.appendChild(a);
         });
 
       } catch (err) {
-        errorEl.style.display = "block";
-        errorEl.textContent = err.message || "Failed to load.";
+        errorEl.className = "error";
+        errorEl.textContent = err.message;
       }
     }
 
