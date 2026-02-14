@@ -5,156 +5,107 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Lessons</title>
 
+  <!-- Shared styles -->
+  <link rel="stylesheet" href="shared.css" />
+
   <style>
-    :root{
-      --red:#d71920;
-      --blue:#0b2a6f;
-      --bg:#f7f7f7;
-      --card:#ffffff;
-      --text:#111;
-      --muted:#666;
-      --shadow:0 14px 40px rgba(0,0,0,.10);
-    }
-
-    *{ box-sizing:border-box; }
-
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background:#fff;
-      color:var(--text);
-    }
-
-    /* Airmail border */
-    .airmail-wrap{
-      min-height:100vh;
-      padding:24px;
-      background:
-        repeating-linear-gradient(
-          45deg,
-          var(--red) 0 14px,
-          #ffffff 14px 28px,
-          var(--blue) 28px 42px,
-          #ffffff 42px 56px
-        );
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    .airmail-inner{
-      width:min(1000px, 100%);
-      background:var(--bg);
-      border-radius:26px;
-      padding:18px;
-    }
-
-    .card{
-      background:var(--card);
-      border-radius:22px;
-      box-shadow:var(--shadow);
-      padding:28px;
-    }
-
-    .top{
+    /* Page-specific */
+    .topbar{
       display:flex;
       justify-content:space-between;
       align-items:center;
       flex-wrap:wrap;
       gap:10px;
-      margin-bottom:20px;
-    }
-
-    h1{
-      margin:0;
-      font-size:28px;
-      letter-spacing:-0.02em;
+      margin-bottom:18px;
     }
 
     .btn{
       padding:10px 14px;
-      border-radius:10px;
-      background:#ddd;
-      color:#222;
+      border-radius:12px;
+      background:#e5e7eb;
+      color:#111;
       text-decoration:none;
       font-size:14px;
       cursor:pointer;
       border:none;
+      font-weight:600;
+      width:auto;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1;
     }
 
     .btn.primary{
       background:var(--blue);
       color:#fff;
     }
+    .btn.primary:hover{ opacity:.92; }
 
-    .btn.primary:hover{
-      background:#081f54;
+    .title{
+      margin:0 0 16px;
+      font-size:28px;
+      letter-spacing:-0.02em;
+      text-align:left;
     }
 
-    .search{
-      margin:18px 0;
-      display:none;
+    .searchWrap{
+      margin:18px 0 10px;
     }
-
-    .search input{
+    .searchWrap input{
       width:100%;
       padding:14px;
-      border:1px solid #ccc;
-      border-radius:10px;
+      border-radius:14px;
+      border:1px solid #e5e7eb;
+      background:#eef2f7;
       font-size:16px;
     }
 
+    .list{
+      margin-top:10px;
+      border-top:1px solid #eef2f7;
+    }
+
     .item{
-      padding:14px;
-      border-bottom:1px solid #eee;
+      padding:14px 4px;
+      border-bottom:1px solid #eef2f7;
     }
 
     .item a{
       color:var(--blue);
       text-decoration:none;
-      font-weight:600;
+      font-weight:700;
     }
+    .item a:hover{ text-decoration:underline; }
 
-    .item a:hover{
-      text-decoration:underline;
-    }
-
-    .error{
-      margin-top:14px;
-      padding:12px;
-      border-radius:10px;
-      background:#ffe3e3;
-      color:#7a0000;
+    .empty{
+      margin:16px 0 0;
+      color:var(--muted);
+      text-align:left;
     }
   </style>
 </head>
 
 <body>
-  <div class="airmail-wrap">
-    <div class="airmail-inner">
-      <div class="card">
-
-        <div class="top">
-          <a id="backBtn" class="btn">← Back</a>
-          <button class="btn primary" onclick="logout()">Log out</button>
-        </div>
-
-        <h1 id="title">Lessons</h1>
-
-        <div class="search" id="searchWrap">
-          <input id="search" type="text" placeholder="Search lessons…" />
-        </div>
-
-        <div id="list"></div>
-        <div id="error"></div>
-
-      </div>
+  <div class="card">
+    <div class="topbar">
+      <a id="backBtn" class="btn">← Back</a>
+      <button class="btn primary" onclick="logout()">Log out</button>
     </div>
+
+    <h1 id="title" class="title">Lessons</h1>
+
+    <div class="searchWrap" id="searchWrap" style="display:none;">
+      <input id="search" type="text" placeholder="Search lessons (e.g. Fractions, Algebra, BODMAS)..." />
+    </div>
+
+    <div id="list" class="list"></div>
+
+    <div id="error" class="error" style="display:none;"></div>
   </div>
 
   <script>
-    const WORKER_BASE =
-      "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+    const WORKER_BASE = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
     const username = sessionStorage.getItem("fpt_user");
     const password = sessionStorage.getItem("fpt_pass");
@@ -173,18 +124,19 @@
     }
 
     const params = new URLSearchParams(location.search);
-    const year = params.get("year") || "";
-    const subject = (params.get("subject") || "").toLowerCase();
+    const year = params.get("year") || "";             // e.g. Y4
+    const subject = (params.get("subject") || "").toLowerCase(); // maths | vr | assessments
 
     function subjectLabel(s) {
       if (s === "maths") return "Maths";
       if (s === "vr") return "Verbal Reasoning";
       if (s === "assessments") return "Assessments";
-      return s;
+      return s || "";
     }
 
+    const yearNum = year.startsWith("Y") ? year.slice(1) : year;
     document.getElementById("title").textContent =
-      "Year " + year.replace("Y","") + " – " + subjectLabel(subject);
+      "Year " + yearNum + " – " + subjectLabel(subject);
 
     document.getElementById("backBtn").href =
       "subject.html?year=" + encodeURIComponent(year);
@@ -195,34 +147,24 @@
 
     let allLessons = [];
 
-    async function loadLessons() {
-      try {
-        const res = await fetch(
-          WORKER_BASE + "/lessons?subject=" +
-          encodeURIComponent(subject) +
-          "&year=" + encodeURIComponent(year),
-          {
-            headers: { Authorization: authHeader() }
-          }
-        );
+    function showError(msg) {
+      errorEl.style.display = "block";
+      errorEl.textContent = msg || "Failed to fetch.";
+    }
 
-        if (!res.ok) throw new Error("Failed to load lessons.");
-
-        allLessons = await res.json();
-        searchWrap.style.display = "block";
-        renderLessons(allLessons);
-
-      } catch (err) {
-        errorEl.className = "error";
-        errorEl.textContent = err.message || "Failed to fetch.";
-      }
+    function clearError() {
+      errorEl.style.display = "none";
+      errorEl.textContent = "";
     }
 
     function renderLessons(list) {
       listEl.innerHTML = "";
 
-      if (!list.length) {
-        listEl.innerHTML = "<p>No lessons available.</p>";
+      if (!list || !list.length) {
+        const p = document.createElement("p");
+        p.className = "empty";
+        p.textContent = "No lessons available.";
+        listEl.appendChild(p);
         return;
       }
 
@@ -232,11 +174,32 @@
 
         const a = document.createElement("a");
         a.href = "open.html?sp=" + encodeURIComponent(lesson.sp);
-        a.textContent = lesson.title;
+        a.textContent = lesson.title || "Untitled lesson";
 
         div.appendChild(a);
         listEl.appendChild(div);
       });
+    }
+
+    async function loadLessons() {
+      clearError();
+
+      try {
+        const res = await fetch(
+          WORKER_BASE + "/lessons?subject=" + encodeURIComponent(subject) +
+          "&year=" + encodeURIComponent(year),
+          { headers: { Authorization: authHeader() } }
+        );
+
+        if (!res.ok) throw new Error("Failed to load lessons.");
+
+        allLessons = await res.json();
+        searchWrap.style.display = "block";
+        renderLessons(allLessons);
+
+      } catch (err) {
+        showError(err.message);
+      }
     }
 
     document.getElementById("search").addEventListener("input", () => {
