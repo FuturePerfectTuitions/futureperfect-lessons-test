@@ -3,193 +3,66 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Select Option</title>
+  <title>Options</title>
 
   <link rel="stylesheet" href="shared.css" />
-
-  <style>
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-bottom:18px;
-    }
-
-    .btn{
-      padding:10px 14px;
-      border-radius:12px;
-      background:#e5e7eb;
-      color:#111;
-      text-decoration:none;
-      font-size:14px;
-      cursor:pointer;
-      border:none;
-      font-weight:600;
-      width:auto;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      line-height:1;
-    }
-
-    .btn.primary{
-      background:var(--blue);
-      color:#fff;
-    }
-    .btn.primary:hover{ opacity:.92; }
-
-    .title{
-      margin:0;
-      font-size:30px;
-      letter-spacing:-0.02em;
-      text-align:left;
-    }
-
-    .option{
-      display:block;
-      padding:18px;
-      margin:14px 0;
-      border-radius:14px;
-      background:var(--blue);
-      color:white;
-      text-align:center;
-      text-decoration:none;
-      font-size:20px;
-      font-weight:700;
-    }
-    .option:hover{ opacity:.92; }
-
-    .empty{
-      margin:16px 0 0;
-      color:var(--muted);
-      text-align:left;
-    }
-  </style>
 </head>
-
 <body>
   <div class="card">
+
     <div class="header">
-  <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
-</div>
-    <div class="topbar">
+      <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
+    </div>
+
+    <div class="top">
       <a id="backBtn" class="btn">← Back</a>
       <button class="btn primary" onclick="logout()">Log out</button>
     </div>
 
-    <h1 id="title" class="title">Select Option</h1>
-
+    <h1 id="title">Options</h1>
     <div id="options"></div>
-
-    <div id="error" class="error" style="display:none;"></div>
   </div>
 
   <script>
-    const WORKER_BASE = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+    const params = new URLSearchParams(location.search);
+    const year = params.get("year");
+    const subject = params.get("subject");
 
-    const username = sessionStorage.getItem("fpt_user");
-    const password = sessionStorage.getItem("fpt_pass");
+    document.getElementById("title").textContent =
+      year.replace("Y","Year ") + " – " +
+      (subject === "maths" ? "Maths" : "Verbal Reasoning");
 
-    if (!username || !password) {
-      location.href = "index.html";
-    }
-
-    function authHeader() {
-      return "Basic " + btoa(username + ":" + password);
-    }
+    document.getElementById("backBtn").href =
+      "subject.html?year=" + encodeURIComponent(year);
 
     function logout() {
       sessionStorage.clear();
       location.href = "index.html";
     }
 
-    const params = new URLSearchParams(location.search);
-    const year = params.get("year") || "";
-    const subject = (params.get("subject") || "").toLowerCase();
+    const container = document.getElementById("options");
 
-    function yearLabel(code) {
-      const c = String(code || "");
-      const m = c.match(/^Y(\d)(?:_11plus)?$/i);
-      if (!m) return c;
-      const y = m[1];
-      const is11 = /_11plus$/i.test(c);
-      return is11 ? `Year ${y} 11+` : `Year ${y}`;
+    function addOption(label, type) {
+      const a = document.createElement("a");
+      a.className = "subject";
+      a.href =
+        "lessons.html?year=" +
+        encodeURIComponent(year) +
+        "&subject=" +
+        encodeURIComponent(subject) +
+        "&type=" +
+        encodeURIComponent(type);
+      a.textContent = label;
+      container.appendChild(a);
     }
 
-    function subjectLabel(s) {
-      if (s === "maths") return "Maths";
-      if (s === "vr") return "Verbal Reasoning";
-      return s || "";
+    if (subject === "maths") {
+      addOption("Lessons", "lessons");
+      addOption("Assessments", "assessments");
+    } else if (subject === "vr") {
+      addOption("Lessons", "lessons");
+      addOption("How-To", "howto");
     }
-
-    function optionLabel(o) {
-      if (o === "lessons") return "Lessons";
-      if (o === "assessments") return "Assessments";
-      if (o === "howto") return "How-To";
-      return o || "";
-    }
-
-    document.getElementById("title").textContent =
-      "Select Option – " + yearLabel(year) + " • " + subjectLabel(subject);
-
-    document.getElementById("backBtn").href =
-      "subject.html?year=" + encodeURIComponent(year);
-
-    const errorEl = document.getElementById("error");
-
-    function showError(msg) {
-      errorEl.style.display = "block";
-      errorEl.textContent = msg || "Failed to fetch.";
-    }
-
-    function clearError() {
-      errorEl.style.display = "none";
-      errorEl.textContent = "";
-    }
-
-    async function loadOptions() {
-      clearError();
-
-      try {
-        const res = await fetch(
-          WORKER_BASE + "/options?year=" + encodeURIComponent(year) +
-          "&subject=" + encodeURIComponent(subject),
-          { headers: { Authorization: authHeader() } }
-        );
-
-        if (!res.ok) throw new Error("Not authorised or failed to load.");
-
-        const options = await res.json();
-        const container = document.getElementById("options");
-        container.innerHTML = "";
-
-        if (!options || !options.length) {
-          const p = document.createElement("p");
-          p.className = "empty";
-          p.textContent = "No options available.";
-          container.appendChild(p);
-          return;
-        }
-
-        options.forEach(opt => {
-          const a = document.createElement("a");
-          a.className = "option";
-          a.href =
-            "lessons.html?year=" + encodeURIComponent(year) +
-            "&subject=" + encodeURIComponent(subject) +
-            "&option=" + encodeURIComponent(opt);
-          a.textContent = optionLabel(opt);
-          container.appendChild(a);
-        });
-
-      } catch (err) {
-        showError(err.message);
-      }
-    }
-
-    loadOptions();
   </script>
 </body>
 </html>
