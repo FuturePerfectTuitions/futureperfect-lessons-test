@@ -69,6 +69,19 @@ body::before {
   text-align: center;
 }
 
+/* =========================
+   Header logo (all pages)
+   ========================= */
+
+.header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.header .logo {
+  height: 48px;
+}
+
 /* Logo */
 .logo {
   height: 46px;
