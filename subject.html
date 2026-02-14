@@ -6,92 +6,28 @@
   <title>Select Subject</title>
 
   <link rel="stylesheet" href="shared.css" />
-
-  <style>
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-bottom:18px;
-    }
-
-    .btn{
-      padding:10px 14px;
-      border-radius:12px;
-      background:#e5e7eb;
-      color:#111;
-      text-decoration:none;
-      font-size:14px;
-      cursor:pointer;
-      border:none;
-      font-weight:600;
-      width:auto;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      line-height:1;
-    }
-
-    .btn.primary{
-      background:var(--blue);
-      color:#fff;
-    }
-    .btn.primary:hover{ opacity:.92; }
-
-    .title{
-      margin:0;
-      font-size:30px;
-      letter-spacing:-0.02em;
-      text-align:left;
-    }
-
-    .subjects{
-      margin-top:16px;
-    }
-
-    .subject{
-      display:block;
-      padding:18px;
-      margin:14px 0;
-      border-radius:14px;
-      background:var(--blue);
-      color:white;
-      text-align:center;
-      text-decoration:none;
-      font-size:20px;
-      font-weight:700;
-    }
-    .subject:hover{ opacity:.92; }
-
-    .empty{
-      margin:16px 0 0;
-      color:var(--muted);
-      text-align:left;
-    }
-  </style>
 </head>
-
 <body>
   <div class="card">
+
     <div class="header">
-  <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
-</div>
-    <div class="topbar">
+      <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
+    </div>
+
+    <div class="top">
       <a id="backBtn" class="btn">← Back</a>
       <button class="btn primary" onclick="logout()">Log out</button>
     </div>
 
-    <h1 id="title" class="title">Select Subject</h1>
+    <h1 id="title">Select Subject</h1>
 
-    <div id="subjects" class="subjects"></div>
-
-    <div id="error" class="error" style="display:none;"></div>
+    <div id="subjects"></div>
+    <div id="error"></div>
   </div>
 
   <script>
-    const WORKER_BASE = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+    const WORKER_BASE =
+      "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
     const username = sessionStorage.getItem("fpt_user");
     const password = sessionStorage.getItem("fpt_pass");
@@ -112,39 +48,19 @@
     const params = new URLSearchParams(location.search);
     const year = params.get("year") || "";
 
-    function yearLabel(code) {
-      const c = String(code || "");
-      const m = c.match(/^Y(\d)(?:_11plus)?$/i);
-      if (!m) return c;
+    document.getElementById("title").textContent =
+      "Select Subject – " + year.replace("Y", "Year ");
 
-      const y = m[1];
-      const is11 = /_11plus$/i.test(c);
-      return is11 ? `Year ${y} 11+` : `Year ${y}`;
-    }
-
-    document.getElementById("title").textContent = "Select Subject – " + yearLabel(year);
     document.getElementById("backBtn").href = "chooser.html";
 
     function subjectLabel(s) {
       if (s === "maths") return "Maths";
       if (s === "vr") return "Verbal Reasoning";
-      return s || "";
-    }
-
-    const errorEl = document.getElementById("error");
-
-    function showError(msg) {
-      errorEl.style.display = "block";
-      errorEl.textContent = msg || "Failed to fetch.";
-    }
-
-    function clearError() {
-      errorEl.style.display = "none";
-      errorEl.textContent = "";
+      return s;
     }
 
     async function loadSubjects() {
-      clearError();
+      const errorEl = document.getElementById("error");
 
       try {
         const res = await fetch(
@@ -152,32 +68,26 @@
           { headers: { Authorization: authHeader() } }
         );
 
-        if (!res.ok) throw new Error("Not authorised or failed to load.");
+        if (!res.ok) throw new Error("Failed to load.");
 
         const subjects = await res.json();
         const container = document.getElementById("subjects");
-        container.innerHTML = "";
-
-        if (!subjects || !subjects.length) {
-          const p = document.createElement("p");
-          p.className = "empty";
-          p.textContent = "No subjects available.";
-          container.appendChild(p);
-          return;
-        }
 
         subjects.forEach(sub => {
           const a = document.createElement("a");
           a.className = "subject";
           a.href =
-            "options.html?year=" + encodeURIComponent(year) +
-            "&subject=" + encodeURIComponent(sub);
+            "options.html?year=" +
+            encodeURIComponent(year) +
+            "&subject=" +
+            encodeURIComponent(sub);
           a.textContent = subjectLabel(sub);
           container.appendChild(a);
         });
 
       } catch (err) {
-        showError(err.message);
+        errorEl.className = "error";
+        errorEl.textContent = err.message;
       }
     }
 
