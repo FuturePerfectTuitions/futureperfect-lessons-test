@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Lessons</title>
 
-  <!-- Shared styles -->
   <link rel="stylesheet" href="shared.css" />
 
   <style>
-    /* Page-specific */
     .topbar{
       display:flex;
       justify-content:space-between;
@@ -51,6 +49,7 @@
 
     .searchWrap{
       margin:18px 0 10px;
+      display:none;
     }
     .searchWrap input{
       width:100%;
@@ -95,12 +94,11 @@
 
     <h1 id="title" class="title">Lessons</h1>
 
-    <div class="searchWrap" id="searchWrap" style="display:none;">
-      <input id="search" type="text" placeholder="Search lessons (e.g. Fractions, Algebra, BODMAS)..." />
+    <div class="searchWrap" id="searchWrap">
+      <input id="search" type="text" placeholder="Search..." />
     </div>
 
     <div id="list" class="list"></div>
-
     <div id="error" class="error" style="display:none;"></div>
   </div>
 
@@ -124,22 +122,38 @@
     }
 
     const params = new URLSearchParams(location.search);
-    const year = params.get("year") || "";             // e.g. Y4
-    const subject = (params.get("subject") || "").toLowerCase(); // maths | vr | assessments
+    const year = params.get("year") || "";
+    const subject = (params.get("subject") || "").toLowerCase();
+    const option = (params.get("option") || "").toLowerCase(); // lessons | assessments | howto
+
+    function yearLabel(code) {
+      const c = String(code || "");
+      const m = c.match(/^Y(\d)(?:_11plus)?$/i);
+      if (!m) return c;
+      const y = m[1];
+      const is11 = /_11plus$/i.test(c);
+      return is11 ? `Year ${y} 11+` : `Year ${y}`;
+    }
 
     function subjectLabel(s) {
       if (s === "maths") return "Maths";
       if (s === "vr") return "Verbal Reasoning";
-      if (s === "assessments") return "Assessments";
       return s || "";
     }
 
-    const yearNum = year.startsWith("Y") ? year.slice(1) : year;
+    function optionLabel(o) {
+      if (o === "lessons") return "Lessons";
+      if (o === "assessments") return "Assessments";
+      if (o === "howto") return "How-To";
+      return o || "";
+    }
+
     document.getElementById("title").textContent =
-      "Year " + yearNum + " – " + subjectLabel(subject);
+      yearLabel(year) + " • " + subjectLabel(subject) + " • " + optionLabel(option);
 
     document.getElementById("backBtn").href =
-      "subject.html?year=" + encodeURIComponent(year);
+      "options.html?year=" + encodeURIComponent(year) +
+      "&subject=" + encodeURIComponent(subject);
 
     const errorEl = document.getElementById("error");
     const listEl = document.getElementById("list");
@@ -163,7 +177,7 @@
       if (!list || !list.length) {
         const p = document.createElement("p");
         p.className = "empty";
-        p.textContent = "No lessons available.";
+        p.textContent = "No items available.";
         listEl.appendChild(p);
         return;
       }
@@ -174,7 +188,7 @@
 
         const a = document.createElement("a");
         a.href = "open.html?sp=" + encodeURIComponent(lesson.sp);
-        a.textContent = lesson.title || "Untitled lesson";
+        a.textContent = lesson.title || "Untitled";
 
         div.appendChild(a);
         listEl.appendChild(div);
@@ -183,15 +197,17 @@
 
     async function loadLessons() {
       clearError();
+      searchWrap.style.display = "none";
 
       try {
         const res = await fetch(
-          WORKER_BASE + "/lessons?subject=" + encodeURIComponent(subject) +
-          "&year=" + encodeURIComponent(year),
+          WORKER_BASE + "/lessons?year=" + encodeURIComponent(year) +
+          "&subject=" + encodeURIComponent(subject) +
+          "&option=" + encodeURIComponent(option),
           { headers: { Authorization: authHeader() } }
         );
 
-        if (!res.ok) throw new Error("Failed to load lessons.");
+        if (!res.ok) throw new Error("Failed to load.");
 
         allLessons = await res.json();
         searchWrap.style.display = "block";
