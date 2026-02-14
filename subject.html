@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Select Subject</title>
 
-  <!-- Shared styles -->
   <link rel="stylesheet" href="shared.css" />
 
   <style>
-    /* Page-specific */
     .topbar{
       display:flex;
       justify-content:space-between;
@@ -109,17 +107,24 @@
     }
 
     const params = new URLSearchParams(location.search);
-    const year = params.get("year") || ""; // e.g. Y4 / Y5 / Y6 / Y4_11 / etc depending on your worker
+    const year = params.get("year") || "";
 
-    const yearText = year.startsWith("Y") ? year.slice(1) : year;
-    document.getElementById("title").textContent = "Select Subject – Year " + yearText;
+    function yearLabel(code) {
+      const c = String(code || "");
+      const m = c.match(/^Y(\d)(?:_11plus)?$/i);
+      if (!m) return c;
 
+      const y = m[1];
+      const is11 = /_11plus$/i.test(c);
+      return is11 ? `Year ${y} 11+` : `Year ${y}`;
+    }
+
+    document.getElementById("title").textContent = "Select Subject – " + yearLabel(year);
     document.getElementById("backBtn").href = "chooser.html";
 
     function subjectLabel(s) {
       if (s === "maths") return "Maths";
       if (s === "vr") return "Verbal Reasoning";
-      if (s === "assessments") return "Assessments";
       return s || "";
     }
 
@@ -162,10 +167,8 @@
           const a = document.createElement("a");
           a.className = "subject";
           a.href =
-            "lessons.html?year=" +
-            encodeURIComponent(year) +
-            "&subject=" +
-            encodeURIComponent(sub);
+            "options.html?year=" + encodeURIComponent(year) +
+            "&subject=" + encodeURIComponent(sub);
           a.textContent = subjectLabel(sub);
           container.appendChild(a);
         });
