@@ -7,86 +7,167 @@
   <link rel="stylesheet" href="shared.css" />
 </head>
 <body>
-  <div class="topbar">
+
+  <!-- Top bar -->
+  <header class="topbar">
     <img src="assets/fpt-logo.png" class="topbarLogo" alt="Future Perfect Tuitions" />
-    <button class="topbarLogout" onclick="logout()">Log out</button>
-  </div>
+    <button class="topbarLogout" type="button" onclick="logout()">Log out</button>
+  </header>
 
   <main class="appMain">
-    <div class="card wide">
+    <section class="card wide">
+      <!-- subtle red accent line (optional, uses existing look you already have) -->
+      <div class="leftAccent" aria-hidden="true"></div>
 
-      <h1 id="yearHeading" class="yearHeading">Year</h1>
+      <h1 class="yearHeading" id="yearHeading">Year</h1>
 
       <div class="centerBlock">
-        <div id="title" class="pageHeading">Options</div>
-        <div id="options" class="choices"></div>
+        <div class="pageHeading" id="subjectHeading">Subject</div>
+        <div class="miniUnderline" aria-hidden="true"></div>
       </div>
+
+      <div class="choices" id="choices"></div>
 
       <div class="cardFooter">
-        <a id="backBtn" class="btnRed">Back</a>
+        <a class="btnRed" id="backBtn" href="#">Back</a>
       </div>
+    </section>
 
-    </div>
-
+    <!-- Reusable footer -->
     <div id="siteFooter"></div>
   </main>
 
   <script src="footer.js"></script>
 
   <script>
+    const WORKER_BASE = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+
+    // -----------------------
+    // Auth guard
+    // -----------------------
+    const u = sessionStorage.getItem("fpt_user");
+    const p = sessionStorage.getItem("fpt_pass");
+    if (!u || !p) location.href = "index.html";
+
+    // -----------------------
+    // Helpers (labels + rules)
+    // -----------------------
     const params = new URLSearchParams(location.search);
-    const year = params.get("year");
-    const subject = params.get("subject");
+    const yearParam = (params.get("year") || "").trim();
+    const subjectParam = (params.get("subject") || "").trim();
 
-    if (!sessionStorage.getItem("fpt_user") || !sessionStorage.getItem("fpt_pass")) {
-      location.href = "index.html";
+    const is11PlusTrack = yearParam.toLowerCase().includes("11plus");
+    const isMaths = subjectParam.toLowerCase() === "maths";
+    const isVR = subjectParam.toLowerCase() === "vr" || subjectParam.toLowerCase() === "verbal" || subjectParam.toLowerCase() === "verbalreasoning";
+    const isNVR = subjectParam.toLowerCase() === "nvr" || subjectParam.toLowerCase() === "nonverbal" || subjectParam.toLowerCase() === "nonverbalreasoning";
+    const isEnglish = subjectParam.toLowerCase() === "english";
+
+    function yearLabel(y) {
+      // supports Y4, Y4_11plus, Y5_11plus etc.
+      // also works if you ever pass Y4M11plus etc (it will still show "Year 4 11+")
+      const m = y.match(/Y(\d)/i);
+      const yr = m ? m[1] : y.replace(/_/g, " ");
+      return is11PlusTrack ? `Year ${yr} 11+` : `Year ${yr}`;
     }
 
+    function subjectLabel(s) {
+      const t = (s || "").toLowerCase();
+      if (t === "maths") return "Maths";
+      if (t === "english") return "English";
+      if (t === "vr") return "Verbal Reasoning";
+      if (t === "nvr") return "Non-Verbal Reasoning";
+      // fallback: nice casing
+      return (s || "Subject").replace(/_/g, " ").replace(/\b\w/g, ch => ch.toUpperCase());
+    }
+
+    function encode(v) {
+      return encodeURIComponent(v || "");
+    }
+
+    // -----------------------
+    // Headings
+    // -----------------------
+    document.getElementById("yearHeading").textContent = yearLabel(yearParam);
+    document.getElementById("subjectHeading").textContent = subjectLabel(subjectParam);
+
+    // Back goes to subject selection for this year
+    document.getElementById("backBtn").href = `subject.html?year=${encode(yearParam)}`;
+
+    // -----------------------
+    // Buttons (business rules)
+    // -----------------------
+    const choices = document.getElementById("choices");
+
+    // Always show Lessons
+    choices.insertAdjacentHTML("beforeend",
+      `<a class="subject" href="lessons.html?year=${encode(yearParam)}&subject=${encode(subjectParam)}&type=lessons">Lessons</a>`
+    );
+
+    // Assessments ONLY for 11+ Maths track
+    if (isMaths && is11PlusTrack) {
+      choices.insertAdjacentHTML("beforeend",
+        `<a class="subject" href="lessons.html?year=${encode(yearParam)}&subject=${encode(subjectParam)}&type=assessments">Assessments</a>`
+      );
+    }
+
+    // How-To only for VR/NVR (matches what you showed)
+    if (isVR || isNVR) {
+      choices.insertAdjacentHTML("beforeend",
+        `<a class="subject" href="lessons.html?year=${encode(yearParam)}&subject=${encode(subjectParam)}&type=howto">How-To</a>`
+      );
+    }
+
+    // -----------------------
+    // Tab title: "Student @ Future Perfect Tuitions"
+    // -----------------------
+    function setTitleFromStorageOrUser(me) {
+      const stored =
+        sessionStorage.getItem("fpt_displayName") ||
+        sessionStorage.getItem("fpt_name") ||
+        (me && (me.name || me.student || me.displayName)) ||
+        sessionStorage.getItem("fpt_user") ||
+        "Student";
+
+      document.title = `${stored} @ Future Perfect Tuitions`;
+    }
+
+    async function hydrateStudentName() {
+      // if we already have a name stored, don't fetch
+      if (sessionStorage.getItem("fpt_displayName") || sessionStorage.getItem("fpt_name")) {
+        setTitleFromStorageOrUser(null);
+        return;
+      }
+
+      try {
+        const res = await fetch(WORKER_BASE + "/me", {
+          headers: { Authorization: "Basic " + btoa(u + ":" + p) }
+        });
+        if (!res.ok) throw new Error("me failed");
+        const me = await res.json();
+
+        // store for all pages
+        if (me && me.name) sessionStorage.setItem("fpt_name", me.name);
+
+        setTitleFromStorageOrUser(me);
+      } catch {
+        setTitleFromStorageOrUser(null);
+      }
+    }
+
+    hydrateStudentName();
+
+    // -----------------------
+    // Logout
+    // -----------------------
     function logout() {
-      sessionStorage.clear();
+      sessionStorage.removeItem("fpt_user");
+      sessionStorage.removeItem("fpt_pass");
+      sessionStorage.removeItem("fpt_name");
+      sessionStorage.removeItem("fpt_displayName");
       location.href = "index.html";
     }
-
-    function yearLabel(code) {
-      const match = code.match(/^Y(\d)(?:_(11plus))?/);
-      if (!match) return code;
-
-      const yearNum = match[1];
-      const is11 = match[2];
-      return is11 ? ("Year " + yearNum + " 11+") : ("Year " + yearNum);
-    }
-
-    document.getElementById("yearHeading").textContent = yearLabel(year);
-
-    document.getElementById("title").textContent =
-      (subject === "maths" ? "Maths" : "Verbal Reasoning");
-
-    document.getElementById("backBtn").href =
-      "subject.html?year=" + encodeURIComponent(year);
-
-    const container = document.getElementById("options");
-
-    function addOption(label, type) {
-      const a = document.createElement("a");
-      a.className = "subject";
-      a.href =
-        "lessons.html?year=" +
-        encodeURIComponent(year) +
-        "&subject=" +
-        encodeURIComponent(subject) +
-        "&type=" +
-        encodeURIComponent(type);
-      a.textContent = label;
-      container.appendChild(a);
-    }
-
-    if (subject === "maths") {
-      addOption("Lessons", "lessons");
-      addOption("Assessments", "assessments");
-    } else if (subject === "vr") {
-      addOption("Lessons", "lessons");
-      addOption("How-To", "howto");
-    }
+    window.logout = logout;
   </script>
+
 </body>
 </html>
