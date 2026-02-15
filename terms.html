@@ -1,0 +1,99 @@
+<!-- terms.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Terms | Future Perfect Tuitions</title>
+  <link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+  <div class="topbar">
+    <img src="assets/fpt-logo.png" class="topbarLogo" alt="Future Perfect Tuitions" />
+    <button class="topbarLogout" type="button" onclick="goBack()">Back</button>
+  </div>
+
+  <main class="appMain">
+    <div class="card wide">
+      <h1 class="yearHeading">Terms of Use</h1>
+      <div style="margin-top:10px; color:var(--muted); font-weight:700;">Student Lesson Portal</div>
+      <div style="margin-top:6px; color:var(--muted);">Last updated: <span id="lastUpdated"></span></div>
+
+      <div style="margin-top:22px; line-height:1.75; color:var(--text);">
+        <p>
+          These Terms of Use apply to the Future Perfect Tuitions student lesson portal and related learning materials.
+          By accessing or using the portal, you agree to these terms.
+        </p>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">1) Portal access</h2>
+        <ul style="margin:10px 0 0 20px;">
+          <li>Access is provided only to registered students (and their parent/guardian).</li>
+          <li>Login details must be kept confidential and must not be shared with anyone outside the household.</li>
+          <li>We may suspend or withdraw access where misuse is suspected.</li>
+        </ul>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">2) Use of lesson materials</h2>
+        <p>
+          All videos, worksheets, and resources are the intellectual property of Future Perfect Tuitions and are provided for
+          personal educational use by the registered student only.
+        </p>
+        <p style="margin-top:12px;">
+          You must not:
+        </p>
+        <ul style="margin:10px 0 0 20px;">
+          <li>copy, share, upload, publish, or redistribute any content;</li>
+          <li>screen-record lessons or share links, passwords, or access codes;</li>
+          <li>attempt to bypass access controls or security.</li>
+        </ul>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">3) Acceptable use</h2>
+        <p>The portal must be used for learning purposes only. You agree not to:</p>
+        <ul style="margin:10px 0 0 20px;">
+          <li>use the portal in a way that disrupts or damages the service;</li>
+          <li>try to access other users’ accounts or data;</li>
+          <li>use automated tools to scrape or download content.</li>
+        </ul>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">4) Availability</h2>
+        <p>
+          We aim to keep the portal available, but we do not guarantee uninterrupted access. The service may be temporarily
+          unavailable due to maintenance, updates, or technical issues.
+        </p>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">5) Enrolment and access duration</h2>
+        <p>
+          Portal access is linked to active enrolment. If enrolment ends, access to the portal and lesson resources may be removed.
+        </p>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">6) Limitation of liability</h2>
+        <p>
+          To the extent permitted by law, Future Perfect Tuitions is not liable for losses arising from temporary service interruptions,
+          third-party platform issues, or incorrect login details provided by the user.
+        </p>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">7) Changes to these terms</h2>
+        <p>
+          We may update these terms from time to time. Continued use of the portal means you accept the updated terms.
+        </p>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">8) Contact</h2>
+        <p style="margin:10px 0 0; color:var(--muted);">
+          <strong>Future Perfect Tuitions</strong><br />
+          Email: <em>[add your email address]</em>
+        </p>
+      </div>
+    </div>
+
+    <div id="siteFooter"></div>
+  </main>
+
+  <script src="footer.js"></script>
+  <script>
+    function goBack(){
+      history.length > 1 ? history.back() : (location.href = "index.html");
+    }
+    document.getElementById("lastUpdated").textContent =
+      new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  </script>
+</body>
+</html>
