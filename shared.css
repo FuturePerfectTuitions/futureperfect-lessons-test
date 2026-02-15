@@ -50,12 +50,6 @@ body::before {
 }
 
 /* =========================
-   Top bar (logo left, logout right)
-   ========================= */
-/* =========================
-   Top bar (white band)
-   ========================= */
-/* =========================
    Top bar (white band)
    ========================= */
 .topbar {
@@ -67,29 +61,33 @@ body::before {
   align-items: center;
   justify-content: space-between;
 
-  padding: 0 32px;
+  padding: 0 36px;
 
   /* subtle brand divider */
   border-bottom: 2px solid rgba(1, 33, 105, 0.18);
 }
 
+/* Logo perfectly centered vertically */
 .topbarLogo {
-  height: 46px;
+  height: 42px;
   width: auto;
   display: block;
 }
 
+/* Logout button aligned to same visual center */
 .topbarLogout {
-  width: auto;
-  margin: 0;
+  height: 44px;
+  padding: 0 22px;
   border: none;
   cursor: pointer;
   background: var(--blue);
   color: #fff;
   font-weight: 700;
   font-size: 16px;
-  padding: 12px 22px;
-  border-radius: 16px;
+  border-radius: 22px;
+
+  display: flex;
+  align-items: center;
 }
 
 .topbarLogout:hover {
@@ -285,14 +283,4 @@ input {
 
 .btnRed:hover {
   opacity: 0.92;
-}
-
-/* =========================
-   Hard overrides (prevent giant logo)
-   ========================= */
-.topbarLogo {
-  height: 46px !important;
-  width: auto !important;
-  max-width: 420px;
-  object-fit: contain;
 }
