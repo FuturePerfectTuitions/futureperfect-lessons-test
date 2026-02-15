@@ -434,3 +434,17 @@ body.loginPage .footer {
   font-size: 13px;
   line-height: 1.4;
 }
+/* =========================
+   Subtle entrance animation (login only)
+   ========================= */
+@keyframes fptFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+body.loginPage .card {
+  animation: fptFadeUp 420ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  body.loginPage .card { animation: none; }
+}
