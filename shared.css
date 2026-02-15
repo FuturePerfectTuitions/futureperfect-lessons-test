@@ -68,26 +68,29 @@ body::before {
 }
 
 /* Logo perfectly centered vertically */
-.topbarLogo {
-  height: 42px;
+/* Logo: slightly bigger + optical nudge */
+.topbarLogo{
+  height: 48px;              /* bigger (was 42px) */
   width: auto;
   display: block;
+  transform: translateY(2px); /* nudges it down to align with the pill */
 }
 
-/* Logout button aligned to same visual center */
-.topbarLogout {
-  height: 44px;
-  padding: 0 22px;
+/* Logout pill: keep same height and ensure text is optically centered */
+.topbarLogout{
+  height: 46px;              /* small tweak from 44 -> 46 */
+  padding: 0 24px;
   border: none;
   cursor: pointer;
   background: var(--blue);
   color: #fff;
   font-weight: 700;
   font-size: 16px;
-  border-radius: 22px;
+  border-radius: 999px;
 
   display: flex;
   align-items: center;
+  line-height: 1;            /* prevents font metrics pushing it off */
 }
 
 .topbarLogout:hover {
