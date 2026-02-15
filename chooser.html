@@ -7,20 +7,20 @@
 
   <link rel="stylesheet" href="shared.css" />
 </head>
+
 <body>
   <div class="card">
 
-    <div class="header">
-      <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
+    <div class="topbar">
+      <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect" />
+      <button class="logout" onclick="logout()">Log out</button>
     </div>
 
-    <div class="top">
-      <h1>Select Year</h1>
-      <button class="btn primary" onclick="logout()">Log out</button>
-    </div>
+    <h1>Select Year</h1>
 
     <div id="years"></div>
     <div id="error"></div>
+
   </div>
 
   <script>
@@ -43,16 +43,35 @@
       location.href = "index.html";
     }
 
+    function yearLabel(code) {
+      // Y4 -> Year 4
+      // Y4_11plus -> Year 4 11+
+      const match = code.match(/^Y(\d)(?:_(11plus))?/);
+      if (!match) return code;
+
+      const year = match[1];
+      const is11 = match[2];
+
+      if (is11) return "Year " + year + " 11+";
+      return "Year " + year;
+    }
+
     async function loadYears() {
       const errorEl = document.getElementById("error");
 
       try {
         const res = await fetch(
           WORKER_BASE + "/years",
-          { headers: { Authorization: authHeader() } }
+          {
+            headers: {
+              Authorization: authHeader()
+            }
+          }
         );
 
-        if (!res.ok) throw new Error("Failed to load.");
+        if (!res.ok) {
+          throw new Error("Not authorised or failed to load.");
+        }
 
         const years = await res.json();
         const container = document.getElementById("years");
@@ -60,8 +79,8 @@
         years.forEach(year => {
           const a = document.createElement("a");
           a.className = "year";
-          a.href = "subject.html?year=" + encodeURIComponent(year);
-          a.textContent = year.replace("Y", "Year ");
+          a.href = "subject.html?year=" + year;
+          a.textContent = yearLabel(year);
           container.appendChild(a);
         });
 
