@@ -7,6 +7,38 @@
   --muted:#6b7280;
 }
 
+/* Subtle brand accent inside cards */
+.card.wide{
+  position: relative;
+}
+
+/* Accent underline under centered page heading */
+.pageHeading{
+  position: relative;
+  display: inline-block;
+}
+
+.pageHeading::after{
+  content:"";
+  display:block;
+  height: 3px;
+  width: 46%;
+  margin: 10px auto 0;
+  border-radius: 999px;
+  background: rgba(215, 25, 32, 0.22);
+}
+
+.card.wide::before{
+  content:"";
+  position:absolute;
+  left: 18px;
+  top: 22px;
+  bottom: 22px;
+  width: 4px;
+  border-radius: 999px;
+  background: rgba(215, 25, 32, 0.18); /* uses your logo red tone softly */
+}
+
 /* Reset */
 *{ box-sizing:border-box; }
 
@@ -275,3 +307,40 @@ input{
 }
 
 .btnRed:hover{ opacity:0.92; }
+
+/* =========================
+   Interactions: hover glow + press
+   ========================= */
+
+/* Choice tiles (Year/Subject/Options) */
+.year,
+.subject{
+  transition: transform 120ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.year:hover,
+.subject:hover{
+  box-shadow: 0 10px 24px rgba(1, 33, 105, 0.18);
+  transform: translateY(-1px);
+}
+
+/* Logout pill + Back button */
+.topbarLogout,
+.btnRed{
+  transition: transform 120ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.topbarLogout:hover,
+.btnRed:hover{
+  box-shadow: 0 10px 24px rgba(1, 33, 105, 0.20);
+  transform: translateY(-1px);
+
+  /* Press / tap feel */
+.year:active,
+.subject:active,
+.topbarLogout:active,
+.btnRed:active{
+  transform: translateY(0px) scale(0.985);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.10);
+}
+}
