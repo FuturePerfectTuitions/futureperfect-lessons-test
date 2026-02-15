@@ -4,47 +4,50 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Future Perfect – Student Login</title>
-
   <link rel="stylesheet" href="shared.css" />
 </head>
 <body>
-  <div class="card">
 
-    <div class="header">
-      <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
-    </div>
+  <main class="appMain">
+    <div class="card">
 
-    <h1>Student Login</h1>
-    <p class="sub">
-      Please enter your username and password to access your lesson videos.
-    </p>
-
-    <div class="form">
-      <label>Username</label>
-      <input id="user" type="text" />
-
-      <label>Password</label>
-      <input id="pass" type="password" />
-
-      <button onclick="login()">Log in</button>
-
-      <div id="error" class="error" style="display:none;">
-        Invalid login
+      <div class="header">
+        <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
       </div>
+
+      <h1>Student Login</h1>
+      <p class="sub">
+        Please enter your username and password to access your lesson videos.
+      </p>
+
+      <div class="form">
+        <label>Username</label>
+        <input id="user" type="text" />
+
+        <label>Password</label>
+        <input id="pass" type="password" />
+
+        <button onclick="login()">Log in</button>
+
+        <div id="error" class="error" style="display:none;">
+          Invalid login
+        </div>
+      </div>
+
+      <p class="footer">
+        🔒 Videos are proprietary material belonging to Future Perfect Tuitions.
+        These must not be shared, copied, or distributed outside of Future Perfect Tuitions.
+        <br /><br />
+        Access is provided only while the child is enrolled and will be withdrawn
+        once the student is no longer on roll.
+      </p>
     </div>
 
-    <p class="footer">
-      🔒 Videos are proprietary material belonging to Future Perfect Tuitions.
-      These must not be shared, copied, or distributed outside of Future Perfect Tuitions.
-      <br /><br />
-      Access is provided only while the child is enrolled and will be withdrawn
-      once the student is no longer on roll.
-    </p>
-  </div>
+    <!-- Reusable footer -->
+    <div id="siteFooter"></div>
+  </main>
 
-  <div class="siteFooter">
-  © Future Perfect Tuitions 2026
-</div>
+  <script src="footer.js"></script>
 
   <script>
     const WORKER_BASE =
@@ -75,5 +78,6 @@
       }
     }
   </script>
+
 </body>
 </html>
