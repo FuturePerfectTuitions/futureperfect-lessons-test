@@ -4,41 +4,62 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Options</title>
-
   <link rel="stylesheet" href="shared.css" />
 </head>
 <body>
-  <div class="card">
 
-    <div class="header">
-      <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
-    </div>
-
-    <div class="top">
-      <a id="backBtn" class="btn">← Back</a>
-      <button class="btn primary" onclick="logout()">Log out</button>
-    </div>
-
-    <h1 id="title">Options</h1>
-    <div id="options"></div>
+  <div class="topbar">
+    <img src="assets/fpt-logo.png" class="topbarLogo" alt="Future Perfect Tuitions" />
+    <button class="topbarLogout" onclick="logout()">Log out</button>
   </div>
+
+  <main class="appMain">
+    <div class="card wide">
+
+      <h1 id="yearHeading" class="yearHeading">Year</h1>
+
+      <div class="centerBlock">
+        <div id="title" class="pageHeading">Options</div>
+        <div id="options" class="choices"></div>
+      </div>
+
+      <div class="cardFooter">
+        <a id="backBtn" class="btnRed">Back</a>
+      </div>
+
+    </div>
+  </main>
 
   <script>
     const params = new URLSearchParams(location.search);
     const year = params.get("year");
     const subject = params.get("subject");
 
-    document.getElementById("title").textContent =
-      year.replace("Y","Year ") + " – " +
-      (subject === "maths" ? "Maths" : "Verbal Reasoning");
-
-    document.getElementById("backBtn").href =
-      "subject.html?year=" + encodeURIComponent(year);
+    if (!sessionStorage.getItem("fpt_user") || !sessionStorage.getItem("fpt_pass")) {
+      location.href = "index.html";
+    }
 
     function logout() {
       sessionStorage.clear();
       location.href = "index.html";
     }
+
+    function yearLabel(code) {
+      const match = code.match(/^Y(\d)(?:_(11plus))?/);
+      if (!match) return code;
+
+      const yearNum = match[1];
+      const is11 = match[2];
+      return is11 ? ("Year " + yearNum + " 11+") : ("Year " + yearNum);
+    }
+
+    document.getElementById("yearHeading").textContent = yearLabel(year);
+
+    document.getElementById("title").textContent =
+      (subject === "maths" ? "Maths" : "Verbal Reasoning");
+
+    document.getElementById("backBtn").href =
+      "subject.html?year=" + encodeURIComponent(year);
 
     const container = document.getElementById("options");
 
