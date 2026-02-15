@@ -359,3 +359,14 @@ input{
   box-shadow: 0 6px 14px rgba(0,0,0,0.10);
 }
 }
+
+/* =========================
+   Global footer
+   ========================= */
+.siteFooter{
+  text-align:center;
+  font-size:13px;
+  color:var(--muted);
+  margin:40px 0 20px;
+  opacity:0.9;
+}
