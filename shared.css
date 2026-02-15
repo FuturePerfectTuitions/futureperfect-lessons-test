@@ -6,7 +6,11 @@
   --text:#0b1b33;
   --muted:#6b7280;
 }
-
+.topbarLogoLink {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
 /* Reset */
 *{ box-sizing:border-box; }
 
