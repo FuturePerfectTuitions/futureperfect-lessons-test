@@ -1,57 +1,10 @@
 :root{
-  --red: #D71920;
-  --blue:#012169;
+  --red:#D71920;       /* FPT logo red */
+  --blue:#012169;      /* FPT navy */
   --bg:#f4f6f8;
   --card:#ffffff;
   --text:#0b1b33;
   --muted:#6b7280;
-}
-
-/* Subtle brand accent inside cards */
-.card.wide{
-  position: relative;
-}
-/* =========================
-   Login page header logo (index.html)
-   ========================= */
-.header{
-  text-align:center;
-  margin-bottom: 10px;
-}
-
-.logo{
-  height: 72px;         /* slightly bigger than before */
-  width: auto;
-  max-width: 100%;
-  display: block;
-  margin: 0 auto 18px;
-  object-fit: contain;
-}
-/* Accent underline under centered page heading */
-.pageHeading{
-  position: relative;
-  display: inline-block;
-}
-
-.pageHeading::after{
-  content:"";
-  display:block;
-  height: 3px;
-  width: 46%;
-  margin: 10px auto 0;
-  border-radius: 999px;
-  background: rgba(215, 25, 32, 0.22);
-}
-
-.card.wide::before{
-  content:"";
-  position:absolute;
-  left: 18px;
-  top: 22px;
-  bottom: 22px;
-  width: 4px;
-  border-radius: 999px;
-  background: rgba(215, 25, 32, 0.18); /* uses your logo red tone softly */
 }
 
 /* Reset */
@@ -109,7 +62,7 @@ body::before{
 .topbar{
   width:100%;
   height:90px;
-  background:#ffffff;
+  background:#fff;
 
   display:flex;
   align-items:center;
@@ -117,7 +70,7 @@ body::before{
 
   padding:0 36px;
 
-  /* subtle brand divider under the band */
+  /* subtle brand divider */
   border-bottom:2px solid rgba(1,33,105,0.18);
   box-shadow:0 2px 10px rgba(0,0,0,0.04);
 
@@ -126,18 +79,16 @@ body::before{
   z-index:50;
 }
 
-/* Logo: slightly bigger + optical centering */
+/* Logo (slightly bigger) + optical tweak */
 .topbarLogo{
   height:52px;
   width:auto;
   display:block;
   object-fit:contain;
-
-  /* optical tweak (PNG padding) */
   transform:translateY(2px);
 }
 
-/* Logout pill: fixed height for true vertical alignment */
+/* Logout pill */
 .topbarLogout{
   height:46px;
   padding:0 24px;
@@ -155,10 +106,8 @@ body::before{
   line-height:1;
 }
 
-.topbarLogout:hover{ opacity:0.92; }
-
 /* =========================
-   Card Layout
+   Cards
    ========================= */
 .card{
   max-width:620px;
@@ -174,6 +123,36 @@ body::before{
   max-width:980px;
   padding:54px 64px;
   text-align:left;
+  position:relative;
+}
+
+/* subtle red accent stripe inside wide cards */
+.card.wide::before{
+  content:"";
+  position:absolute;
+  left:18px;
+  top:22px;
+  bottom:22px;
+  width:4px;
+  border-radius:999px;
+  background:rgba(215,25,32,0.18);
+}
+
+/* =========================
+   Index page logo
+   ========================= */
+.header{
+  text-align:center;
+  margin-bottom:10px;
+}
+
+.logo{
+  height:72px;
+  width:auto;
+  max-width:100%;
+  display:block;
+  margin:0 auto 18px;
+  object-fit:contain;
 }
 
 /* =========================
@@ -189,7 +168,6 @@ h1{
   margin-bottom:28px;
 }
 
-/* App page headings */
 .yearHeading{
   margin:0;
   font-size:44px;
@@ -208,10 +186,23 @@ h1{
   font-weight:800;
   letter-spacing:-0.01em;
   text-align:center;
+  position:relative;
+  display:inline-block;
+}
+
+/* subtle red underline for page heading */
+.pageHeading::after{
+  content:"";
+  display:block;
+  height:3px;
+  width:46%;
+  margin:10px auto 0;
+  border-radius:999px;
+  background:rgba(215,25,32,0.22);
 }
 
 /* =========================
-   Form (login page)
+   Forms
    ========================= */
 .form{
   text-align:left;
@@ -233,6 +224,7 @@ input{
   font-size:16px;
 }
 
+/* login button */
 .form button{
   width:100%;
   margin-top:22px;
@@ -242,14 +234,12 @@ input{
   background:var(--blue);
   color:white;
   font-size:17px;
-  font-weight:600;
+  font-weight:700;
   cursor:pointer;
 }
 
-.form button:hover{ opacity:0.92; }
-
 /* =========================
-   Error box
+   Error + footer text
    ========================= */
 .error{
   margin-top:16px;
@@ -260,7 +250,6 @@ input{
   text-align:center;
 }
 
-/* Footer text */
 .footer{
   margin-top:28px;
   font-size:14px;
@@ -269,7 +258,7 @@ input{
 }
 
 /* =========================
-   Buttons / Choices
+   Buttons / choice tiles
    ========================= */
 .year,
 .subject{
@@ -282,13 +271,9 @@ input{
   text-align:center;
   text-decoration:none;
   font-size:16px;
-  font-weight:700;
+  font-weight:800;
 }
 
-.year:hover,
-.subject:hover{ opacity:0.92; }
-
-/* Centered choice buttons like your Subject page */
 .choices{
   display:flex;
   flex-direction:column;
@@ -310,63 +295,107 @@ input{
   margin-top:42px;
 }
 
-/* Red back button */
+/* Back button (brand red) */
 .btnRed{
   display:inline-block;
   background:var(--red);
   color:#fff;
   text-decoration:none;
-  font-weight:800;
+  font-weight:900;
   padding:12px 26px;
   border-radius:14px;
 }
 
-.btnRed:hover{ opacity:0.92; }
+/* =========================
+   Lessons list styling
+   ========================= */
+#list{
+  width:min(760px, 92%);
+  margin:0 auto;
+  text-align:left;
+}
+
+.item{
+  background:#fff;
+  border:1px solid rgba(0,0,0,0.06);
+  border-radius:14px;
+  padding:14px 16px;
+  margin:10px 0;
+  box-shadow:0 8px 22px rgba(0,0,0,0.06);
+}
+
+.item a{
+  color:var(--blue);
+  text-decoration:none;
+  font-weight:800;
+}
+
+.item a:hover{
+  text-decoration:underline;
+}
 
 /* =========================
    Interactions: hover glow + press
    ========================= */
-
-/* Choice tiles (Year/Subject/Options) */
 .year,
-.subject{
-  transition: transform 120ms ease, box-shadow 160ms ease, filter 160ms ease;
+.subject,
+.topbarLogout,
+.btnRed,
+.form button{
+  transition: transform 120ms ease, box-shadow 160ms ease, filter 160ms ease, opacity 160ms ease;
 }
 
 .year:hover,
-.subject:hover{
-  box-shadow: 0 10px 24px rgba(1, 33, 105, 0.18);
-  transform: translateY(-1px);
-}
-
-/* Logout pill + Back button */
-.topbarLogout,
-.btnRed{
-  transition: transform 120ms ease, box-shadow 160ms ease, filter 160ms ease;
-}
-
+.subject:hover,
 .topbarLogout:hover,
-.btnRed:hover{
-  box-shadow: 0 10px 24px rgba(1, 33, 105, 0.20);
-  transform: translateY(-1px);
+.btnRed:hover,
+.form button:hover{
+  box-shadow:0 10px 24px rgba(1,33,105,0.20);
+  transform:translateY(-1px);
+}
 
-  /* Press / tap feel */
 .year:active,
 .subject:active,
 .topbarLogout:active,
-.btnRed:active{
-  transform: translateY(0px) scale(0.985);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.10);
-}
+.btnRed:active,
+.form button:active{
+  transform:translateY(0px) scale(0.985);
+  box-shadow:0 6px 14px rgba(0,0,0,0.10);
 }
 
 /* =========================
-   Global footer
+   Reusable global footer placeholder
    ========================= */
-.siteFooter{
+#siteFooter{
+  max-width:1200px;
+  margin:46px auto 22px;
+  padding:0 26px;
   text-align:center;
-  font-size:13px;
   color:var(--muted);
-  margin:40px 0 20px;
-  opacity:0.9;
+  font-size:13px;
+}
+
+.footerInner{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+  opacity:0.92;
+}
+
+.footerLinks a{
+  color:var(--muted);
+  text-decoration:none;
+  font-weight:700;
+}
+
+.footerLinks a:hover{
+  color:var(--blue);
+  text-decoration:underline;
+}
+
+.footerSep{
+  margin:0 6px;
+  opacity:0.7;
 }
