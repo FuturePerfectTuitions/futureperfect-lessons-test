@@ -70,7 +70,7 @@ body::before {
 /* Logo perfectly centered vertically */
 /* Logo: slightly bigger + optical nudge */
 .topbarLogo{
-  height: 48px;              /* bigger (was 42px) */
+  height: 52px;              /* bigger (was 42px) */
   width: auto;
   display: block;
   transform: translateY(2px); /* nudges it down to align with the pill */
