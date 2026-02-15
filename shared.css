@@ -11,7 +11,22 @@
 .card.wide{
   position: relative;
 }
+/* =========================
+   Login page header logo (index.html)
+   ========================= */
+.header{
+  text-align:center;
+  margin-bottom: 10px;
+}
 
+.logo{
+  height: 72px;         /* slightly bigger than before */
+  width: auto;
+  max-width: 100%;
+  display: block;
+  margin: 0 auto 18px;
+  object-fit: contain;
+}
 /* Accent underline under centered page heading */
 .pageHeading{
   position: relative;
