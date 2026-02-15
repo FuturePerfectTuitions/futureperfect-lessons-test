@@ -8,7 +8,6 @@
 </head>
 
 <body>
-
   <div class="topbar">
     <img src="assets/fpt-logo.png" class="topbarLogo" alt="Future Perfect" />
     <button class="topbarLogout" onclick="logout()">Log out</button>
@@ -16,19 +15,17 @@
 
   <main class="appMain">
     <div class="card wide">
-
       <div class="centerBlock">
         <div class="pageHeading">Select Year</div>
         <div id="years" class="choices"></div>
         <div id="error"></div>
       </div>
-
     </div>
 
-   <div class="siteFooter">
-  © Future Perfect Tuitions 2026
-</div> 
+    <div id="siteFooter"></div>
   </main>
+
+  <script src="footer.js"></script>
 
   <script>
     const WORKER_BASE =
@@ -51,8 +48,6 @@
     }
 
     function yearLabel(code) {
-      // Y4 -> Year 4
-      // Y4_11plus -> Year 4 11+
       const match = code.match(/^Y(\d)(?:_(11plus))?/);
       if (!match) return code;
 
