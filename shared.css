@@ -1,8 +1,3 @@
-/* =========================
-   Future Perfect Shared CSS
-   Thin Airmail Border Style
-   ========================= */
-
 :root {
   --red: #C8102E;
   --blue: #012169;
@@ -12,7 +7,6 @@
   --muted: #6b7280;
 }
 
-/* Reset */
 * { box-sizing: border-box; }
 
 body {
@@ -22,16 +16,13 @@ body {
   background: var(--bg);
 }
 
-/* =========================
-   Thin Airmail Border
-   ========================= */
+/* Airmail border */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
-  padding: 10px; /* thickness of border */
-
+  padding: 10px;
   background:
     repeating-linear-gradient(
       135deg,
@@ -44,7 +35,6 @@ body::before {
       white 36px,
       white 48px
     );
-
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -52,9 +42,7 @@ body::before {
   mask-composite: exclude;
 }
 
-/* =========================
-   Top bar (logo left, logout right)
-   ========================= */
+/* ========= Top bar ========= */
 .topbar {
   max-width: 1200px;
   margin: 22px auto 0;
@@ -64,14 +52,15 @@ body::before {
   justify-content: space-between;
 }
 
-.brand-logo {
+.topbarLogo {
   height: 44px;
   width: auto;
   display: block;
 }
 
-.logout {
+.topbarLogout {
   width: auto;
+  margin: 0;
   border: none;
   cursor: pointer;
   background: var(--blue);
@@ -82,11 +71,9 @@ body::before {
   border-radius: 16px;
 }
 
-.logout:hover { opacity: 0.92; }
+.topbarLogout:hover { opacity: 0.92; }
 
-/* =========================
-   Card Layout
-   ========================= */
+/* ========= Card ========= */
 .card {
   max-width: 620px;
   margin: 80px auto;
@@ -97,28 +84,17 @@ body::before {
   text-align: center;
 }
 
-/* Wider card for subject/options/lessons pages */
 .card.wide {
   max-width: 920px;
   padding: 46px 56px;
   text-align: left;
-  margin-top: 28px; /* sits closer to the topbar like your required screenshot */
+  margin-top: 28px;
 }
 
-/* =========================
-   Header logo (legacy / other pages)
-   ========================= */
-.header {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
+/* Legacy header (used on other pages) */
+.header { text-align: center; margin-bottom: 10px; }
 .header .logo { height: 48px; }
-
-.logo {
-  height: 46px;
-  margin-bottom: 18px;
-}
+.logo { height: 46px; margin-bottom: 18px; }
 
 /* Typography */
 h1 {
@@ -152,10 +128,7 @@ h1 {
 }
 
 /* Form */
-.form {
-  text-align: left;
-  margin-top: 20px;
-}
+.form { text-align: left; margin-top: 20px; }
 
 label {
   display: block;
@@ -172,7 +145,8 @@ input {
   font-size: 16px;
 }
 
-button {
+/* IMPORTANT: only style form buttons globally */
+.form button {
   width: 100%;
   margin-top: 22px;
   padding: 14px;
@@ -185,7 +159,7 @@ button {
   cursor: pointer;
 }
 
-button:hover { opacity: 0.92; }
+.form button:hover { opacity: 0.92; }
 
 /* Error box */
 .error {
@@ -205,9 +179,7 @@ button:hover { opacity: 0.92; }
   line-height: 1.5;
 }
 
-/* =========================
-   Year / Subject buttons
-   ========================= */
+/* Year / Subject buttons */
 .year,
 .subject {
   display: block;
@@ -225,7 +197,7 @@ button:hover { opacity: 0.92; }
 .year:hover,
 .subject:hover { opacity: 0.92; }
 
-/* Make the subject button look like your “Required” screenshot */
+/* Subject button sizing like your required screenshot */
 .choices {
   display: flex;
   flex-direction: column;
@@ -240,9 +212,7 @@ button:hover { opacity: 0.92; }
   font-size: 16px;
 }
 
-/* =========================
-   Bottom-right red Back button (inside card)
-   ========================= */
+/* Bottom-right red Back button */
 .cardFooter {
   display: flex;
   justify-content: flex-end;
