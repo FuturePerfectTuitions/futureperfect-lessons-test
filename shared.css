@@ -1,33 +1,31 @@
-:root {
-  --red: #C8102E;
-  --blue: #012169;
-  --bg: #f4f6f8;
-  --card: #ffffff;
-  --text: #0b1b33;
-  --muted: #6b7280;
+:root{
+  --red:#C8102E;
+  --blue:#012169;
+  --bg:#f4f6f8;
+  --card:#ffffff;
+  --text:#0b1b33;
+  --muted:#6b7280;
 }
 
 /* Reset */
-* {
-  box-sizing: border-box;
-}
+*{ box-sizing:border-box; }
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  color: var(--text);
-  background: var(--bg);
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  color:var(--text);
+  background:var(--bg);
 }
 
 /* =========================
    Thin Airmail Border
    ========================= */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  padding: 10px;
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  padding:10px;
 
   background:
     repeating-linear-gradient(
@@ -45,245 +43,235 @@ body::before {
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+}
+
+/* =========================
+   App Shell
+   ========================= */
+.appMain{
+  max-width:1200px;
+  margin:0 auto;
+  padding:28px 26px 60px;
 }
 
 /* =========================
    Top bar (white band)
    ========================= */
-.topbar {
-  width: 100%;
-  height: 86px;
-  background: #ffffff;
+.topbar{
+  width:100%;
+  height:90px;
+  background:#ffffff;
 
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 
-  padding: 0 36px;
+  padding:0 36px;
 
-  /* subtle brand divider */
-  border-bottom: 2px solid rgba(1, 33, 105, 0.18);
+  /* subtle brand divider under the band */
+  border-bottom:2px solid rgba(1,33,105,0.18);
+  box-shadow:0 2px 10px rgba(0,0,0,0.04);
+
+  position:sticky;
+  top:0;
+  z-index:50;
 }
 
-/* Logo perfectly centered vertically */
-/* Logo: slightly bigger + optical nudge */
+/* Logo: slightly bigger + optical centering */
 .topbarLogo{
-  height: 52px;              /* bigger (was 42px) */
-  width: auto;
-  display: block;
-  transform: translateY(2px); /* nudges it down to align with the pill */
+  height:52px;
+  width:auto;
+  display:block;
+  object-fit:contain;
+
+  /* optical tweak (PNG padding) */
+  transform:translateY(2px);
 }
 
-/* Logout pill: keep same height and ensure text is optically centered */
+/* Logout pill: fixed height for true vertical alignment */
 .topbarLogout{
-  height: 46px;              /* small tweak from 44 -> 46 */
-  padding: 0 24px;
-  border: none;
-  cursor: pointer;
-  background: var(--blue);
-  color: #fff;
-  font-weight: 700;
-  font-size: 16px;
-  border-radius: 999px;
+  height:46px;
+  padding:0 24px;
+  border:none;
+  cursor:pointer;
 
-  display: flex;
-  align-items: center;
-  line-height: 1;            /* prevents font metrics pushing it off */
+  background:var(--blue);
+  color:#fff;
+  font-weight:700;
+  font-size:16px;
+  border-radius:999px;
+
+  display:flex;
+  align-items:center;
+  line-height:1;
 }
 
-.topbarLogout:hover {
-  opacity: 0.92;
-}
+.topbarLogout:hover{ opacity:0.92; }
 
 /* =========================
    Card Layout
    ========================= */
-.card {
-  max-width: 620px;
-  margin: 80px auto;
-  padding: 48px 40px;
-  background: var(--card);
-  border-radius: 26px;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.08);
-  text-align: center;
+.card{
+  max-width:620px;
+  margin:44px auto 0;
+  padding:48px 40px;
+  background:var(--card);
+  border-radius:26px;
+  box-shadow:0 25px 60px rgba(0,0,0,0.08);
+  text-align:center;
 }
 
-.card.wide {
-  max-width: 920px;
-  padding: 46px 56px;
-  text-align: left;
-  margin-top: 28px;
-}
-
-/* =========================
-   Header logo (legacy pages)
-   ========================= */
-.header {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.header .logo {
-  height: 48px;
-}
-
-.logo {
-  height: 46px;
-  margin-bottom: 18px;
+.card.wide{
+  max-width:980px;
+  padding:54px 64px;
+  text-align:left;
 }
 
 /* =========================
    Typography
    ========================= */
-h1 {
-  margin: 10px 0 10px;
-  font-size: 34px;
+h1{
+  margin:10px 0 10px;
+  font-size:34px;
 }
 
-.sub {
-  color: var(--muted);
-  margin-bottom: 28px;
+.sub{
+  color:var(--muted);
+  margin-bottom:28px;
 }
 
-/* Subject page headings */
-.yearHeading {
-  margin: 0;
-  font-size: 42px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+/* App page headings */
+.yearHeading{
+  margin:0;
+  font-size:44px;
+  font-weight:800;
+  letter-spacing:-0.02em;
 }
 
-.centerBlock {
-  text-align: center;
-  margin-top: 18px;
+.centerBlock{
+  text-align:center;
+  margin-top:18px;
 }
 
-.pageHeading {
-  margin: 12px 0 18px;
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+.pageHeading{
+  margin:10px 0 18px;
+  font-size:30px;
+  font-weight:800;
+  letter-spacing:-0.01em;
+  text-align:center;
 }
 
 /* =========================
-   Form styling
+   Form (login page)
    ========================= */
-.form {
-  text-align: left;
-  margin-top: 20px;
+.form{
+  text-align:left;
+  margin-top:20px;
 }
 
-label {
-  display: block;
-  font-weight: 600;
-  margin: 16px 0 6px;
+label{
+  display:block;
+  font-weight:600;
+  margin:16px 0 6px;
 }
 
-input {
-  width: 100%;
-  padding: 14px;
-  border-radius: 14px;
-  border: 1px solid #e5e7eb;
-  background: #eef2f7;
-  font-size: 16px;
+input{
+  width:100%;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid #e5e7eb;
+  background:#eef2f7;
+  font-size:16px;
 }
 
-/* Only form buttons are full width */
-.form button {
-  width: 100%;
-  margin-top: 22px;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  background: var(--blue);
-  color: white;
-  font-size: 17px;
-  font-weight: 600;
-  cursor: pointer;
+.form button{
+  width:100%;
+  margin-top:22px;
+  padding:14px;
+  border-radius:14px;
+  border:none;
+  background:var(--blue);
+  color:white;
+  font-size:17px;
+  font-weight:600;
+  cursor:pointer;
 }
 
-.form button:hover {
-  opacity: 0.92;
-}
+.form button:hover{ opacity:0.92; }
 
 /* =========================
    Error box
    ========================= */
-.error {
-  margin-top: 16px;
-  padding: 14px;
-  background: #ffe3e3;
-  color: #7a0000;
-  border-radius: 12px;
-  text-align: center;
+.error{
+  margin-top:16px;
+  padding:14px;
+  background:#ffe3e3;
+  color:#7a0000;
+  border-radius:12px;
+  text-align:center;
 }
 
 /* Footer text */
-.footer {
-  margin-top: 28px;
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.5;
+.footer{
+  margin-top:28px;
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.5;
 }
 
 /* =========================
-   Year / Subject buttons
+   Buttons / Choices
    ========================= */
 .year,
-.subject {
-  display: block;
-  padding: 14px;
-  margin: 10px 0;
-  border-radius: 12px;
-  background: var(--blue);
-  color: white;
-  text-align: center;
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: 600;
+.subject{
+  display:block;
+  padding:16px;
+  margin:12px 0;
+  border-radius:14px;
+  background:var(--blue);
+  color:white;
+  text-align:center;
+  text-decoration:none;
+  font-size:16px;
+  font-weight:700;
 }
 
 .year:hover,
-.subject:hover {
-  opacity: 0.92;
+.subject:hover{ opacity:0.92; }
+
+/* Centered choice buttons like your Subject page */
+.choices{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
-/* Subject buttons centered */
-.choices {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.choices .subject {
-  width: min(680px, 88%);
-  margin: 14px 0;
-  border-radius: 14px;
-  padding: 18px 16px;
-  font-size: 16px;
+.choices .subject,
+.choices .year{
+  width:min(720px, 90%);
+  padding:18px 16px;
 }
 
 /* =========================
-   Bottom-right red Back button
+   Bottom-right action row
    ========================= */
-.cardFooter {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 40px;
+.cardFooter{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:42px;
 }
 
-.btnRed {
-  display: inline-block;
-  background: var(--red);
-  color: #fff;
-  text-decoration: none;
-  font-weight: 700;
-  padding: 12px 26px;
-  border-radius: 14px;
+/* Red back button */
+.btnRed{
+  display:inline-block;
+  background:var(--red);
+  color:#fff;
+  text-decoration:none;
+  font-weight:800;
+  padding:12px 26px;
+  border-radius:14px;
 }
 
-.btnRed:hover {
-  opacity: 0.92;
-}
+.btnRed:hover{ opacity:0.92; }
