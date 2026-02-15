@@ -8,21 +8,30 @@
   <link rel="stylesheet" href="shared.css" />
 </head>
 <body>
-  <div class="card">
 
-    <div class="header">
-      <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect Tuitions" />
+  <!-- Top header bar (outside the card) -->
+  <div class="topbar">
+    <div class="brand">
+      <img src="assets/fpt-logo.png" class="brand-logo" alt="Future Perfect Tuitions" />
+    </div>
+    <button class="logout" onclick="logout()">Log out</button>
+  </div>
+
+  <!-- Main card -->
+  <div class="card wide">
+
+    <h1 id="yearHeading" class="yearHeading">Year</h1>
+
+    <div class="centerBlock">
+      <h2 class="pageHeading">Select Subject</h2>
+      <div id="subjects" class="choices"></div>
+      <div id="error"></div>
     </div>
 
-    <div class="top">
-      <a id="backBtn" class="btn">← Back</a>
-      <button class="btn primary" onclick="logout()">Log out</button>
+    <div class="cardFooter">
+      <a id="backBtn" class="btnRed">Back</a>
     </div>
 
-    <h1 id="title">Select Subject</h1>
-
-    <div id="subjects"></div>
-    <div id="error"></div>
   </div>
 
   <script>
@@ -48,9 +57,21 @@
     const params = new URLSearchParams(location.search);
     const year = params.get("year") || "";
 
-    document.getElementById("title").textContent =
-      "Select Subject – " + year.replace("Y", "Year ");
+    // Year title inside card: "Year 3" / "Year 4 11+"
+    function yearLabel(code) {
+      const match = code.match(/^Y(\d)(?:_(11plus))?/);
+      if (!match) return code;
 
+      const yearNum = match[1];
+      const is11 = match[2];
+
+      if (is11) return "Year " + yearNum + " 11+";
+      return "Year " + yearNum;
+    }
+
+    document.getElementById("yearHeading").textContent = yearLabel(year);
+
+    // Back button bottom-right goes back to chooser
     document.getElementById("backBtn").href = "chooser.html";
 
     function subjectLabel(s) {
