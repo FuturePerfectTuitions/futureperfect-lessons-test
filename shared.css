@@ -362,40 +362,39 @@ input{
   transform:translateY(0px) scale(0.985);
   box-shadow:0 6px 14px rgba(0,0,0,0.10);
 }
-
 /* =========================
-   Reusable global footer placeholder
+   Global footer (portal style)
    ========================= */
 #siteFooter{
-  max-width:1200px;
-  margin:46px auto 22px;
-  padding:0 26px;
-  text-align:center;
-  color:var(--muted);
-  font-size:13px;
+  margin-top: 28px;
+  padding: 16px 16px 22px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
 }
 
-.footerInner{
-  display:flex;
-  gap:10px;
-  justify-content:center;
-  align-items:center;
-  flex-wrap:wrap;
-  opacity:0.92;
+.siteFooterRow{
+  display: inline-flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  font-weight: 700;
+  opacity: 0.9;
 }
 
-.footerLinks a{
-  color:var(--muted);
-  text-decoration:none;
-  font-weight:700;
+.siteFooterRow a{
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 700;
 }
 
-.footerLinks a:hover{
-  color:var(--blue);
-  text-decoration:underline;
+.siteFooterRow a:hover{
+  color: var(--blue);
+  text-decoration: underline;
 }
 
 .footerSep{
-  margin:0 6px;
-  opacity:0.7;
+  opacity: 0.7;
 }
+
