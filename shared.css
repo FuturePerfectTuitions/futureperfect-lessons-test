@@ -7,7 +7,10 @@
   --muted: #6b7280;
 }
 
-* { box-sizing: border-box; }
+/* Reset */
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -16,13 +19,16 @@ body {
   background: var(--bg);
 }
 
-/* Airmail border */
+/* =========================
+   Thin Airmail Border
+   ========================= */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   padding: 10px;
+
   background:
     repeating-linear-gradient(
       135deg,
@@ -35,6 +41,7 @@ body::before {
       white 36px,
       white 48px
     );
+
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -42,7 +49,9 @@ body::before {
   mask-composite: exclude;
 }
 
-/* ========= Top bar ========= */
+/* =========================
+   Top bar (logo left, logout right)
+   ========================= */
 .topbar {
   max-width: 1200px;
   margin: 22px auto 0;
@@ -53,8 +62,10 @@ body::before {
 }
 
 .topbarLogo {
-  height: 44px;
+  height: 46px;
   width: auto;
+  max-width: 420px;
+  object-fit: contain;
   display: block;
 }
 
@@ -71,9 +82,13 @@ body::before {
   border-radius: 16px;
 }
 
-.topbarLogout:hover { opacity: 0.92; }
+.topbarLogout:hover {
+  opacity: 0.92;
+}
 
-/* ========= Card ========= */
+/* =========================
+   Card Layout
+   ========================= */
 .card {
   max-width: 620px;
   margin: 80px auto;
@@ -91,12 +106,26 @@ body::before {
   margin-top: 28px;
 }
 
-/* Legacy header (used on other pages) */
-.header { text-align: center; margin-bottom: 10px; }
-.header .logo { height: 48px; }
-.logo { height: 46px; margin-bottom: 18px; }
+/* =========================
+   Header logo (legacy pages)
+   ========================= */
+.header {
+  text-align: center;
+  margin-bottom: 10px;
+}
 
-/* Typography */
+.header .logo {
+  height: 48px;
+}
+
+.logo {
+  height: 46px;
+  margin-bottom: 18px;
+}
+
+/* =========================
+   Typography
+   ========================= */
 h1 {
   margin: 10px 0 10px;
   font-size: 34px;
@@ -127,8 +156,13 @@ h1 {
   letter-spacing: -0.02em;
 }
 
-/* Form */
-.form { text-align: left; margin-top: 20px; }
+/* =========================
+   Form styling
+   ========================= */
+.form {
+  text-align: left;
+  margin-top: 20px;
+}
 
 label {
   display: block;
@@ -145,7 +179,7 @@ input {
   font-size: 16px;
 }
 
-/* IMPORTANT: only style form buttons globally */
+/* Only form buttons are full width */
 .form button {
   width: 100%;
   margin-top: 22px;
@@ -159,9 +193,13 @@ input {
   cursor: pointer;
 }
 
-.form button:hover { opacity: 0.92; }
+.form button:hover {
+  opacity: 0.92;
+}
 
-/* Error box */
+/* =========================
+   Error box
+   ========================= */
 .error {
   margin-top: 16px;
   padding: 14px;
@@ -179,7 +217,9 @@ input {
   line-height: 1.5;
 }
 
-/* Year / Subject buttons */
+/* =========================
+   Year / Subject buttons
+   ========================= */
 .year,
 .subject {
   display: block;
@@ -195,9 +235,11 @@ input {
 }
 
 .year:hover,
-.subject:hover { opacity: 0.92; }
+.subject:hover {
+  opacity: 0.92;
+}
 
-/* Subject button sizing like your required screenshot */
+/* Subject buttons centered */
 .choices {
   display: flex;
   flex-direction: column;
@@ -212,7 +254,9 @@ input {
   font-size: 16px;
 }
 
-/* Bottom-right red Back button */
+/* =========================
+   Bottom-right red Back button
+   ========================= */
 .cardFooter {
   display: flex;
   justify-content: flex-end;
@@ -229,4 +273,16 @@ input {
   border-radius: 14px;
 }
 
-.btnRed:hover { opacity: 0.92; }
+.btnRed:hover {
+  opacity: 0.92;
+}
+
+/* =========================
+   Hard overrides (prevent giant logo)
+   ========================= */
+.topbarLogo {
+  height: 46px !important;
+  width: auto !important;
+  max-width: 420px;
+  object-fit: contain;
+}
