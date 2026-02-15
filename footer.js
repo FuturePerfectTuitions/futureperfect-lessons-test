@@ -1,5 +1,4 @@
-// footer.js (Future Perfect Tuitions portal)
-
+// footer.js — Future Perfect Tuitions portal footer (auto year + links)
 (function () {
   const el = document.getElementById("siteFooter");
   if (!el) return;
