@@ -1,0 +1,103 @@
+<!-- privacy.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Privacy | Future Perfect Tuitions</title>
+  <link rel="stylesheet" href="shared.css" />
+</head>
+<body>
+  <div class="topbar">
+    <img src="assets/fpt-logo.png" class="topbarLogo" alt="Future Perfect Tuitions" />
+    <button class="topbarLogout" type="button" onclick="goBack()">Back</button>
+  </div>
+
+  <main class="appMain">
+    <div class="card wide">
+      <h1 class="yearHeading">Privacy Policy</h1>
+      <div style="margin-top:10px; color:var(--muted); font-weight:700;">Future Perfect Tuitions</div>
+      <div style="margin-top:6px; color:var(--muted);">Last updated: <span id="lastUpdated"></span></div>
+
+      <div style="margin-top:22px; line-height:1.75; color:var(--text);">
+        <p>
+          Future Perfect Tuitions (“we”, “us”, “our”) is committed to protecting the privacy of students and parents.
+          This policy explains how we collect, use, and store personal information when you use our tuition services
+          and the student lesson portal.
+        </p>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">1) Information we collect</h2>
+        <p>We may collect the following information, where relevant:</p>
+        <ul style="margin:10px 0 0 20px;">
+          <li><strong>Parents/guardians:</strong> name, email address, phone number, billing details and payment records.</li>
+          <li><strong>Students:</strong> name, year group, learning notes, assessment outcomes, and lesson allocations.</li>
+          <li><strong>Portal access:</strong> username and a password/access code (used to control access to content).</li>
+        </ul>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">2) How we use your information</h2>
+        <p>We use personal data to:</p>
+        <ul style="margin:10px 0 0 20px;">
+          <li>provide tuition services and learning support;</li>
+          <li>manage classes, lesson allocations, and student progress;</li>
+          <li>communicate with parents/guardians about sessions, homework, and progress;</li>
+          <li>provide access to the lesson portal;</li>
+          <li>process payments and manage administration;</li>
+          <li>improve the quality of our teaching and resources.</li>
+        </ul>
+        <p style="margin-top:12px;">
+          We do <strong>not</strong> sell personal data or share it with third parties for marketing.
+        </p>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">3) Lesson portal and video content</h2>
+        <p>
+          The portal is intended for registered students only. Lesson videos and learning resources are proprietary material
+          belonging to Future Perfect Tuitions and must not be shared, copied, recorded, or distributed outside of Future Perfect Tuitions.
+        </p>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">4) Data storage and security</h2>
+        <p>
+          We take reasonable steps to protect personal data using secure systems and restricted access. However, no system can
+          guarantee absolute security. Please keep login details confidential.
+        </p>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">5) How long we keep data</h2>
+        <p>
+          We keep student and parent data while the student is enrolled and for a reasonable period afterwards for records and administration.
+          You may request deletion of your data where appropriate and where we are not required to retain it for legal or accounting purposes.
+        </p>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">6) Your rights</h2>
+        <p>Under UK data protection law, you have rights including:</p>
+        <ul style="margin:10px 0 0 20px;">
+          <li>to access the personal data we hold about you;</li>
+          <li>to correct inaccurate or incomplete data;</li>
+          <li>to request deletion of data in certain circumstances;</li>
+          <li>to object to or restrict certain processing.</li>
+        </ul>
+
+        <h2 style="margin:26px 0 10px; font-size:20px;">7) Contact</h2>
+        <p>
+          If you have questions about this policy or wish to make a request, please contact:
+        </p>
+        <p style="margin:10px 0 0; color:var(--muted);">
+          <strong>Future Perfect Tuitions</strong><br />
+          Email: <em>sej@futureperfect.education</em><br />
+          Phone: <em>(0044)7583391800</em>
+        </p>
+      </div>
+    </div>
+
+    <div id="siteFooter"></div>
+  </main>
+
+  <script src="footer.js"></script>
+  <script>
+    function goBack(){
+      history.length > 1 ? history.back() : (location.href = "index.html");
+    }
+    // optional: show a friendly date without needing manual updates
+    document.getElementById("lastUpdated").textContent =
+      new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  </script>
+</body>
+</html>
