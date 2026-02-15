@@ -52,13 +52,17 @@ body::before {
 /* =========================
    Top bar (logo left, logout right)
    ========================= */
+/* =========================
+   Top bar (white band)
+   ========================= */
 .topbar {
-  max-width: 1200px;
-  margin: 22px auto 0;
-  padding: 0 26px;
+  width: 100%;
+  background: #ffffff;
+  padding: 14px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
 }
 
 .topbarLogo {
@@ -150,10 +154,10 @@ h1 {
 }
 
 .pageHeading {
-  margin: 16px 0 18px;
-  font-size: 40px;
+  margin: 12px 0 18px;
+  font-size: 30px;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 /* =========================
