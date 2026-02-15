@@ -4,24 +4,27 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Select Year</title>
-
   <link rel="stylesheet" href="shared.css" />
 </head>
 
 <body>
-  <div class="card">
 
-    <div class="topbar">
-      <img src="assets/fpt-logo.png" class="logo" alt="Future Perfect" />
-      <button class="logout" onclick="logout()">Log out</button>
-    </div>
-
-    <h1>Select Year</h1>
-
-    <div id="years"></div>
-    <div id="error"></div>
-
+  <div class="topbar">
+    <img src="assets/fpt-logo.png" class="topbarLogo" alt="Future Perfect" />
+    <button class="topbarLogout" onclick="logout()">Log out</button>
   </div>
+
+  <main class="appMain">
+    <div class="card wide">
+
+      <div class="centerBlock">
+        <div class="pageHeading">Select Year</div>
+        <div id="years" class="choices"></div>
+        <div id="error"></div>
+      </div>
+
+    </div>
+  </main>
 
   <script>
     const WORKER_BASE =
@@ -62,19 +65,14 @@
       try {
         const res = await fetch(
           WORKER_BASE + "/years",
-          {
-            headers: {
-              Authorization: authHeader()
-            }
-          }
+          { headers: { Authorization: authHeader() } }
         );
 
-        if (!res.ok) {
-          throw new Error("Not authorised or failed to load.");
-        }
+        if (!res.ok) throw new Error("Not authorised or failed to load.");
 
         const years = await res.json();
         const container = document.getElementById("years");
+        container.innerHTML = "";
 
         years.forEach(year => {
           const a = document.createElement("a");
