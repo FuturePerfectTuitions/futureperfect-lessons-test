@@ -4,33 +4,32 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Select Subject</title>
-
   <link rel="stylesheet" href="shared.css" />
 </head>
 <body>
 
-  <!-- Top bar (outside card) -->
   <div class="topbar">
     <img src="assets/fpt-logo.png" class="topbarLogo" alt="Future Perfect Tuitions" />
     <button class="topbarLogout" onclick="logout()">Log out</button>
   </div>
 
-  <!-- Main card -->
-  <div class="card wide">
+  <main class="appMain">
+    <div class="card wide">
 
-    <h1 id="yearHeading" class="yearHeading">Year</h1>
+      <h1 id="yearHeading" class="yearHeading">Year</h1>
 
-    <div class="centerBlock">
-      <div class="pageHeading">Select Subject</div>
-      <div id="subjects" class="choices"></div>
-      <div id="error"></div>
+      <div class="centerBlock">
+        <div class="pageHeading">Select Subject</div>
+        <div id="subjects" class="choices"></div>
+        <div id="error"></div>
+      </div>
+
+      <div class="cardFooter">
+        <a id="backBtn" class="btnRed">Back</a>
+      </div>
+
     </div>
-
-    <div class="cardFooter">
-      <a id="backBtn" class="btnRed">Back</a>
-    </div>
-
-  </div>
+  </main>
 
   <script>
     const WORKER_BASE =
@@ -65,8 +64,6 @@
     }
 
     document.getElementById("yearHeading").textContent = yearLabel(year);
-
-    // Back goes to year chooser
     document.getElementById("backBtn").href = "chooser.html";
 
     function subjectLabel(s) {
