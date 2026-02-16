@@ -395,23 +395,34 @@
     }
 
     function openLesson(lesson){
-      if (!lesson || !lesson.sp) return;
+  if (!lesson || !lesson.sp) return;
 
-      playerTitle.textContent = lesson.title || "Lesson";
-      player.src = screenpalEmbedUrl(lesson.sp);
+  // Close any open lesson lists and reset buttons
+  document.querySelectorAll(".dashList.on").forEach(el => {
+    el.classList.remove("on");
+    el.innerHTML = "";
+  });
 
-      const desc = (lesson.desc || "").trim();
-      if (desc) {
-        playerDesc.style.display = "block";
-        playerDesc.textContent = desc;
-      } else {
-        playerDesc.style.display = "none";
-        playerDesc.textContent = "";
-      }
+  document.querySelectorAll(".dashBtn[aria-pressed='true']").forEach(btn => {
+    btn.setAttribute("aria-pressed", "false");
+  });
 
-      playerWrap.style.display = "block";
-      playerWrap.scrollIntoView({ behavior:"smooth", block:"start" });
-    }
+  // Load video
+  playerTitle.textContent = lesson.title || "Lesson";
+  player.src = screenpalEmbedUrl(lesson.sp);
+
+  const desc = (lesson.desc || "").trim();
+  if (desc) {
+    playerDesc.style.display = "block";
+    playerDesc.textContent = desc;
+  } else {
+    playerDesc.style.display = "none";
+    playerDesc.textContent = "";
+  }
+
+  playerWrap.style.display = "block";
+  playerWrap.scrollIntoView({ behavior:"smooth", block:"start" });
+}
 
     function closePlayer(){
       player.src = "about:blank";
@@ -714,7 +725,7 @@
         btn.addEventListener("click", async () => {
   const isOpen = btn.getAttribute("aria-pressed") === "true";
 
-  // If already open → close it
+  // If already open → close it (no scrolling)
   if (isOpen) {
     btn.setAttribute("aria-pressed", "false");
     listWrap.classList.remove("on");
@@ -722,12 +733,16 @@
     return;
   }
 
-  // Otherwise open it and close others
+  // Otherwise open it and close other buttons in this section
   [...btnRow.querySelectorAll("button")].forEach(b => b.setAttribute("aria-pressed", "false"));
   btn.setAttribute("aria-pressed", "true");
 
+  // Show list
   listWrap.classList.add("on");
   listWrap.innerHTML = `<div class="item">Loading…</div>`;
+
+  // Keep the clicked button visible without jumping the page
+  btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
 
   try {
     const lessons = await getLessons(year, subject, option);
@@ -735,8 +750,6 @@
   } catch (e) {
     listWrap.innerHTML = `<div class="item" style="color:var(--muted); font-weight:900;">Failed to load.</div>`;
   }
-
-  section.scrollIntoView({ behavior:"smooth", block:"start" });
 });
 
             btnRow.appendChild(btn);
