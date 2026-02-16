@@ -711,24 +711,33 @@
             btn.textContent = optionLabel(option);
             btn.setAttribute("aria-pressed", "false");
 
-            btn.addEventListener("click", async () => {
-              // toggle pressed state among sibling buttons
-              [...btnRow.querySelectorAll("button")].forEach(b => b.setAttribute("aria-pressed", "false"));
-              btn.setAttribute("aria-pressed", "true");
+        btn.addEventListener("click", async () => {
+  const isOpen = btn.getAttribute("aria-pressed") === "true";
 
-              // show list
-              listWrap.classList.add("on");
-              listWrap.innerHTML = `<div class="item">Loading…</div>`;
+  // If already open → close it
+  if (isOpen) {
+    btn.setAttribute("aria-pressed", "false");
+    listWrap.classList.remove("on");
+    listWrap.innerHTML = "";
+    return;
+  }
 
-              try {
-                const lessons = await getLessons(year, subject, option);
-                renderLessonList(listWrap, lessons);
-              } catch (e) {
-                listWrap.innerHTML = `<div class="item" style="color:var(--muted); font-weight:900;">Failed to load.</div>`;
-              }
+  // Otherwise open it and close others
+  [...btnRow.querySelectorAll("button")].forEach(b => b.setAttribute("aria-pressed", "false"));
+  btn.setAttribute("aria-pressed", "true");
 
-              section.scrollIntoView({ behavior:"smooth", block:"start" });
-            });
+  listWrap.classList.add("on");
+  listWrap.innerHTML = `<div class="item">Loading…</div>`;
+
+  try {
+    const lessons = await getLessons(year, subject, option);
+    renderLessonList(listWrap, lessons);
+  } catch (e) {
+    listWrap.innerHTML = `<div class="item" style="color:var(--muted); font-weight:900;">Failed to load.</div>`;
+  }
+
+  section.scrollIntoView({ behavior:"smooth", block:"start" });
+});
 
             btnRow.appendChild(btn);
           });
