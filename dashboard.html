@@ -375,7 +375,7 @@
   <main class="appMain">
     <div class="card wide">
       <h1 class="yearHeading" id="dashTitle">Dashboard</h1>
-      <div class="dashWelcome" id="dashWelcome">Loading…</div>
+      <h1 class="yearHeading" id="dashTitle">Loading…</h1>
 
       <!-- Global search -->
       <div class="searchWrap">
@@ -827,7 +827,7 @@
       const studentName = (me && me.name) ? me.name : username;
 
       document.getElementById("dashTitle").textContent = `${studentName}'s Dashboard`;
-      document.getElementById("dashWelcome").textContent = `Welcome, ${studentName}`;
+      dashTitle.textContent = "Welcome " + username + " to your dashboard";
       document.title = `${studentName}'s Dashboard`;
 
       const years = Array.isArray(me.years) ? me.years : [];
