@@ -109,7 +109,12 @@
           div.className = "item";
 
           const a = document.createElement("a");
-         a.href = "https://screenpal.com/watch/" + encodeURIComponent(lesson.sp);
+       a.href =
+  "player.html?sp=" + encodeURIComponent(lesson.sp) +
+  "&title=" + encodeURIComponent(lesson.title) +
+  "&year=" + encodeURIComponent(year) +
+  "&subject=" + encodeURIComponent(subject) +
+  "&type=" + encodeURIComponent(type);
           a.textContent = lesson.title;
 
           div.appendChild(a);
