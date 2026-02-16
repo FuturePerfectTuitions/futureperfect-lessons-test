@@ -339,7 +339,6 @@
   </main>
 
   <script src="footer.js"></script>
-
 <script>
   const WORKER_BASE = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
@@ -397,11 +396,11 @@
   function openLesson(lesson){
     if (!lesson || !lesson.sp) return;
 
+    // Close any open lists and reset buttons
     document.querySelectorAll(".dashList.on").forEach(el => {
       el.classList.remove("on");
       el.innerHTML = "";
     });
-
     document.querySelectorAll(".dashBtn[aria-pressed='true']").forEach(btn => {
       btn.setAttribute("aria-pressed", "false");
     });
@@ -436,7 +435,10 @@
 
   async function apiJSON(path){
     const res = await fetch(WORKER_BASE + path, { headers: { Authorization: authHeader() } });
-    if (!res.ok) throw new Error(`API failed (${res.status})`);
+    if (!res.ok) {
+      const t = await res.text().catch(() => "");
+      throw new Error(`API failed (${res.status}) ${t}`);
+    }
     return await res.json();
   }
 
@@ -463,6 +465,46 @@
     return data;
   }
 
+  // ✅ THIS WAS MISSING (causing “Failed to load.”)
+  function renderLessonList(listEl, lessons){
+    listEl.innerHTML = "";
+
+    if (!Array.isArray(lessons) || lessons.length === 0){
+      const div = document.createElement("div");
+      div.className = "item";
+      div.textContent = "No lessons available.";
+      listEl.appendChild(div);
+      return;
+    }
+
+    lessons.forEach(lesson => {
+      const row = document.createElement("div");
+      row.className = "item";
+
+      // separator rows for assessments (sp:"")
+      if (!lesson.sp) {
+        const strong = document.createElement("div");
+        strong.style.fontWeight = "900";
+        strong.style.color = "var(--muted)";
+        strong.textContent = lesson.title || "";
+        row.appendChild(strong);
+        listEl.appendChild(row);
+        return;
+      }
+
+      const a = document.createElement("a");
+      a.href = "#";
+      a.textContent = lesson.title || "Lesson";
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        openLesson(lesson);
+      });
+
+      row.appendChild(a);
+      listEl.appendChild(row);
+    });
+  }
+
   // ----- Render -----
   async function buildDashboard(){
     const me = await apiJSON("/me");
@@ -476,14 +518,10 @@
     const grid = document.getElementById("dashGrid");
     grid.innerHTML = "";
 
-    // Decide where to show shared VR How-To
+    // Show shared VR How-To only once: prefer Y4 11+, else Y5 11+
     const hasY4_11 = years.includes("Y4_11plus");
     const hasY5_11 = years.includes("Y5_11plus");
-
-    const howtoYear =
-      hasY4_11 ? "Y4_11plus" :
-      hasY5_11 ? "Y5_11plus" :
-      null;
+    const howtoYear = hasY4_11 ? "Y4_11plus" : (hasY5_11 ? "Y5_11plus" : null);
 
     for (const year of years) {
       const card = document.createElement("div");
@@ -518,7 +556,6 @@
         try { options = await getOptions(year, subject); } catch { options = []; }
 
         options.forEach(option => {
-
           // Show VR_HOWTO only once in preferred year
           if (option === "howto" && year !== howtoYear) return;
 
@@ -531,6 +568,7 @@
           btn.addEventListener("click", async () => {
             const isOpen = btn.getAttribute("aria-pressed") === "true";
 
+            // Toggle close (no scrolling)
             if (isOpen) {
               btn.setAttribute("aria-pressed", "false");
               listWrap.classList.remove("on");
@@ -538,18 +576,21 @@
               return;
             }
 
+            // Close other buttons in this subject section
             [...btnRow.querySelectorAll("button")].forEach(b => b.setAttribute("aria-pressed", "false"));
             btn.setAttribute("aria-pressed", "true");
 
             listWrap.classList.add("on");
             listWrap.innerHTML = `<div class="item">Loading…</div>`;
 
-            btn.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            // Keep clicked button visible
+            btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
 
             try {
               const lessons = await getLessons(year, subject, option);
               renderLessonList(listWrap, lessons);
             } catch (e) {
+              console.error("Load failed:", year, subject, option, e);
               listWrap.innerHTML = `<div class="item" style="color:var(--muted); font-weight:900;">Failed to load.</div>`;
             }
           });
@@ -568,9 +609,11 @@
     try {
       await buildDashboard();
     } catch (e) {
+      console.error(e);
       showError("Could not load dashboard. Please log in again.");
     }
   })();
 </script>
+
 </body>
 </html>
