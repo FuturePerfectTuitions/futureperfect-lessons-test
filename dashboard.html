@@ -340,435 +340,236 @@
 
   <script src="footer.js"></script>
 
-  <script>
-    const WORKER_BASE = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+<script>
+  const WORKER_BASE = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
-    const username = sessionStorage.getItem("fpt_user");
-    const password = sessionStorage.getItem("fpt_pass");
-    if (!username || !password) location.href = "index.html";
+  const username = sessionStorage.getItem("fpt_user");
+  const password = sessionStorage.getItem("fpt_pass");
+  if (!username || !password) location.href = "index.html";
 
-    function authHeader() {
-      return "Basic " + btoa(username + ":" + password);
-    }
-
-    function logout() {
-      sessionStorage.clear();
-      location.href = "index.html";
-    }
-
-    // ----- UI helpers -----
-    function yearLabel(code) {
-      const m = String(code || "").match(/^Y(\d)(?:_(11plus))?/);
-      if (!m) return code || "";
-      return m[2] ? `Year ${m[1]} 11+` : `Year ${m[1]}`;
-    }
-
-    function subjectLabel(s) {
-      if (s === "maths") return "Maths";
-      if (s === "vr") return "Verbal Reasoning";
-      return s;
-    }
-
-    function optionLabel(o) {
-      if (o === "lessons") return "Lessons";
-      if (o === "assessments") return "Assessments";
-      if (o === "howto") return "How-To";
-      return o;
-    }
-
-    function showError(msg){
-      const el = document.getElementById("error");
-      el.style.display = "block";
-      el.textContent = msg;
-    }
-
-    // ----- Player (same-page embed) -----
-    const playerWrap = document.getElementById("playerWrap");
-    const player = document.getElementById("player");
-    const playerTitle = document.getElementById("playerTitle");
-    const playerDesc = document.getElementById("playerDesc");
-    document.getElementById("closePlayerBtn").addEventListener("click", closePlayer);
-
-    function screenpalEmbedUrl(spId){
-      const id = encodeURIComponent(spId);
-      return `https://go.screenpal.com/player/${id}?ff=1&ahc=1&dcc=1&bg=transparent`;
-    }
-
-    function openLesson(lesson){
-  if (!lesson || !lesson.sp) return;
-
-  // Close any open lesson lists and reset buttons
-  document.querySelectorAll(".dashList.on").forEach(el => {
-    el.classList.remove("on");
-    el.innerHTML = "";
-  });
-
-  document.querySelectorAll(".dashBtn[aria-pressed='true']").forEach(btn => {
-    btn.setAttribute("aria-pressed", "false");
-  });
-
-  // Load video
-  playerTitle.textContent = lesson.title || "Lesson";
-  player.src = screenpalEmbedUrl(lesson.sp);
-
-  const desc = (lesson.desc || "").trim();
-  if (desc) {
-    playerDesc.style.display = "block";
-    playerDesc.textContent = desc;
-  } else {
-    playerDesc.style.display = "none";
-    playerDesc.textContent = "";
+  function authHeader() {
+    return "Basic " + btoa(username + ":" + password);
   }
 
-  playerWrap.style.display = "block";
-  playerWrap.scrollIntoView({ behavior:"smooth", block:"start" });
-}
+  function logout() {
+    sessionStorage.clear();
+    location.href = "index.html";
+  }
 
-    function closePlayer(){
-      player.src = "about:blank";
-      playerWrap.style.display = "none";
+  // ----- UI helpers -----
+  function yearLabel(code) {
+    const m = String(code || "").match(/^Y(\d)(?:_(11plus))?/);
+    if (!m) return code || "";
+    return m[2] ? `Year ${m[1]} 11+` : `Year ${m[1]}`;
+  }
+
+  function subjectLabel(s) {
+    if (s === "maths") return "Maths";
+    if (s === "vr") return "Verbal Reasoning";
+    return s;
+  }
+
+  function optionLabel(o) {
+    if (o === "lessons") return "Lessons";
+    if (o === "assessments") return "Assessments";
+    if (o === "howto") return "How-To";
+    return o;
+  }
+
+  function showError(msg){
+    const el = document.getElementById("error");
+    el.style.display = "block";
+    el.textContent = msg;
+  }
+
+  // ----- Player -----
+  const playerWrap = document.getElementById("playerWrap");
+  const player = document.getElementById("player");
+  const playerTitle = document.getElementById("playerTitle");
+  const playerDesc = document.getElementById("playerDesc");
+  document.getElementById("closePlayerBtn").addEventListener("click", closePlayer);
+
+  function screenpalEmbedUrl(spId){
+    const id = encodeURIComponent(spId);
+    return `https://go.screenpal.com/player/${id}?ff=1&ahc=1&dcc=1&bg=transparent`;
+  }
+
+  function openLesson(lesson){
+    if (!lesson || !lesson.sp) return;
+
+    document.querySelectorAll(".dashList.on").forEach(el => {
+      el.classList.remove("on");
+      el.innerHTML = "";
+    });
+
+    document.querySelectorAll(".dashBtn[aria-pressed='true']").forEach(btn => {
+      btn.setAttribute("aria-pressed", "false");
+    });
+
+    playerTitle.textContent = lesson.title || "Lesson";
+    player.src = screenpalEmbedUrl(lesson.sp);
+
+    const desc = (lesson.desc || "").trim();
+    if (desc) {
+      playerDesc.style.display = "block";
+      playerDesc.textContent = desc;
+    } else {
       playerDesc.style.display = "none";
       playerDesc.textContent = "";
     }
 
-    // ----- Data caches (avoid refetching when student clicks around) -----
-    const cacheSubjects = new Map(); // year -> ["maths","vr"]
-    const cacheOptions  = new Map(); // year|subject -> ["lessons","assessments"]
-    const cacheLessons  = new Map(); // year|subject|option -> lesson array
+    playerWrap.style.display = "block";
+    playerWrap.scrollIntoView({ behavior:"smooth", block:"start" });
+  }
 
-    async function apiJSON(path){
-      const res = await fetch(WORKER_BASE + path, { headers: { Authorization: authHeader() } });
-      if (!res.ok) throw new Error(`API failed (${res.status})`);
-      return await res.json();
-    }
+  function closePlayer(){
+    player.src = "about:blank";
+    playerWrap.style.display = "none";
+    playerDesc.style.display = "none";
+    playerDesc.textContent = "";
+  }
 
-    async function getSubjects(year){
-      if (cacheSubjects.has(year)) return cacheSubjects.get(year);
-      const data = await apiJSON(`/subjects?year=${encodeURIComponent(year)}`);
-      cacheSubjects.set(year, data);
-      return data;
-    }
+  // ----- Data caches -----
+  const cacheSubjects = new Map();
+  const cacheOptions  = new Map();
+  const cacheLessons  = new Map();
 
-    async function getOptions(year, subject){
-      const key = `${year}|${subject}`;
-      if (cacheOptions.has(key)) return cacheOptions.get(key);
-      const data = await apiJSON(`/options?year=${encodeURIComponent(year)}&subject=${encodeURIComponent(subject)}`);
-      cacheOptions.set(key, data);
-      return data;
-    }
+  async function apiJSON(path){
+    const res = await fetch(WORKER_BASE + path, { headers: { Authorization: authHeader() } });
+    if (!res.ok) throw new Error(`API failed (${res.status})`);
+    return await res.json();
+  }
 
-    async function getLessons(year, subject, option){
-      const key = `${year}|${subject}|${option}`;
-      if (cacheLessons.has(key)) return cacheLessons.get(key);
-      const data = await apiJSON(`/lessons?year=${encodeURIComponent(year)}&subject=${encodeURIComponent(subject)}&option=${encodeURIComponent(option)}`);
-      cacheLessons.set(key, data);
-      return data;
-    }
+  async function getSubjects(year){
+    if (cacheSubjects.has(year)) return cacheSubjects.get(year);
+    const data = await apiJSON(`/subjects?year=${encodeURIComponent(year)}`);
+    cacheSubjects.set(year, data);
+    return data;
+  }
 
-    // ----- Global Search Index -----
-    let lessonIndex = [];          // [{title, desc, sp, year, subject, option}]
-    let indexBuilt = false;
-    let indexBuilding = false;
+  async function getOptions(year, subject){
+    const key = `${year}|${subject}`;
+    if (cacheOptions.has(key)) return cacheOptions.get(key);
+    const data = await apiJSON(`/options?year=${encodeURIComponent(year)}&subject=${encodeURIComponent(subject)}`);
+    cacheOptions.set(key, data);
+    return data;
+  }
 
-    const searchInputEl = document.getElementById("globalSearch");
-    const searchMetaEl  = document.getElementById("searchMeta");
-    const searchResultsEl = document.getElementById("searchResults");
+  async function getLessons(year, subject, option){
+    const key = `${year}|${subject}|${option}`;
+    if (cacheLessons.has(key)) return cacheLessons.get(key);
+    const data = await apiJSON(`/lessons?year=${encodeURIComponent(year)}&subject=${encodeURIComponent(subject)}&option=${encodeURIComponent(option)}`);
+    cacheLessons.set(key, data);
+    return data;
+  }
 
-    function setSearchMeta(msg){
-      searchMetaEl.textContent = msg || "";
-    }
+  // ----- Render -----
+  async function buildDashboard(){
+    const me = await apiJSON("/me");
+    const studentName = (me && me.name) ? me.name : username;
 
-    function showSearchResults(on){
-      searchResultsEl.classList.toggle("on", !!on);
-    }
+    document.getElementById("dashTitle").textContent = "Dashboard";
+    document.getElementById("dashWelcome").textContent = `Welcome, ${studentName}`;
 
-    function normalizeText(s){
-      return String(s || "").toLowerCase();
-    }
+    const years = Array.isArray(me.years) ? me.years : [];
+    const grid = document.getElementById("dashGrid");
+    grid.innerHTML = "";
 
-    function shortLabel(year, subject, option){
-      const y = yearLabel(year);
-      const s = subjectLabel(subject);
-      const o = optionLabel(option);
-      return `${y} • ${s} • ${o}`;
-    }
+    // Decide where to show shared VR How-To
+    const hasY4_11 = years.includes("Y4_11plus");
+    const hasY5_11 = years.includes("Y5_11plus");
 
-    async function buildSearchIndex(years){
-      if (indexBuilt || indexBuilding) return;
+    const howtoYear =
+      hasY4_11 ? "Y4_11plus" :
+      hasY5_11 ? "Y5_11plus" :
+      null;
 
-      indexBuilding = true;
-      setSearchMeta("Building search index… (first time only)");
+    for (const year of years) {
+      const card = document.createElement("div");
+      card.className = "dashCard";
 
-      const items = [];
+      const h = document.createElement("div");
+      h.className = "dashYear";
+      h.textContent = yearLabel(year);
+      card.appendChild(h);
 
-      for (const year of years) {
-        let subjects = [];
-        try { subjects = await getSubjects(year); } catch { subjects = []; }
+      let subjects = [];
+      try { subjects = await getSubjects(year); } catch { subjects = []; }
 
-        for (const subject of subjects) {
-          let options = [];
-          try { options = await getOptions(year, subject); } catch { options = []; }
+      for (const subject of subjects) {
+        const section = document.createElement("div");
+        section.className = "dashSection";
 
-          for (const option of options) {
-            let lessons = [];
-            try { lessons = await getLessons(year, subject, option); } catch { lessons = []; }
+        const st = document.createElement("div");
+        st.className = "dashSectionTitle";
+        st.textContent = subjectLabel(subject);
+        section.appendChild(st);
 
-            // Lessons may include separator rows (sp:""), ignore those
-            for (const l of lessons) {
-              if (!l || !l.sp) continue;
-              items.push({
-                title: l.title || "Lesson",
-                desc: (l.desc || "").trim(),
-                sp: l.sp,
-                year,
-                subject,
-                option
-              });
+        const btnRow = document.createElement("div");
+        btnRow.className = "dashBtns";
+        section.appendChild(btnRow);
+
+        const listWrap = document.createElement("div");
+        listWrap.className = "dashList";
+        section.appendChild(listWrap);
+
+        let options = [];
+        try { options = await getOptions(year, subject); } catch { options = []; }
+
+        options.forEach(option => {
+
+          // Show VR_HOWTO only once in preferred year
+          if (option === "howto" && year !== howtoYear) return;
+
+          const btn = document.createElement("button");
+          btn.className = "dashBtn";
+          btn.type = "button";
+          btn.textContent = optionLabel(option);
+          btn.setAttribute("aria-pressed", "false");
+
+          btn.addEventListener("click", async () => {
+            const isOpen = btn.getAttribute("aria-pressed") === "true";
+
+            if (isOpen) {
+              btn.setAttribute("aria-pressed", "false");
+              listWrap.classList.remove("on");
+              listWrap.innerHTML = "";
+              return;
             }
-          }
-        }
-      }
 
-      lessonIndex = items;
-      indexBuilt = true;
-      indexBuilding = false;
+            [...btnRow.querySelectorAll("button")].forEach(b => b.setAttribute("aria-pressed", "false"));
+            btn.setAttribute("aria-pressed", "true");
 
-      setSearchMeta(`Search ready: ${lessonIndex.length} lesson(s) available.`);
-    }
+            listWrap.classList.add("on");
+            listWrap.innerHTML = `<div class="item">Loading…</div>`;
 
-    function renderSearchResults(query){
-      const q = normalizeText(query).trim();
+            btn.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
-      if (!q) {
-        showSearchResults(false);
-        if (indexBuilt) setSearchMeta(`Search ready: ${lessonIndex.length} lesson(s) available.`);
-        else setSearchMeta("Type to search all lessons…");
-        return;
-      }
-
-      const matches = lessonIndex.filter(x =>
-        normalizeText(x.title).includes(q) || normalizeText(x.desc).includes(q)
-      );
-
-      searchResultsEl.innerHTML = "";
-
-      if (!matches.length) {
-        showSearchResults(true);
-        searchResultsEl.innerHTML = `<div class="resultItem"><div class="resultSub">No matches.</div></div>`;
-        setSearchMeta(`No matches for “${query}”.`);
-        return;
-      }
-
-      const MAX = 30;
-      const shown = matches.slice(0, MAX);
-
-      shown.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "resultItem";
-
-        const top = document.createElement("div");
-        top.className = "resultTop";
-
-        const a = document.createElement("a");
-        a.href = "#";
-        a.className = "resultTitle";
-        a.textContent = item.title;
-        a.addEventListener("click", (e) => {
-          e.preventDefault();
-          openLesson({ title: item.title, sp: item.sp, desc: item.desc });
-        });
-
-        const tag = document.createElement("div");
-        tag.className = "resultTag";
-        tag.textContent = item.option === "assessments" ? "Assessments" :
-                          item.option === "howto" ? "How-To" : "Lessons";
-
-        top.appendChild(a);
-        top.appendChild(tag);
-
-        const sub = document.createElement("div");
-        sub.className = "resultSub";
-        sub.textContent = shortLabel(item.year, item.subject, item.option);
-
-        div.appendChild(top);
-        div.appendChild(sub);
-
-        if (item.desc) {
-          const d = document.createElement("div");
-          d.className = "resultDesc";
-          d.textContent = item.desc;
-          div.appendChild(d);
-        }
-
-        searchResultsEl.appendChild(div);
-      });
-
-      showSearchResults(true);
-
-      const extra = matches.length > MAX ? ` (showing ${MAX} of ${matches.length})` : ` (${matches.length})`;
-      setSearchMeta(`Results for “${query}”${extra}`);
-    }
-
-    let searchTimer = null;
-    searchInputEl.addEventListener("input", () => {
-      clearTimeout(searchTimer);
-
-      searchTimer = setTimeout(async () => {
-        const q = searchInputEl.value || "";
-
-        // Lazy-build the index on first real search
-        if (q.trim() && !indexBuilt) {
-          await buildSearchIndex(window.__fptYears || []);
-        }
-
-        if (indexBuilt) {
-          renderSearchResults(q);
-        } else {
-          if (q.trim()) setSearchMeta("Preparing search…");
-        }
-      }, 160);
-    });
-
-    // ----- Render -----
-    function renderLessonList(listEl, lessons){
-      listEl.innerHTML = "";
-      if (!Array.isArray(lessons) || lessons.length === 0){
-        const div = document.createElement("div");
-        div.className = "item";
-        div.textContent = "No lessons available.";
-        listEl.appendChild(div);
-        return;
-      }
-
-      lessons.forEach(lesson => {
-        const row = document.createElement("div");
-        row.className = "item";
-
-        // Assessment separator rows (sp:"") from your Worker merge logic
-        if (!lesson.sp) {
-          const strong = document.createElement("div");
-          strong.style.fontWeight = "900";
-          strong.style.color = "var(--muted)";
-          strong.textContent = lesson.title || "";
-          row.appendChild(strong);
-          listEl.appendChild(row);
-          return;
-        }
-
-        const a = document.createElement("a");
-        a.href = "#";
-        a.textContent = lesson.title || "Lesson";
-        a.addEventListener("click", (e) => {
-          e.preventDefault();
-          openLesson(lesson);
-        });
-
-        row.appendChild(a);
-        listEl.appendChild(row);
-      });
-    }
-
-    async function buildDashboard(){
-      const me = await apiJSON("/me");
-      const studentName = (me && me.name) ? me.name : username;
-
-      document.getElementById("dashTitle").textContent = "Dashboard";
-      document.getElementById("dashWelcome").textContent = `Welcome, ${studentName}`;
-
-      const years = Array.isArray(me.years) ? me.years : [];
-      window.__fptYears = years;
-      setSearchMeta("Type to search all lessons…");
-
-      const grid = document.getElementById("dashGrid");
-      grid.innerHTML = "";
-
-      for (const year of years) {
-        const card = document.createElement("div");
-        card.className = "dashCard";
-
-        const h = document.createElement("div");
-        h.className = "dashYear";
-        h.textContent = yearLabel(year);
-        card.appendChild(h);
-
-        // Build subject sections for this year
-        let subjects = [];
-        try { subjects = await getSubjects(year); } catch { subjects = []; }
-
-        for (const subject of subjects) {
-          const section = document.createElement("div");
-          section.className = "dashSection";
-
-          const st = document.createElement("div");
-          st.className = "dashSectionTitle";
-          st.textContent = subjectLabel(subject);
-          section.appendChild(st);
-
-          const btnRow = document.createElement("div");
-          btnRow.className = "dashBtns";
-          section.appendChild(btnRow);
-
-          const listWrap = document.createElement("div");
-          listWrap.className = "dashList";
-          section.appendChild(listWrap);
-
-          let options = [];
-          try { options = await getOptions(year, subject); } catch { options = []; }
-
-          options.forEach(option => {
-            const btn = document.createElement("button");
-            btn.className = "dashBtn";
-            btn.type = "button";
-            btn.textContent = optionLabel(option);
-            btn.setAttribute("aria-pressed", "false");
-
-        btn.addEventListener("click", async () => {
-  const isOpen = btn.getAttribute("aria-pressed") === "true";
-
-  // If already open → close it (no scrolling)
-  if (isOpen) {
-    btn.setAttribute("aria-pressed", "false");
-    listWrap.classList.remove("on");
-    listWrap.innerHTML = "";
-    return;
-  }
-
-  // Otherwise open it and close other buttons in this section
-  [...btnRow.querySelectorAll("button")].forEach(b => b.setAttribute("aria-pressed", "false"));
-  btn.setAttribute("aria-pressed", "true");
-
-  // Show list
-  listWrap.classList.add("on");
-  listWrap.innerHTML = `<div class="item">Loading…</div>`;
-
-  // Keep the clicked button visible without jumping the page
-  btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
-
-  try {
-    const lessons = await getLessons(year, subject, option);
-    renderLessonList(listWrap, lessons);
-  } catch (e) {
-    listWrap.innerHTML = `<div class="item" style="color:var(--muted); font-weight:900;">Failed to load.</div>`;
-  }
-});
-
-            btnRow.appendChild(btn);
+            try {
+              const lessons = await getLessons(year, subject, option);
+              renderLessonList(listWrap, lessons);
+            } catch (e) {
+              listWrap.innerHTML = `<div class="item" style="color:var(--muted); font-weight:900;">Failed to load.</div>`;
+            }
           });
 
-          card.appendChild(section);
-        }
+          btnRow.appendChild(btn);
+        });
 
-        grid.appendChild(card);
+        card.appendChild(section);
       }
+
+      grid.appendChild(card);
     }
+  }
 
-    (async () => {
-      try {
-        await buildDashboard();
-      } catch (e) {
-        showError("Could not load dashboard. Please log in again.");
-      }
-    })();
-  </script>
+  (async () => {
+    try {
+      await buildDashboard();
+    } catch (e) {
+      showError("Could not load dashboard. Please log in again.");
+    }
+  })();
+</script>
 </body>
 </html>
