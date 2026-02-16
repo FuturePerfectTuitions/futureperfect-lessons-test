@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="shared.css" />
+
+  <style>
+    /* Dashboard layout (uses your existing shared.css look) */
+    .dashWelcome{
+      text-align:center;
+      margin-top: 6px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .dashGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    @media (min-width: 980px){
+      .dashGrid{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .dashCard{
+      background:#fff;
+      border:1px solid rgba(0,0,0,0.08);
+      border-radius:18px;
+      padding:18px 18px 16px;
+      box-shadow:0 14px 34px rgba(0,0,0,0.06);
+    }
+
+    .dashYear{
+      font-size:26px;
+      font-weight: 900;
+      letter-spacing:-0.01em;
+      margin:0 0 10px;
+      color: var(--text);
+      text-align:left;
+    }
+
+    .dashSection{
+      border-top: 1px solid rgba(0,0,0,0.06);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .dashSectionTitle{
+      margin:0 0 10px;
+      font-size:18px;
+      font-weight: 900;
+      color: var(--blue);
+      text-align:left;
+    }
+
+    .dashBtns{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom: 12px;
+    }
+
+    .dashBtn{
+      border:none;
+      cursor:pointer;
+      font-weight:900;
+      border-radius:999px;
+      padding:12px 18px;
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(1,33,105,0.18);
+      transition: transform 120ms ease, box-shadow 160ms ease, opacity 160ms ease;
+    }
+
+    .dashBtn:hover{ transform: translateY(-1px); box-shadow: 0 14px 28px rgba(1,33,105,0.22); }
+    .dashBtn:active{ transform: translateY(0px) scale(0.99); box-shadow: 0 8px 16px rgba(0,0,0,0.12); }
+
+    .dashBtn.secondary{
+      background:#fff;
+      color: var(--blue);
+      border: 1px solid rgba(1,33,105,0.18);
+      box-shadow:none;
+    }
+
+    .dashBtn[aria-pressed="true"]{
+      background: var(--red);
+      box-shadow: 0 12px 26px rgba(215,25,32,0.18);
+    }
+
+    .dashList{
+      display:none;
+      margin-top: 10px;
+    }
+
+    .dashList.on{ display:block; }
+
+    .dashList .item{
+      cursor:pointer;
+    }
+
+    .dashHint{
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+      margin: 6px 0 0;
+      text-align:left;
+    }
+
+    /* Embedded player (same-page, branded) */
+    .playerWrap{
+      margin-top: 16px;
+      border: 1px solid rgba(0,0,0,0.10);
+      border-radius: 18px;
+      overflow: hidden;
+      display: none;
+      background: #fff;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.10);
+    }
+
+    .playerHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(0,0,0,0.08);
+    }
+
+    .playerTitle{
+      font-weight: 900;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .btnPlain{
+      border:1px solid rgba(0,0,0,0.10);
+      background:#fff;
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:900;
+      cursor:pointer;
+      color:var(--text);
+    }
+    .btnPlain:active{ transform: translateY(1px); }
+
+    .playerBox{
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background:#000;
+    }
+
+    .playerBox iframe{
+      position:absolute;
+      top:0; left:0;
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+    }
+
+    .playerDesc{
+      padding: 14px 16px;
+      color: var(--muted);
+      line-height: 1.6;
+      display:none;
+      white-space: pre-line;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <a href="https://futureperfect.education/" class="topbarLogoLink">
+      <img src="assets/fpt-logo.png" class="topbarLogo" alt="Future Perfect Tuitions" />
+    </a>
+    <button class="topbarLogout" onclick="logout()">Log out</button>
+  </div>
+
+  <main class="appMain">
+    <div class="card wide">
+      <h1 class="yearHeading" id="dashTitle">Dashboard</h1>
+      <div class="dashWelcome" id="dashWelcome">Loading…</div>
+
+      <div id="error" class="error" style="display:none;"></div>
+
+      <div id="dashGrid" class="dashGrid"></div>
+
+      <!-- One global player at the bottom (keeps page clean) -->
+      <div id="playerWrap" class="playerWrap">
+        <div class="playerHeader">
+          <div class="playerTitle" id="playerTitle">Lesson</div>
+          <button class="btnPlain" type="button" id="closePlayerBtn">Close</button>
+        </div>
+        <div class="playerBox">
+          <iframe
+            id="player"
+            src="about:blank"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen
+            scrolling="no"
+            referrerpolicy="no-referrer"
+          ></iframe>
+        </div>
+        <div id="playerDesc" class="playerDesc"></div>
+      </div>
+
+      <div class="dashHint" style="text-align:center; margin-top:16px;">
+        Tip: Click a button like “Lessons” to load the list, then click a lesson to play it below.
+      </div>
+    </div>
+
+    <div id="siteFooter"></div>
+  </main>
+
+  <script src="footer.js"></script>
+
+  <script>
+    const WORKER_BASE = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+
+    const username = sessionStorage.getItem("fpt_user");
+    const password = sessionStorage.getItem("fpt_pass");
+    if (!username || !password) location.href = "index.html";
+
+    function authHeader() {
+      return "Basic " + btoa(username + ":" + password);
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      location.href = "index.html";
+    }
+
+    // ----- UI helpers -----
+    function yearLabel(code) {
+      const m = String(code || "").match(/^Y(\d)(?:_(11plus))?/);
+      if (!m) return code || "";
+      return m[2] ? `Year ${m[1]} 11+` : `Year ${m[1]}`;
+    }
+
+    function subjectLabel(s) {
+      if (s === "maths") return "Maths";
+      if (s === "vr") return "Verbal Reasoning";
+      return s;
+    }
+
+    function optionLabel(o) {
+      if (o === "lessons") return "Lessons";
+      if (o === "assessments") return "Assessments";
+      if (o === "howto") return "How-To";
+      return o;
+    }
+
+    function showError(msg){
+      const el = document.getElementById("error");
+      el.style.display = "block";
+      el.textContent = msg;
+    }
+
+    // ----- Player (same-page embed) -----
+    const playerWrap = document.getElementById("playerWrap");
+    const player = document.getElementById("player");
+    const playerTitle = document.getElementById("playerTitle");
+    const playerDesc = document.getElementById("playerDesc");
+    document.getElementById("closePlayerBtn").addEventListener("click", closePlayer);
+
+    function screenpalEmbedUrl(spId){
+      const id = encodeURIComponent(spId);
+      return `https://go.screenpal.com/player/${id}?ff=1&ahc=1&dcc=1&bg=transparent`;
+    }
+
+    function openLesson(lesson){
+      if (!lesson || !lesson.sp) return;
+
+      playerTitle.textContent = lesson.title || "Lesson";
+      player.src = screenpalEmbedUrl(lesson.sp);
+
+      const desc = (lesson.desc || "").trim();
+      if (desc) {
+        playerDesc.style.display = "block";
+        playerDesc.textContent = desc;
+      } else {
+        playerDesc.style.display = "none";
+        playerDesc.textContent = "";
+      }
+
+      playerWrap.style.display = "block";
+      playerWrap.scrollIntoView({ behavior:"smooth", block:"start" });
+    }
+
+    function closePlayer(){
+      player.src = "about:blank";
+      playerWrap.style.display = "none";
+      playerDesc.style.display = "none";
+      playerDesc.textContent = "";
+    }
+
+    // ----- Data caches (avoid refetching when student clicks around) -----
+    const cacheSubjects = new Map(); // year -> ["maths","vr"]
+    const cacheOptions  = new Map(); // year|subject -> ["lessons","assessments"]
+    const cacheLessons  = new Map(); // year|subject|option -> lesson array
+
+    async function apiJSON(path){
+      const res = await fetch(WORKER_BASE + path, { headers: { Authorization: authHeader() } });
+      if (!res.ok) throw new Error(`API failed (${res.status})`);
+      return await res.json();
+    }
+
+    async function getSubjects(year){
+      if (cacheSubjects.has(year)) return cacheSubjects.get(year);
+      const data = await apiJSON(`/subjects?year=${encodeURIComponent(year)}`);
+      cacheSubjects.set(year, data);
+      return data;
+    }
+
+    async function getOptions(year, subject){
+      const key = `${year}|${subject}`;
+      if (cacheOptions.has(key)) return cacheOptions.get(key);
+      const data = await apiJSON(`/options?year=${encodeURIComponent(year)}&subject=${encodeURIComponent(subject)}`);
+      cacheOptions.set(key, data);
+      return data;
+    }
+
+    async function getLessons(year, subject, option){
+      const key = `${year}|${subject}|${option}`;
+      if (cacheLessons.has(key)) return cacheLessons.get(key);
+      const data = await apiJSON(`/lessons?year=${encodeURIComponent(year)}&subject=${encodeURIComponent(subject)}&option=${encodeURIComponent(option)}`);
+      cacheLessons.set(key, data);
+      return data;
+    }
+
+    // ----- Render -----
+    function renderLessonList(listEl, lessons){
+      listEl.innerHTML = "";
+      if (!Array.isArray(lessons) || lessons.length === 0){
+        const div = document.createElement("div");
+        div.className = "item";
+        div.textContent = "No lessons available.";
+        listEl.appendChild(div);
+        return;
+      }
+
+      lessons.forEach(lesson => {
+        const row = document.createElement("div");
+        row.className = "item";
+
+        // Assessment separator rows (sp:"") from your Worker merge logic
+        if (!lesson.sp) {
+          const strong = document.createElement("div");
+          strong.style.fontWeight = "900";
+          strong.style.color = "var(--muted)";
+          strong.textContent = lesson.title || "";
+          row.appendChild(strong);
+          listEl.appendChild(row);
+          return;
+        }
+
+        const a = document.createElement("a");
+        a.href = "#";
+        a.textContent = lesson.title || "Lesson";
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          openLesson(lesson);
+        });
+
+        row.appendChild(a);
+        listEl.appendChild(row);
+      });
+    }
+
+    async function buildDashboard(){
+      // load /me (for name + allowed years)
+      const me = await apiJSON("/me");
+      const studentName = (me && me.name) ? me.name : username;
+
+      document.getElementById("dashTitle").textContent = "Dashboard";
+      document.getElementById("dashWelcome").textContent = `Welcome, ${studentName}`;
+
+      const years = Array.isArray(me.years) ? me.years : [];
+      const grid = document.getElementById("dashGrid");
+      grid.innerHTML = "";
+
+      for (const year of years) {
+        const card = document.createElement("div");
+        card.className = "dashCard";
+
+        const h = document.createElement("div");
+        h.className = "dashYear";
+        h.textContent = yearLabel(year);
+        card.appendChild(h);
+
+        // Build subject sections for this year
+        let subjects = [];
+        try { subjects = await getSubjects(year); } catch { subjects = []; }
+
+        for (const subject of subjects) {
+          const section = document.createElement("div");
+          section.className = "dashSection";
+
+          const st = document.createElement("div");
+          st.className = "dashSectionTitle";
+          st.textContent = subjectLabel(subject);
+          section.appendChild(st);
+
+          const btnRow = document.createElement("div");
+          btnRow.className = "dashBtns";
+          section.appendChild(btnRow);
+
+          const listWrap = document.createElement("div");
+          listWrap.className = "dashList";
+          section.appendChild(listWrap);
+
+          let options = [];
+          try { options = await getOptions(year, subject); } catch { options = []; }
+
+          // buttons
+          options.forEach(option => {
+            const btn = document.createElement("button");
+            btn.className = "dashBtn";
+            btn.type = "button";
+            btn.textContent = optionLabel(option);
+            btn.setAttribute("aria-pressed", "false");
+
+            btn.addEventListener("click", async () => {
+              // toggle pressed state among sibling buttons
+              [...btnRow.querySelectorAll("button")].forEach(b => b.setAttribute("aria-pressed", "false"));
+              btn.setAttribute("aria-pressed", "true");
+
+              // show list
+              listWrap.classList.add("on");
+              listWrap.innerHTML = `<div class="item">Loading…</div>`;
+
+              try {
+                const lessons = await getLessons(year, subject, option);
+                renderLessonList(listWrap, lessons);
+              } catch (e) {
+                listWrap.innerHTML = `<div class="item" style="color:var(--muted); font-weight:900;">Failed to load.</div>`;
+              }
+
+              // ensure list is visible
+              section.scrollIntoView({ behavior:"smooth", block:"start" });
+            });
+
+            btnRow.appendChild(btn);
+          });
+
+          card.appendChild(section);
+        }
+
+        grid.appendChild(card);
+      }
+    }
+
+    (async () => {
+      try {
+        await buildDashboard();
+      } catch (e) {
+        showError("Could not load dashboard. Please log in again.");
+      }
+    })();
+  </script>
+</body>
+</html>
