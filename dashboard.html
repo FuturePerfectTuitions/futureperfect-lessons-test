@@ -10,14 +10,13 @@
     /* Dashboard layout (uses your existing shared.css look) */
 
     /* ALWAYS keep the greeting on ONE line */
-    #dashTitle{
-      text-align:center;
-      white-space: nowrap;      /* never wrap */
-      overflow: hidden;         /* prevent wrapping spill */
-      font-size: clamp(18px, 2.1vw, 36px);
-      line-height: 1.08;
-      letter-spacing: -0.02em;
-    }
+   #dashTitle{
+  font-size: clamp(28px, 3.2vw, 40px);
+  line-height: 1.2;      /* increased so letters like j don't clip */
+  letter-spacing: -0.02em;
+  text-align:center;
+  white-space: nowrap;   /* keep it one line */
+}
 
     .dashWelcome{
       text-align:center;
