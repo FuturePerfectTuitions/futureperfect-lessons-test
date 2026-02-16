@@ -7,6 +7,12 @@
   <link rel="stylesheet" href="shared.css" />
 
   <style>
+    /* Make the dashboard greeting fit on one line (dashboard-only) */
+#dashTitle{
+  font-size: clamp(28px, 3.2vw, 40px); /* smaller than shared .yearHeading (44px) */
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
     /* Dashboard layout (uses your existing shared.css look) */
     .dashWelcome{
       text-align:center;
