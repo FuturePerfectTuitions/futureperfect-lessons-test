@@ -338,7 +338,9 @@ input{
   box-shadow:0 8px 22px rgba(0,0,0,0.06);
 }
 
-.item a{
+/* prevent visited turning purple on lessons.html etc */
+.item a,
+.item a:visited{
   color:var(--blue);
   text-decoration:none;
   font-weight:800;
