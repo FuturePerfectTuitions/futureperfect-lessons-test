@@ -9,12 +9,14 @@
   <style>
     /* Dashboard layout (uses your existing shared.css look) */
 
-    /* Make the dashboard greeting fit nicely on one line */
+    /* ALWAYS keep the greeting on ONE line */
     #dashTitle{
-      font-size: clamp(28px, 3.2vw, 40px); /* smaller than shared .yearHeading (44px) */
+      text-align:center;
+      white-space: nowrap;      /* never wrap */
+      overflow: hidden;         /* prevent wrapping spill */
+      font-size: clamp(18px, 2.1vw, 36px);
       line-height: 1.08;
       letter-spacing: -0.02em;
-      text-align:center;
     }
 
     .dashWelcome{
