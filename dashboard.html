@@ -468,7 +468,7 @@
     const me = await apiJSON("/me");
     const studentName = (me && me.name) ? me.name : username;
 
-    document.getElementById("dashTitle").textContent = "Dashboard";
+    document.getElementById("dashTitle").textContent = `${studentName}'s Dashboard`;
     document.getElementById("dashWelcome").textContent = `Welcome, ${studentName}`;
 
     const years = Array.isArray(me.years) ? me.years : [];
