@@ -470,6 +470,7 @@
 
     document.getElementById("dashTitle").textContent = `${studentName}'s Dashboard`;
     document.getElementById("dashWelcome").textContent = `Welcome, ${studentName}`;
+    document.title = `${studentName}'s Dashboard`;
 
     const years = Array.isArray(me.years) ? me.years : [];
     const grid = document.getElementById("dashGrid");
