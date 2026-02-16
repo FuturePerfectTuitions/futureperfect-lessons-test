@@ -188,6 +188,7 @@
       box-shadow:none;
     }
 
+    /* RED only when list is open */
     .dashBtn[aria-pressed="true"]{
       background: var(--red);
       box-shadow: 0 12px 26px rgba(215,25,32,0.18);
@@ -352,6 +353,8 @@
       cursor:pointer;
     }
 
+    .resultTitle:visited{ color: var(--blue); }
+
     .resultTitle:hover{ text-decoration: underline; }
 
     .resultTag{
@@ -428,9 +431,11 @@
       box-shadow:0 10px 22px rgba(0,0,0,0.05);
     }
 
-    .lessonRow a{
+    /* LIST LINKS MUST STAY RED (even visited) */
+    .lessonRow a,
+    .lessonRow a:visited{
       font-weight: 900;
-      color: var(--blue);
+      color: var(--red);
       text-decoration:none;
       cursor:pointer;
       min-width:0;
@@ -652,18 +657,20 @@
     const playerDesc = document.getElementById("playerDesc");
     document.getElementById("closePlayerBtn").addEventListener("click", closePlayer);
 
-    function openLesson(lesson){
+    // Remembers which list the current video came from
+    const lastOrigin = { listWrap: null, btn: null };
+
+    function openLesson(lesson, origin){
       if (!lesson || !lesson.sp) return;
 
-      // Close any open lesson lists and reset buttons
-      document.querySelectorAll(".dashList.on").forEach(el => {
-        el.classList.remove("on");
-        el.innerHTML = "";
-      });
-
-      document.querySelectorAll(".dashBtn[aria-pressed='true']").forEach(btn => {
-        btn.setAttribute("aria-pressed", "false");
-      });
+      // Track where the lesson was launched from (so Close returns to that list)
+      if (origin && origin.listWrap && origin.btn){
+        lastOrigin.listWrap = origin.listWrap;
+        lastOrigin.btn = origin.btn;
+      } else {
+        lastOrigin.listWrap = null;
+        lastOrigin.btn = null;
+      }
 
       // Load video
       playerTitle.textContent = lesson.title || "Lesson";
@@ -687,6 +694,12 @@
       playerWrap.style.display = "none";
       playerDesc.style.display = "none";
       playerDesc.textContent = "";
+
+      // If the list is still open (parent hasn't closed it), return them to it
+      if (lastOrigin.listWrap && lastOrigin.btn && lastOrigin.btn.getAttribute("aria-pressed") === "true"){
+        lastOrigin.listWrap.classList.add("on");
+        lastOrigin.listWrap.scrollIntoView({ behavior:"smooth", block:"start" });
+      }
     }
 
     // ----- Date / NEW helpers -----
@@ -874,7 +887,7 @@
         a.textContent = item.title;
         a.addEventListener("click", (e) => {
           e.preventDefault();
-          openLesson({ title: item.title, sp: item.sp, desc: item.desc });
+          openLesson({ title: item.title, sp: item.sp, desc: item.desc }, null);
         });
 
         const tag = document.createElement("div");
@@ -936,7 +949,7 @@
     });
 
     // ----- Render -----
-    function renderLessonList(listEl, lessons){
+    function renderLessonList(listEl, lessons, origin){
       listEl.innerHTML = "";
 
       if (!Array.isArray(lessons) || lessons.length === 0){
@@ -965,7 +978,7 @@
         a.textContent = lesson.title || "Lesson";
         a.addEventListener("click", (e) => {
           e.preventDefault();
-          openLesson(lesson);
+          openLesson(lesson, origin);
         });
 
         const meta = document.createElement("div");
@@ -1085,6 +1098,13 @@
                 btn.setAttribute("aria-pressed", "false");
                 listWrap.classList.remove("on");
                 listWrap.innerHTML = "";
+
+                // If the user closed the list themselves, don’t force it back open on Close Video
+                if (typeof lastOrigin !== "undefined" && lastOrigin.listWrap === listWrap) {
+                  lastOrigin.listWrap = null;
+                  lastOrigin.btn = null;
+                }
+
                 return;
               }
 
@@ -1098,7 +1118,7 @@
 
               try {
                 const lessons = await getLessons(year, subject, option);
-                renderLessonList(listWrap, lessons);
+                renderLessonList(listWrap, lessons, { listWrap, btn });
               } catch (e) {
                 console.error("Load failed:", year, subject, option, e);
                 listWrap.innerHTML = `<div class="lessonRow" style="color:var(--muted); font-weight:900;">Failed to load.</div>`;
