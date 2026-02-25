@@ -3,49 +3,116 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Lesson Player</title>
+  <title>Lessons</title>
   <link rel="stylesheet" href="shared.css" />
 
   <style>
-    /* Keep within your existing look */
+    /* In-page embedded player (matches your old behaviour) */
     .playerWrap{
-      width:min(980px, 96%);
-      margin:0 auto;
-      text-align:left;
+      margin-top: 22px;
+      border: 1px solid rgba(0,0,0,0.10);
+      border-radius: 18px;
+      overflow: hidden;
+      display: none;
+      background: #fff;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.10);
+    }
+
+    .playerHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(0,0,0,0.08);
     }
 
     .playerTitle{
-      margin:0 0 14px;
-      font-size:26px;
-      font-weight:900;
-      letter-spacing:-0.01em;
-      text-align:center;
+      font-weight: 900;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
     }
 
-    .videoFrame{
-      width:100%;
-      aspect-ratio:16/9;
-      border:1px solid rgba(0,0,0,0.10);
-      border-radius:18px;
-      overflow:hidden;
-      box-shadow:0 18px 40px rgba(0,0,0,0.10);
+    .playerBox{
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
       background:#000;
     }
 
-    .videoFrame iframe{
+    .playerBox iframe{
+      position:absolute;
+      top:0; left:0;
       width:100%;
       height:100%;
       border:0;
       display:block;
     }
 
-    .tinyNote{
-      margin-top:14px;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.5;
-      text-align:center;
-      font-weight:700;
+    /* Use your existing button styling */
+    .btnPlain{
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.12);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      color: var(--red);
+      transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .btnPlain:hover{
+      transform: translateY(-1px);
+      box-shadow:0 12px 24px rgba(0,0,0,0.12);
+      border-color: rgba(215,25,32,0.35);
+    }
+
+    .lessonList{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-top: 12px;
+    }
+    @media (min-width: 720px){
+      .lessonList{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .lessonBtn{
+      text-align:left;
+      padding: 12px 14px;
+      border:1px solid rgba(0,0,0,0.10);
+      border-radius: 14px;
+      background:#fff;
+      cursor:pointer;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .lessonBtn:hover{
+      transform: translateY(-1px);
+      box-shadow:0 12px 26px rgba(0,0,0,0.10);
+      border-color: rgba(215,25,32,0.35);
+    }
+
+    .lessonTitle{
+      font-weight: 900;
+      color: var(--text);
+      margin:0;
+      line-height:1.25;
+    }
+
+    .lessonMeta{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.45;
+      font-weight: 700;
     }
   </style>
 </head>
@@ -60,31 +127,33 @@
 
   <main class="appMain">
     <div class="card wide">
+      <div class="centerBlock">
+        <div class="pageHeading" id="pageHeading">Lessons</div>
+        <div id="meta" style="margin-top:6px; color:var(--muted); font-weight:800;"></div>
 
-      <h1 id="yearHeading" class="yearHeading">Lesson</h1>
+        <div id="error" class="error" style="display:none;"></div>
 
-      <div class="playerWrap">
-        <div id="lessonTitle" class="playerTitle">Loading…</div>
+        <div id="list" class="lessonList"></div>
 
-        <div class="videoFrame">
-          <iframe
-            id="vid"
-            src=""
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowfullscreen
-            referrerpolicy="no-referrer"
-          ></iframe>
+        <div id="playerWrap" class="playerWrap">
+          <div class="playerHeader">
+            <div class="playerTitle" id="playerTitle">Lesson</div>
+            <button class="btnPlain" type="button" id="closePlayerBtn">Close</button>
+          </div>
+          <div class="playerBox">
+            <iframe
+              id="player"
+              src="about:blank"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowfullscreen="true"
+            ></iframe>
+          </div>
         </div>
 
-        <div class="tinyNote">
-          🔒 Videos are proprietary material belonging to Future Perfect Tuitions and must not be shared outside of Future Perfect Tuitions.
+        <div style="margin-top:18px;">
+          <button class="btnPlain" type="button" onclick="goBack()">Back</button>
         </div>
       </div>
-
-      <div class="cardFooter">
-        <a id="backBtn" class="btnRed">Back</a>
-      </div>
-
     </div>
 
     <div id="siteFooter"></div>
@@ -93,50 +162,154 @@
   <script src="footer.js"></script>
 
   <script>
-    const u = sessionStorage.getItem("fpt_user");
-    const p = sessionStorage.getItem("fpt_pass");
-    if (!u || !p) location.href = "index.html";
+    const WORKER_BASE =
+      "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+
+    const username = sessionStorage.getItem("fpt_user");
+    const password = sessionStorage.getItem("fpt_pass");
+
+    if (!username || !password) {
+      location.href = "options.html";
+    }
+
+    function authHeader() {
+      return "Basic " + btoa(username + ":" + password);
+    }
 
     function logout() {
-      sessionStorage.clear();
-      location.href = "index.html";
+      sessionStorage.removeItem("fpt_user");
+      sessionStorage.removeItem("fpt_pass");
+      location.href = "options.html";
     }
 
-    const qs = new URLSearchParams(location.search);
-
-    // These come from lessons.html links
-    const sp = (qs.get("sp") || "").trim();
-    const title = (qs.get("title") || "Lesson").trim();
-    const year = (qs.get("year") || "").trim();
-    const subject = (qs.get("subject") || "").trim();
-    const type = (qs.get("type") || "lessons").trim();
-
-    // Headings + back link
-    function yearLabel(code) {
-      const match = code.match(/^Y(\d)(?:_(11plus))?/);
-      if (!match) return code || "Lesson";
-      const yearNum = match[1];
-      const is11 = match[2];
-      return is11 ? ("Year " + yearNum + " 11+") : ("Year " + yearNum);
+    function goBack(){
+      history.back();
     }
 
-    document.getElementById("yearHeading").textContent = yearLabel(year);
-    document.getElementById("lessonTitle").textContent = title;
+    const url = new URL(location.href);
+    const year = (url.searchParams.get("year") || "").trim();
+    const subject = (url.searchParams.get("subject") || "").trim();
+    const option = (url.searchParams.get("option") || "lessons").trim();
 
-    document.getElementById("backBtn").href =
-      "lessons.html?year=" + encodeURIComponent(year) +
-      "&subject=" + encodeURIComponent(subject) +
-      "&type=" + encodeURIComponent(type);
+    document.getElementById("meta").textContent =
+      (year ? `${year} • ` : "") + (subject ? `${subject} • ` : "") + option;
 
-    // If sp missing, fail nicely
-    if (!sp) {
-      document.getElementById("lessonTitle").textContent = "Missing video link";
-    } else {
-      // Embed ScreenPal inside your portal page
-      // If your LIVE site used a different embed URL, tell me and I’ll match it exactly.
-      document.getElementById("vid").src =
-        "https://screenpal.com/watch/" + encodeURIComponent(sp);
+    // Player elements
+    const listEl = document.getElementById("list");
+    const errorEl = document.getElementById("error");
+    const playerWrap = document.getElementById("playerWrap");
+    const player = document.getElementById("player");
+    const playerTitle = document.getElementById("playerTitle");
+    const closePlayerBtn = document.getElementById("closePlayerBtn");
+
+    closePlayerBtn.addEventListener("click", closePlayer);
+
+    function screenpalEmbedUrl(spId) {
+      const id = encodeURIComponent(spId);
+      return `https://go.screenpal.com/player/${id}?ff=1&ahc=1&dcc=1&bg=transparent`;
     }
+
+    // IMPORTANT: ScreenPal can intermittently fail if an existing iframe is reused.
+    // Always hard-reset the iframe before loading a new ScreenPal URL.
+    function setPlayerSrcWithReset(iframeEl, src){
+      if (!iframeEl) return;
+      iframeEl.src = "about:blank";
+      setTimeout(() => { iframeEl.src = src; }, 120);
+    }
+
+    function openLesson(lesson){
+      if (!lesson || !lesson.sp) return;
+
+      playerTitle.textContent = lesson.title || "Lesson";
+
+      // KEY FIX: reset iframe first, then load ScreenPal
+      setPlayerSrcWithReset(player, screenpalEmbedUrl(lesson.sp));
+
+      playerWrap.style.display = "block";
+      playerWrap.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function closePlayer() {
+      player.src = "about:blank";
+      playerWrap.style.display = "none";
+    }
+
+    function makeLessonButton(lesson){
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "lessonBtn";
+
+      const left = document.createElement("div");
+      const title = document.createElement("div");
+      title.className = "lessonTitle";
+      title.textContent = lesson.title || "Lesson";
+      left.appendChild(title);
+
+      const meta = document.createElement("div");
+      meta.className = "lessonMeta";
+      meta.textContent = "Tap to open video";
+      left.appendChild(meta);
+
+      const right = document.createElement("div");
+      right.innerHTML = "▶";
+      right.style.fontWeight = "900";
+      right.style.color = "var(--red)";
+
+      btn.appendChild(left);
+      btn.appendChild(right);
+
+      btn.addEventListener("click", () => openLesson(lesson));
+      return btn;
+    }
+
+    async function loadLessons() {
+      try {
+        closePlayer();
+        errorEl.style.display = "none";
+        errorEl.textContent = "";
+
+        if (!year || !subject) {
+          throw new Error("Missing year/subject in URL");
+        }
+
+        const res = await fetch(
+          `${WORKER_BASE}/lessons?year=${encodeURIComponent(year)}&subject=${encodeURIComponent(subject)}&option=${encodeURIComponent(option)}`,
+          {
+            headers: { "Authorization": authHeader() }
+          }
+        );
+
+        if (!res.ok) throw new Error(await res.text());
+
+        const lessons = await res.json();
+        listEl.innerHTML = "";
+
+        if (!Array.isArray(lessons) || lessons.length === 0) {
+          listEl.innerHTML = `<div style="color:var(--muted); font-weight:900;">No lessons found.</div>`;
+          return;
+        }
+
+        for (const lesson of lessons) {
+          // Skip separator rows (your assessments merged list uses sp:"")
+          if (!lesson.sp) {
+            const sep = document.createElement("div");
+            sep.style.margin = "12px 0 2px";
+            sep.style.fontWeight = "900";
+            sep.style.color = "var(--text)";
+            sep.textContent = lesson.title || "";
+            listEl.appendChild(sep);
+            continue;
+          }
+
+          listEl.appendChild(makeLessonButton(lesson));
+        }
+      } catch (err) {
+        errorEl.style.display = "block";
+        errorEl.textContent = String(err.message || err);
+      }
+    }
+
+    loadLessons();
   </script>
 </body>
 </html>
