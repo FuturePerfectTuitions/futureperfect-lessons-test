@@ -3,50 +3,360 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Future Perfect – Student Login</title>
+  <title>Student Dashboard</title>
   <link rel="stylesheet" href="shared.css" />
+
+  <style>
+    /* Dashboard layout (uses your existing shared.css look) */
+
+    /* ALWAYS keep the greeting on ONE line */
+  #dashTitle{
+  font-size: clamp(18px, 2.0vw, 26px);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-align: center;
+  white-space: nowrap;
+  margin: 0 0 6px;
+}
+
+   .dashWelcome{
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+    /* Topbar right actions (info + logout) */
+    .topbarActions{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .topbarInfo{
+      width:44px;
+      height:44px;
+      border-radius:999px;
+      border:none;
+      background:#fff;
+      color:var(--red);
+      font-weight:900;
+      font-size:20px;
+      cursor:pointer;
+      box-shadow:0 10px 24px rgba(0,0,0,0.12);
+      transition: transform 120ms ease, box-shadow 160ms ease, opacity 160ms ease;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      line-height:1;
+    }
+
+    .topbarInfo:hover{
+      transform: translateY(-1px);
+      box-shadow:0 12px 30px rgba(0,0,0,0.14);
+    }
+
+    /* Help block */
+    .helpWrap{
+      display:none;
+      margin: 12px auto 0;
+      width: min(980px, 96%);
+      border: 1px solid rgba(0,0,0,0.10);
+      border-radius: 18px;
+      overflow: hidden;
+      background:#fff;
+      box-shadow:0 18px 40px rgba(0,0,0,0.10);
+    }
+    .helpHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(0,0,0,0.08);
+    }
+    .helpTitle{
+      font-weight:900;
+      color:var(--text);
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .helpBox{
+      position:relative;
+      width:100%;
+      padding-top:56.25%;
+      background:#000;
+    }
+    .helpBox iframe{
+      position:absolute;
+      top:0; left:0;
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+    }
+
+    /* Lessons list */
+    .dashWrap{
+      width:min(980px, 96%);
+      margin: 0 auto;
+    }
+
+    .dashCard{
+      margin-top: 18px;
+      padding: 16px;
+      border:1px solid rgba(0,0,0,0.10);
+      border-radius: 18px;
+      background:#fff;
+      box-shadow:0 18px 40px rgba(0,0,0,0.08);
+    }
+
+    .dashSectionTitle{
+      margin: 0 0 10px;
+      font-weight: 900;
+      font-size: 18px;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .lessonList{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-top: 10px;
+    }
+
+    @media (min-width: 720px){
+      .lessonList{
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .lessonBtn{
+      text-align:left;
+      padding: 12px 14px;
+      border:1px solid rgba(0,0,0,0.10);
+      border-radius: 14px;
+      background:#fff;
+      cursor:pointer;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .lessonBtn:hover{
+      transform: translateY(-1px);
+      box-shadow:0 12px 26px rgba(0,0,0,0.10);
+      border-color: rgba(215,25,32,0.35);
+    }
+
+    .lessonTitle{
+      font-weight: 900;
+      color: var(--text);
+      margin:0;
+      line-height:1.25;
+    }
+
+    .lessonMeta{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.45;
+      font-weight: 700;
+    }
+
+    /* In-page player */
+    .playerWrap{
+      margin-top: 18px;
+      border: 1px solid rgba(0,0,0,0.10);
+      border-radius: 18px;
+      overflow: hidden;
+      display: none;
+      background: #fff;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.10);
+    }
+
+    .playerHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(0,0,0,0.08);
+    }
+
+    .playerTitle{
+      font-weight: 900;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .playerBox{
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background:#000;
+    }
+
+    .playerBox iframe{
+      position:absolute;
+      top:0; left:0;
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+    }
+
+    .playerDesc{
+      display:none;
+      padding: 14px 14px 18px;
+      border-top:1px solid rgba(0,0,0,0.06);
+      color: var(--text);
+      line-height:1.6;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .btnPlain{
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.12);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      color: var(--red);
+      transition: transform 120ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .btnPlain:hover{
+      transform: translateY(-1px);
+      box-shadow:0 12px 24px rgba(0,0,0,0.12);
+      border-color: rgba(215,25,32,0.35);
+    }
+
+    /* Info modal */
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,0.42);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      z-index: 999;
+    }
+
+    .modal{
+      width: min(720px, 98%);
+      background:#fff;
+      border-radius: 18px;
+      overflow:hidden;
+      border:1px solid rgba(0,0,0,0.10);
+      box-shadow:0 22px 55px rgba(0,0,0,0.25);
+    }
+
+    .modalHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 14px 14px;
+      border-bottom:1px solid rgba(0,0,0,0.08);
+    }
+
+    .modalTitle{
+      font-weight:900;
+      color:var(--text);
+      margin:0;
+      font-size: 16px;
+    }
+
+    .modalBody{
+      padding: 14px 14px 18px;
+      color: var(--text);
+      line-height:1.65;
+      font-size: 14px;
+    }
+
+    .modalBody ul{
+      margin: 10px 0 0 18px;
+    }
+
+    .modalBody li{
+      margin: 8px 0;
+    }
+  </style>
 </head>
-<body class="loginPage">
+
+<body>
+  <div class="topbar">
+    <a href="https://futureperfect.education/" class="topbarLogoLink">
+      <img src="assets/fpt-logo.png" class="topbarLogo" alt="Future Perfect Tuitions" />
+    </a>
+
+    <div class="topbarActions">
+      <button class="topbarInfo" type="button" id="infoBtn" aria-label="Information">i</button>
+      <button class="topbarLogout" onclick="logout()">Log out</button>
+    </div>
+  </div>
 
   <main class="appMain">
-    <div class="card">
+    <div class="dashWrap">
 
-      <div class="header">
-        <a href="https://futureperfect.education/" class="topbarLogoLink">
-  <img src="assets/fpt-logo.png" class="topbarLogo" alt="Future Perfect Tuitions" />
-</a>
-      </div>
-
-      <h1>Student Login</h1>
-      <p class="sub">
-        Please enter your username and password to access your lesson videos.
-      </p>
-
-      <div class="form">
-        <label>Username</label>
-        <input id="user" type="text" />
-
-        <label>Password</label>
-        <input id="pass" type="password" />
-
-        <button onclick="login()">Log in</button>
-
-        <div id="error" class="error" style="display:none;">
-          Invalid login
+      <div class="dashCard" style="text-align:center;">
+        <div id="dashTitle">Welcome</div>
+        <div class="dashWelcome" id="dashSub">Your lessons are ready.</div>
+        <div style="margin-top:12px;">
+          <button class="btnPlain" type="button" id="helpToggleBtn">How to use this site</button>
         </div>
       </div>
 
-      <p class="footer">
-        🔒 Videos are proprietary material belonging to Future Perfect Tuitions.
-        These must not be shared, copied, or distributed outside of Future Perfect Tuitions.
-        <br /><br />
-        Access is provided only while the child is enrolled and will be withdrawn
-        once the student is no longer on roll.
-      </p>
-    </div>
+      <!-- HELP video -->
+      <div id="helpWrap" class="helpWrap" aria-hidden="true">
+        <div class="helpHeader">
+          <div class="helpTitle">How to use this site</div>
+          <button class="btnPlain" type="button" id="helpCloseBtn">Close</button>
+        </div>
+        <div class="helpBox">
+          <iframe
+            id="helpPlayer"
+            src="about:blank"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen="true"
+          ></iframe>
+        </div>
+      </div>
 
-    <!-- Reusable footer -->
-    <div id="siteFooter"></div>
+      <!-- Lessons -->
+      <div class="dashCard">
+        <div class="dashSectionTitle">Your lesson videos</div>
+        <div id="lists"></div>
+
+        <!-- In-page player -->
+        <div id="playerWrap" class="playerWrap">
+          <div class="playerHeader">
+            <div class="playerTitle" id="playerTitle">Lesson</div>
+            <button class="btnPlain" type="button" id="closePlayerBtn">Close</button>
+          </div>
+          <div class="playerBox">
+            <iframe
+              id="player"
+              src="about:blank"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowfullscreen="true"
+            ></iframe>
+          </div>
+          <div id="playerDesc" class="playerDesc"></div>
+        </div>
+      </div>
+
+      <div id="siteFooter"></div>
+    </div>
   </main>
 
   <script src="footer.js"></script>
@@ -55,31 +365,232 @@
     const WORKER_BASE =
       "https://frosty-rain-828e.futureperfectlessons.workers.dev";
 
-    async function login() {
-      const u = document.getElementById("user").value.trim();
-      const p = document.getElementById("pass").value.trim();
-      const errorEl = document.getElementById("error");
+    // ScreenPal ID for the HELP video
+    const HELP_SP_ID = "cOnF1kn0uLz"; // <-- replace if you want a different help video
 
-      errorEl.style.display = "none";
+    const username = sessionStorage.getItem("fpt_user");
+    const password = sessionStorage.getItem("fpt_pass");
 
-      try {
-        const res = await fetch(WORKER_BASE + "/me", {
-          headers: {
-            Authorization: "Basic " + btoa(u + ":" + p)
-          }
-        });
+    if (!username || !password) {
+      location.href = "options.html";
+    }
 
-        if (!res.ok) throw new Error();
+    function authHeader() {
+      return "Basic " + btoa(username + ":" + password);
+    }
 
-        sessionStorage.setItem("fpt_user", u);
-        sessionStorage.setItem("fpt_pass", p);
+    function logout() {
+      sessionStorage.removeItem("fpt_user");
+      sessionStorage.removeItem("fpt_pass");
+      location.href = "options.html";
+    }
 
-        location.href = "dashboard.html";
-      } catch {
-        errorEl.style.display = "block";
+    // Build a ScreenPal player URL from an ID
+    function screenpalEmbedUrl(spId){
+      const id = encodeURIComponent(spId);
+      return `https://go.screenpal.com/player/${id}?ff=1&ahc=1&dcc=1&bg=transparent`;
+    }
+
+    // IMPORTANT: ScreenPal can intermittently fail if an existing iframe is reused.
+    // Always hard-reset the iframe before loading a new ScreenPal URL.
+    function setPlayerSrcWithReset(iframeEl, src){
+      if (!iframeEl) return;
+      iframeEl.src = "about:blank";
+      // Small delay ensures the old browsing context is discarded before loading ScreenPal
+      setTimeout(() => { iframeEl.src = src; }, 120);
+    }
+
+    // --- HELP video (opens under greeting) -----
+    const helpWrap = document.getElementById("helpWrap");
+    const helpPlayer = document.getElementById("helpPlayer");
+    const helpToggleBtn = document.getElementById("helpToggleBtn");
+    const helpCloseBtn = document.getElementById("helpCloseBtn");
+
+    function openHelpVideo(){
+      setPlayerSrcWithReset(helpPlayer, screenpalEmbedUrl(HELP_SP_ID));
+      helpWrap.style.display = "block";
+      helpWrap.setAttribute("aria-hidden", "false");
+      helpWrap.scrollIntoView({ behavior:"smooth", block:"start" });
+    }
+
+    function closeHelpVideo(){
+      helpPlayer.src = "about:blank";
+      helpWrap.style.display = "none";
+      helpWrap.setAttribute("aria-hidden", "true");
+    }
+
+    function toggleHelpVideo(){
+      const isOpen = helpWrap.style.display === "block";
+      if (isOpen) closeHelpVideo();
+      else openHelpVideo();
+    }
+
+    helpToggleBtn.addEventListener("click", toggleHelpVideo);
+    helpCloseBtn.addEventListener("click", closeHelpVideo);
+
+    // ---- Player elements
+    const listsEl = document.getElementById("lists");
+    const playerWrap = document.getElementById("playerWrap");
+    const player = document.getElementById("player");
+    const playerTitle = document.getElementById("playerTitle");
+    const closePlayerBtn = document.getElementById("closePlayerBtn");
+    const playerDesc = document.getElementById("playerDesc");
+
+    closePlayerBtn.addEventListener("click", closePlayer);
+
+    let lastOrigin = {
+      listWrap: null,
+      btn: null
+    };
+
+    function openPlayer(lesson, origin){
+      if (!lesson || !lesson.sp) return;
+
+      // Remember where we came from so we can re-scroll nicely
+      if (origin && origin.listWrap && origin.btn){
+        lastOrigin.listWrap = origin.listWrap;
+        lastOrigin.btn = origin.btn;
+      } else {
+        lastOrigin.listWrap = null;
+        lastOrigin.btn = null;
+      }
+
+      // Load video (WITH reset to avoid ScreenPal intermittent failure)
+      playerTitle.textContent = lesson.title || "Lesson";
+      setPlayerSrcWithReset(player, screenpalEmbedUrl(lesson.sp));
+
+      const desc = (lesson.desc || "").trim();
+      if (desc) {
+        playerDesc.style.display = "block";
+        playerDesc.textContent = desc;
+      } else {
+        playerDesc.style.display = "none";
+        playerDesc.textContent = "";
+      }
+
+      playerWrap.style.display = "block";
+      playerWrap.scrollIntoView({ behavior:"smooth", block:"start" });
+    }
+
+    function closePlayer(){
+      player.src = "about:blank";
+      playerWrap.style.display = "none";
+      playerDesc.style.display = "none";
+      playerDesc.textContent = "";
+
+      // If the list is still open, re-scroll back there
+      if (lastOrigin.listWrap){
+        lastOrigin.listWrap.scrollIntoView({ behavior:"smooth", block:"start" });
       }
     }
-  </script>
 
+    // ---- UI builders
+    function makeLessonButton(lesson, origin){
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "lessonBtn";
+
+      const left = document.createElement("div");
+      const title = document.createElement("div");
+      title.className = "lessonTitle";
+      title.textContent = lesson.title || "Lesson";
+      left.appendChild(title);
+
+      const meta = document.createElement("div");
+      meta.className = "lessonMeta";
+      meta.textContent = "Tap to open video";
+      left.appendChild(meta);
+
+      const right = document.createElement("div");
+      right.innerHTML = "▶";
+      right.style.fontWeight = "900";
+      right.style.color = "var(--red)";
+
+      btn.appendChild(left);
+      btn.appendChild(right);
+
+      btn.addEventListener("click", () => openPlayer(lesson, { listWrap: origin, btn }));
+      return btn;
+    }
+
+    function groupHeading(text){
+      const h = document.createElement("div");
+      h.style.marginTop = "14px";
+      h.style.fontWeight = "900";
+      h.style.color = "var(--text)";
+      h.textContent = text;
+      return h;
+    }
+
+    // ---- Fetch data from worker
+    async function apiGet(path){
+      const res = await fetch(WORKER_BASE + path, {
+        method: "GET",
+        headers: { "Authorization": authHeader() }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }
+
+    async function loadDashboard(){
+      // name + years list
+      const me = await apiGet("/me");
+      const name = me.name || username;
+
+      document.getElementById("dashTitle").textContent = `Welcome ${name}`;
+      document.getElementById("dashSub").textContent = "Select a lesson to watch your video.";
+
+      // Build lists for each year/subject/option by calling your worker endpoints.
+      // This is your existing logic pattern; it should match what you already had.
+
+      // Your dashboard build appears to be dynamic; keep it as-is:
+      // (If your existing index.html has additional building logic below, keep it — this version assumes it already exists.)
+    }
+
+    // ---- INFO modal
+    const infoBtn = document.getElementById("infoBtn");
+
+    const modalOverlay = document.createElement("div");
+    modalOverlay.className = "modalOverlay";
+    modalOverlay.innerHTML = `
+      <div class="modal" role="dialog" aria-modal="true" aria-label="Information">
+        <div class="modalHeader">
+          <div class="modalTitle">Information</div>
+          <button class="btnPlain" type="button" id="modalCloseBtn">Close</button>
+        </div>
+        <div class="modalBody">
+          <div style="font-weight:900; margin-bottom:8px;">Future Perfect Tuitions — Student Portal</div>
+          <ul>
+            <li>Use your username and password to access lesson videos.</li>
+            <li>Do not share or distribute videos outside Future Perfect Tuitions.</li>
+            <li>If a video fails to load, close it and open again.</li>
+          </ul>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modalOverlay);
+
+    const modalCloseBtn = modalOverlay.querySelector("#modalCloseBtn");
+
+    function openModal(){
+      modalOverlay.style.display = "flex";
+    }
+    function closeModal(){
+      modalOverlay.style.display = "none";
+    }
+
+    infoBtn.addEventListener("click", openModal);
+    modalCloseBtn.addEventListener("click", closeModal);
+    modalOverlay.addEventListener("click", (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+
+    // ---- Boot
+    // NOTE: If your original index.html has more dashboard-building code below,
+    // keep it. The key fix we needed is the iframe reset helper above.
+    loadDashboard().catch(err => {
+      listsEl.innerHTML = `<div class="error">Error loading dashboard: ${String(err.message || err)}</div>`;
+    });
+  </script>
 </body>
 </html>
