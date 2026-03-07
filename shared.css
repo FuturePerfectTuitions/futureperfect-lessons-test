@@ -74,7 +74,6 @@ body::before{
 
   padding:0 36px;
 
-  /* subtle brand divider */
   border-bottom:2px solid rgba(1,33,105,0.18);
   box-shadow:0 2px 10px rgba(0,0,0,0.04);
 
@@ -83,7 +82,7 @@ body::before{
   z-index:50;
 }
 
-/* Logo (slightly bigger) + optical tweak */
+/* Logo */
 .topbarLogo{
   height:52px;
   width:auto;
@@ -130,7 +129,6 @@ body::before{
   position:relative;
 }
 
-/* subtle red accent stripe inside wide cards */
 .card.wide::before{
   content:"";
   position:absolute;
@@ -194,7 +192,6 @@ h1{
   display:inline-block;
 }
 
-/* subtle red underline for page heading */
 .pageHeading::after{
   content:"";
   display:block;
@@ -226,6 +223,54 @@ input{
   border:1px solid #e5e7eb;
   background:#eef2f7;
   font-size:16px;
+}
+
+/* password eye */
+.passwordField{
+  position:relative;
+}
+
+.passwordField input{
+  padding-right:56px;
+}
+
+.passwordToggle{
+  position:absolute;
+  top:50%;
+  right:14px;
+  transform:translateY(-50%);
+  width:32px;
+  height:32px;
+  padding:0;
+  margin:0;
+  border:none;
+  background:transparent;
+  color:#5b6474;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+}
+
+.passwordToggle:hover{
+  background:rgba(1,33,105,0.06);
+  color:var(--blue);
+}
+
+.passwordToggle:focus-visible{
+  outline:2px solid rgba(1,33,105,0.25);
+  outline-offset:2px;
+}
+
+.eyeIcon{
+  width:20px;
+  height:20px;
+  display:block;
+}
+
+.hidden{
+  display:none;
 }
 
 /* login button */
@@ -298,6 +343,7 @@ input{
   justify-content:flex-end;
   margin-top:42px;
 }
+
 /* =========================
    Bottom-right red Back button
    ========================= */
@@ -320,6 +366,7 @@ input{
   transform: translateY(1px);
   box-shadow: none;
 }
+
 /* =========================
    Lessons list styling
    ========================= */
@@ -338,7 +385,6 @@ input{
   box-shadow:0 8px 22px rgba(0,0,0,0.06);
 }
 
-/* prevent visited turning purple on lessons.html etc */
 .item a,
 .item a:visited{
   color:var(--blue);
@@ -351,7 +397,7 @@ input{
 }
 
 /* =========================
-   Interactions: hover glow + press
+   Interactions
    ========================= */
 .year,
 .subject,
@@ -378,8 +424,9 @@ input{
   transform:translateY(0px) scale(0.985);
   box-shadow:0 6px 14px rgba(0,0,0,0.10);
 }
+
 /* =========================
-   Global footer (portal style)
+   Global footer
    ========================= */
 #siteFooter{
   margin-top: 28px;
@@ -440,6 +487,10 @@ body.loginPage input {
   padding: 12px;
 }
 
+body.loginPage .passwordField input {
+  padding-right: 56px;
+}
+
 body.loginPage .form button {
   margin-top: 18px;
   padding: 12px;
@@ -450,8 +501,9 @@ body.loginPage .footer {
   font-size: 13px;
   line-height: 1.4;
 }
+
 /* =========================
-   Subtle entrance animation (login only)
+   Entrance animation
    ========================= */
 @keyframes fptFadeUp {
   from { opacity: 0; transform: translateY(10px); }
@@ -461,9 +513,11 @@ body.loginPage .footer {
 body.loginPage .card {
   animation: fptFadeUp 420ms ease-out both;
 }
+
 @media (prefers-reduced-motion: reduce) {
   body.loginPage .card { animation: none; }
 }
+
 /* =========================
    Floating Back Button
    ========================= */
