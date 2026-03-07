@@ -39,12 +39,7 @@
             onclick="togglePassword()"
           >
             <!-- Eye open -->
-            <svg
-              id="eyeOpen"
-              class="eyeIcon"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
+            <svg id="eyeOpen" class="eyeIcon" viewBox="0 0 24 24" aria-hidden="true">
               <path
                 d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"
                 fill="none"
@@ -64,12 +59,7 @@
             </svg>
 
             <!-- Eye closed -->
-            <svg
-              id="eyeClosed"
-              class="eyeIcon hidden"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
+            <svg id="eyeClosed" class="eyeIcon hidden" viewBox="0 0 24 24" aria-hidden="true">
               <path
                 d="M3 3l18 18"
                 fill="none"
@@ -105,7 +95,7 @@
           </button>
         </div>
 
-        <button onclick="login()">Log in</button>
+        <button type="button" class="loginBtn" onclick="login()">Log in</button>
 
         <div id="error" class="error" style="display:none;">
           Invalid login
@@ -136,14 +126,20 @@
       const eyeOpen = document.getElementById("eyeOpen");
       const eyeClosed = document.getElementById("eyeClosed");
 
-      const isHidden = passwordInput.type === "password";
+      const isCurrentlyHidden = passwordInput.type === "password";
 
-      passwordInput.type = isHidden ? "text" : "password";
-      toggleBtn.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
-      toggleBtn.setAttribute("aria-pressed", isHidden ? "true" : "false");
+      passwordInput.type = isCurrentlyHidden ? "text" : "password";
+      toggleBtn.setAttribute(
+        "aria-label",
+        isCurrentlyHidden ? "Hide password" : "Show password"
+      );
+      toggleBtn.setAttribute(
+        "aria-pressed",
+        isCurrentlyHidden ? "true" : "false"
+      );
 
-      eyeOpen.classList.toggle("hidden", isHidden);
-      eyeClosed.classList.toggle("hidden", !isHidden);
+      eyeOpen.classList.toggle("hidden", isCurrentlyHidden);
+      eyeClosed.classList.toggle("hidden", !isCurrentlyHidden);
     }
 
     async function login() {
