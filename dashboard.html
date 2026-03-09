@@ -1,6 +1,8 @@
 <!doctype html>
+
 <html lang="en">
 <head>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 
@@ -11,201 +13,250 @@
 
 <style>
 
-/* ===== Greeting ===== */
+/* =========================
+Greeting
+========================= */
 
 #dashTitle{
-  font-size: clamp(18px,2vw,26px);
-  text-align:center;
-  white-space:nowrap;
-  margin:0 0 6px;
+font-size:clamp(20px,2vw,26px);
+line-height:1.25;
+letter-spacing:-0.01em;
+text-align:center;
+white-space:nowrap;
+margin:0 0 6px;
 }
 
 .dashWelcome{
-  font-size:14px;
-  margin-top:4px;
+font-size:14px;
+margin-top:4px;
 }
 
-/* ===== Grid ===== */
+/* =========================
+Grid
+========================= */
 
 .dashGrid{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:18px;
-  margin-top:18px;
+display:grid;
+grid-template-columns:1fr;
+gap:18px;
+margin-top:20px;
 }
 
 @media (min-width:980px){
-  .dashGrid{
-    grid-template-columns:1fr 1fr;
-  }
+.dashGrid{
+grid-template-columns:1fr 1fr;
+}
 }
 
-/* ===== Card ===== */
+/* =========================
+Cards
+========================= */
 
 .dashCard{
-  background:#fff;
-  border:1px solid rgba(0,0,0,0.08);
-  border-radius:18px;
-  padding:18px 18px 16px;
-  box-shadow:0 14px 34px rgba(0,0,0,0.06);
+background:#fff;
+border:1px solid rgba(0,0,0,0.08);
+border-radius:18px;
+padding:20px;
+box-shadow:0 14px 34px rgba(0,0,0,0.06);
 
-  min-width:0;
-  overflow:hidden;
+min-width:0;
+overflow:hidden;
 }
 
 .dashYear{
-  font-size:26px;
-  font-weight:900;
-  margin:0 0 10px;
+font-size:26px;
+font-weight:900;
+margin:0 0 10px;
 }
 
-/* ===== Section ===== */
+/* =========================
+Sections
+========================= */
 
 .dashSection{
-  border-top:1px solid rgba(0,0,0,0.06);
-  padding-top:12px;
-  margin-top:12px;
-  min-width:0;
+border-top:1px solid rgba(0,0,0,0.06);
+padding-top:12px;
+margin-top:12px;
+min-width:0;
 }
 
 .dashSectionTitle{
-  margin:0 0 10px;
-  font-size:18px;
-  font-weight:900;
-  color:var(--blue);
+margin:0 0 10px;
+font-size:18px;
+font-weight:900;
+color:var(--blue);
 }
 
-/* ===== Buttons ===== */
+/* =========================
+Buttons
+========================= */
 
 .dashBtns{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-bottom:12px;
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+margin-bottom:12px;
 }
 
 .dashBtn{
-  border:none;
-  cursor:pointer;
-  font-weight:900;
-  border-radius:999px;
-  padding:12px 18px;
-  background:var(--blue);
-  color:#fff;
+border:none;
+cursor:pointer;
+font-weight:900;
+border-radius:999px;
+padding:12px 18px;
+background:var(--blue);
+color:#fff;
+box-shadow:0 10px 24px rgba(1,33,105,0.18);
+
+transition:
+transform 120ms ease,
+box-shadow 160ms ease;
+}
+
+.dashBtn:hover{
+transform:translateY(-1px);
+box-shadow:0 14px 28px rgba(1,33,105,0.22);
 }
 
 .dashBtn.secondary{
-  background:#fff;
-  color:var(--blue);
-  border:1px solid rgba(1,33,105,0.18);
+background:#fff;
+color:var(--blue);
+border:1px solid rgba(1,33,105,0.18);
+box-shadow:none;
 }
 
-/* ===== Lesson List ===== */
+/* =========================
+Lesson list
+========================= */
 
 .dashList{
-  display:none;
-  margin-top:10px;
-  min-width:0;
+display:none;
+margin-top:10px;
+min-width:0;
 }
 
 .dashList.on{
-  display:block;
+display:block;
 }
 
-/* ===== Lesson Row ===== */
+/* =========================
+Lesson row
+========================= */
 
 .lessonRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
 
-  padding:10px 12px;
-  border:1px solid rgba(0,0,0,0.06);
-  border-radius:14px;
-  margin:10px 0;
+padding:12px 14px;
+border:1px solid rgba(0,0,0,0.06);
+border-radius:14px;
+margin:10px 0;
 
-  background:#fff;
-  box-shadow:0 10px 22px rgba(0,0,0,0.05);
+background:#fff;
+box-shadow:0 10px 22px rgba(0,0,0,0.05);
 
-  min-width:0;
-  overflow:hidden;
+min-width:0;
+overflow:hidden;
+
+transition:
+transform 140ms ease,
+box-shadow 160ms ease,
+background 160ms ease;
 }
+
+.lessonRow:hover{
+transform:translateY(-2px);
+background:#fafafa;
+box-shadow:0 14px 28px rgba(0,0,0,0.10);
+}
+
+/* =========================
+Lesson link
+========================= */
 
 .lessonRow a,
 .lessonRow a:visited{
-  font-weight:900;
-  color:var(--red);
-  text-decoration:none;
-  cursor:pointer;
 
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+font-weight:900;
+color:var(--red);
+text-decoration:none;
 
-  flex:1 1 auto;
+min-width:0;
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap;
+
+flex:1 1 auto;
 }
 
 .lessonRow a:hover{
-  text-decoration:underline;
+text-decoration:underline;
 }
 
+/* =========================
+Lesson meta
+========================= */
+
 .lessonMeta{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex:0 0 auto;
-  white-space:nowrap;
+display:flex;
+align-items:center;
+gap:8px;
+flex:0 0 auto;
+white-space:nowrap;
 }
 
 .lessonDate{
-  font-size:12px;
-  font-weight:900;
-  color:var(--muted);
+font-size:12px;
+font-weight:900;
+color:var(--muted);
 }
 
-/* ===== Player ===== */
+/* =========================
+Video Player
+========================= */
 
 .playerWrap{
-  margin-top:20px;
-  border:1px solid rgba(0,0,0,0.10);
-  border-radius:18px;
-  overflow:hidden;
-  display:none;
-  background:#fff;
-  box-shadow:0 18px 40px rgba(0,0,0,0.10);
+margin-top:20px;
+border:1px solid rgba(0,0,0,0.10);
+border-radius:18px;
+overflow:hidden;
+display:none;
+background:#fff;
+box-shadow:0 18px 40px rgba(0,0,0,0.10);
 }
 
 .playerHeader{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:12px 14px;
-  border-bottom:1px solid rgba(0,0,0,0.08);
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:12px 14px;
+border-bottom:1px solid rgba(0,0,0,0.08);
 }
 
 .playerTitle{
-  font-weight:900;
+font-weight:900;
 }
 
 .playerBox{
-  position:relative;
-  width:100%;
-  padding-top:56.25%;
-  background:#000;
+position:relative;
+width:100%;
+padding-top:56.25%;
+background:#000;
 }
 
 .playerBox iframe{
-  position:absolute;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  border:0;
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+border:0;
 }
 
 </style>
+
 </head>
 
 <body>
@@ -220,23 +271,19 @@
 
 </div>
 
-
 <main class="appMain">
 
 <div class="card wide">
 
-<h1 id="dashTitle">Loading...</h1>
-
-<div class="dashWelcome" id="dashWelcome"></div>
-
+<h1 id="dashTitle">Loading…</h1>
+<div id="dashWelcome" class="dashWelcome"></div>
 
 <div id="dashGrid" class="dashGrid"></div>
-
 
 <div id="playerWrap" class="playerWrap">
 
 <div class="playerHeader">
-<div class="playerTitle" id="playerTitle">Lesson</div>
+<div id="playerTitle" class="playerTitle">Lesson</div>
 <button class="btnPlain" onclick="closePlayer()">Close</button>
 </div>
 
@@ -256,16 +303,46 @@
 
 <script>
 
-const username=sessionStorage.getItem("fpt_user");
-const password=sessionStorage.getItem("fpt_pass");
+const WORKER_BASE="https://frosty-rain-828e.futureperfectlessons.workers.dev"
+
+const username=sessionStorage.getItem("fpt_user")
+const password=sessionStorage.getItem("fpt_pass")
 
 if(!username||!password){
-location.href="index.html";
+location.href="index.html"
+}
+
+function authHeader(){
+return "Basic "+btoa(username+":"+password)
 }
 
 function logout(){
-sessionStorage.clear();
-location.href="index.html";
+sessionStorage.clear()
+location.href="index.html"
+}
+
+function screenpalEmbedUrl(id){
+return "https://go.screenpal.com/player/"+encodeURIComponent(id)+"?ff=1"
+}
+
+const playerWrap=document.getElementById("playerWrap")
+const player=document.getElementById("player")
+const playerTitle=document.getElementById("playerTitle")
+
+function openLesson(lesson){
+
+playerTitle.textContent=lesson.title||"Lesson"
+player.src=screenpalEmbedUrl(lesson.sp)
+
+playerWrap.style.display="block"
+playerWrap.scrollIntoView({behavior:"smooth"})
+}
+
+function closePlayer(){
+
+player.src="about:blank"
+playerWrap.style.display="none"
+
 }
 
 </script>
