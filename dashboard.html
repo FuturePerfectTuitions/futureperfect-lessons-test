@@ -978,18 +978,25 @@
         a.href = "#";
 
         const fullTitle = lesson.title || "Lesson";
-        let code = fullTitle;
-        let desc = "";
 
-        const m = fullTitle.match(/^([A-Z0-9_]+)\s*\((.*)\)$/);
-        if (m) {
-          code = m[1];
-          desc = m[2];
-        }
+let code = fullTitle.trim();
+let desc = "";
 
-        a.innerHTML = desc
-          ? `<span class="lessonCode">${code}</span><span class="lessonDesc">${desc}</span>`
-          : `<span class="lessonCode">${code}</span>`;
+const m = fullTitle.match(/^(.+?)\s*\((.*)\)\s*$/);
+
+if (m) {
+  code = m[1].trim();
+  desc = m[2].trim();
+}
+
+a.innerHTML = desc
+  ? `
+    <span class="lessonCode">${code}</span>
+    <span class="lessonDesc">${desc}</span>
+  `
+  : `
+    <span class="lessonCode">${code}</span>
+  `;
 
         a.addEventListener("click", (e) => {
           e.preventDefault();
