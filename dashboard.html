@@ -1,1150 +1,274 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Student Dashboard</title>
-  <link rel="stylesheet" href="shared.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Student Dashboard</title>
+
+<link rel="stylesheet" href="shared.css">
 <link rel="icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <style>
-    /* Dashboard layout (uses your existing shared.css look) */
 
-    /* ALWAYS keep the greeting on ONE line */
-  #dashTitle{
-  font-size: clamp(18px, 2.0vw, 26px);
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-  text-align: center;
-  white-space: nowrap;
-  margin: 0 0 6px;
+<style>
+
+/* ===== Greeting ===== */
+
+#dashTitle{
+  font-size: clamp(18px,2vw,26px);
+  text-align:center;
+  white-space:nowrap;
+  margin:0 0 6px;
 }
 
-   .dashWelcome{
-  font-size: 14px;
-  margin-top: 4px;
+.dashWelcome{
+  font-size:14px;
+  margin-top:4px;
 }
 
-    /* Topbar right actions (info + logout) */
-    .topbarActions{
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
+/* ===== Grid ===== */
 
-    .topbarInfo{
-      width:44px;
-      height:44px;
-      border-radius:999px;
-      border:none;
-      background:#fff;
-      color:var(--red);
-      font-weight:900;
-      font-size:20px;
-      cursor:pointer;
-      box-shadow:0 10px 24px rgba(0,0,0,0.12);
-      transition: transform 120ms ease, box-shadow 160ms ease, opacity 160ms ease;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      line-height:1;
-    }
+.dashGrid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:18px;
+  margin-top:18px;
+}
 
-    .topbarInfo:hover{
-      transform: translateY(-1px);
-      box-shadow:0 14px 28px rgba(0,0,0,0.16);
-    }
+@media (min-width:980px){
+  .dashGrid{
+    grid-template-columns:1fr 1fr;
+  }
+}
 
-    .topbarInfo:active{
-      transform: translateY(0px) scale(0.99);
-      box-shadow:0 8px 16px rgba(0,0,0,0.12);
-    }
+/* ===== Card ===== */
 
-    /* Help video block (appears under greeting) */
-    .helpWrap{
-      width: min(860px, 96%);
-      margin: 14px auto 0;
-      border: 1px solid rgba(0,0,0,0.10);
-      border-radius: 18px;
-      overflow: hidden;
-      display: none;
-      background: #fff;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.10);
-      text-align:left;
-    }
+.dashCard{
+  background:#fff;
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:18px;
+  padding:18px 18px 16px;
+  box-shadow:0 14px 34px rgba(0,0,0,0.06);
 
-    .helpHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px 14px;
-      border-bottom:1px solid rgba(0,0,0,0.08);
-    }
+  min-width:0;
+  overflow:hidden;
+}
 
-    .helpTitle{
-      font-weight: 900;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: var(--text);
-    }
+.dashYear{
+  font-size:26px;
+  font-weight:900;
+  margin:0 0 10px;
+}
 
-    .helpBox{
-      position: relative;
-      width: 100%;
-      padding-top: 56.25%;
-      background:#000;
-    }
+/* ===== Section ===== */
 
-    .helpBox iframe{
-      position:absolute;
-      top:0; left:0;
-      width:100%;
-      height:100%;
-      border:0;
-      display:block;
-    }
+.dashSection{
+  border-top:1px solid rgba(0,0,0,0.06);
+  padding-top:12px;
+  margin-top:12px;
+  min-width:0;
+}
 
-    .helpDesc{
-      padding: 12px 16px 14px;
-      color: var(--muted);
-      line-height: 1.6;
-      white-space: pre-line;
-      font-weight: 700;
-    }
+.dashSectionTitle{
+  margin:0 0 10px;
+  font-size:18px;
+  font-weight:900;
+  color:var(--blue);
+}
 
-    .dashGrid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-      margin-top: 18px;
-    }
+/* ===== Buttons ===== */
 
-    @media (min-width: 980px){
-      .dashGrid{ grid-template-columns: 1fr 1fr; }
-    }
+.dashBtns{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:12px;
+}
 
-    .dashCard{
-      background:#fff;
-      border:1px solid rgba(0,0,0,0.08);
-      border-radius:18px;
-      padding:18px 18px 16px;
-      box-shadow:0 14px 34px rgba(0,0,0,0.06);
-    }
+.dashBtn{
+  border:none;
+  cursor:pointer;
+  font-weight:900;
+  border-radius:999px;
+  padding:12px 18px;
+  background:var(--blue);
+  color:#fff;
+}
 
-    .dashYear{
-      font-size:26px;
-      font-weight: 900;
-      letter-spacing:-0.01em;
-      margin:0 0 10px;
-      color: var(--text);
-      text-align:left;
-    }
+.dashBtn.secondary{
+  background:#fff;
+  color:var(--blue);
+  border:1px solid rgba(1,33,105,0.18);
+}
 
-    .dashSection{
-      border-top: 1px solid rgba(0,0,0,0.06);
-      padding-top: 12px;
-      margin-top: 12px;
-    }
+/* ===== Lesson List ===== */
 
-    .dashSectionTitle{
-      margin:0 0 10px;
-      font-size:18px;
-      font-weight: 900;
-      color: var(--blue);
-      text-align:left;
-    }
+.dashList{
+  display:none;
+  margin-top:10px;
+  min-width:0;
+}
 
-    .dashBtns{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-bottom: 12px;
-      align-items:center;
-    }
+.dashList.on{
+  display:block;
+}
 
-    .dashBtn{
-      border:none;
-      cursor:pointer;
-      font-weight:900;
-      border-radius:999px;
-      padding:12px 18px;
-      background: var(--blue);
-      color: #fff;
-      box-shadow: 0 10px 24px rgba(1,33,105,0.18);
-      transition: transform 120ms ease, box-shadow 160ms ease, opacity 160ms ease;
-      position:relative;
-    }
+/* ===== Lesson Row ===== */
 
-    .dashBtn:hover{ transform: translateY(-1px); box-shadow: 0 14px 28px rgba(1,33,105,0.22); }
-    .dashBtn:active{ transform: translateY(0px) scale(0.99); box-shadow: 0 8px 16px rgba(0,0,0,0.12); }
+.lessonRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
 
-    .dashBtn.secondary{
-      background:#fff;
-      color: var(--blue);
-      border: 1px solid rgba(1,33,105,0.18);
-      box-shadow:none;
-    }
+  padding:10px 12px;
+  border:1px solid rgba(0,0,0,0.06);
+  border-radius:14px;
+  margin:10px 0;
 
-    /* RED only when list is open */
-    .dashBtn[aria-pressed="true"]{
-      background: var(--red);
-      box-shadow: 0 12px 26px rgba(215,25,32,0.18);
-    }
+  background:#fff;
+  box-shadow:0 10px 22px rgba(0,0,0,0.05);
 
-    .dashList{
-      display:none;
-      margin-top: 10px;
-    }
+  min-width:0;
+  overflow:hidden;
+}
 
-    .dashList.on{ display:block; }
+.lessonRow a,
+.lessonRow a:visited{
+  font-weight:900;
+  color:var(--red);
+  text-decoration:none;
+  cursor:pointer;
 
-    .dashList .item{
-      cursor:pointer;
-    }
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 
-    .dashHint{
-      color: var(--muted);
-      font-weight: 800;
-      font-size: 13px;
-      margin: 6px 0 0;
-      text-align:left;
-    }
+  flex:1 1 auto;
+}
 
-    /* Embedded player (same-page, branded) */
-    .playerWrap{
-      margin-top: 16px;
-      border: 1px solid rgba(0,0,0,0.10);
-      border-radius: 18px;
-      overflow: hidden;
-      display: none;
-      background: #fff;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.10);
-    }
+.lessonRow a:hover{
+  text-decoration:underline;
+}
 
-    .playerHeader{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px 14px;
-      border-bottom:1px solid rgba(0,0,0,0.08);
-    }
+.lessonMeta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:0 0 auto;
+  white-space:nowrap;
+}
 
-    .playerTitle{
-      font-weight: 900;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: var(--text);
-    }
+.lessonDate{
+  font-size:12px;
+  font-weight:900;
+  color:var(--muted);
+}
 
-    .btnPlain{
-      border:1px solid rgba(0,0,0,0.10);
-      background:#fff;
-      padding:10px 14px;
-      border-radius:12px;
-      font-weight:900;
-      cursor:pointer;
-      color:var(--text);
-    }
-    .btnPlain:active{ transform: translateY(1px); }
+/* ===== Player ===== */
 
-    .playerBox{
-      position: relative;
-      width: 100%;
-      padding-top: 56.25%;
-      background:#000;
-    }
+.playerWrap{
+  margin-top:20px;
+  border:1px solid rgba(0,0,0,0.10);
+  border-radius:18px;
+  overflow:hidden;
+  display:none;
+  background:#fff;
+  box-shadow:0 18px 40px rgba(0,0,0,0.10);
+}
 
-    .playerBox iframe{
-      position:absolute;
-      top:0; left:0;
-      width:100%;
-      height:100%;
-      border:0;
-      display:block;
-    }
+.playerHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 14px;
+  border-bottom:1px solid rgba(0,0,0,0.08);
+}
 
-    .playerDesc{
-      padding: 14px 16px;
-      color: var(--muted);
-      line-height: 1.6;
-      display:none;
-      white-space: pre-line;
-      font-weight: 700;
-    }
+.playerTitle{
+  font-weight:900;
+}
 
-    /* =========================
-       Global Search (Dashboard)
-       ========================= */
-    .searchWrap{
-      position:relative;
-      margin: 18px auto 6px;
-      width: min(860px, 96%);
-    }
+.playerBox{
+  position:relative;
+  width:100%;
+  padding-top:56.25%;
+  background:#000;
+}
 
-    .searchIcon{
-      position:absolute;
-      top:50%;
-      left:14px;
-      transform:translateY(-50%);
-      font-size:18px;
-      color:var(--muted);
-      pointer-events:none;
-    }
+.playerBox iframe{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  border:0;
+}
 
-    .searchInput{
-      width:100%;
-      padding:14px 16px 14px 44px;
-      border-radius:14px;
-      border:1px solid rgba(0,0,0,0.12);
-      background:#fff;
-      font-size:15px;
-      outline:none;
-      font-weight:700;
-    }
-
-    .searchInput:focus{
-      border-color: rgba(1,33,105,0.35);
-      box-shadow:0 0 0 4px rgba(11,42,111,0.10);
-    }
-
-    .searchMeta{
-      width: min(860px, 96%);
-      margin: 8px auto 0;
-      color: var(--muted);
-      font-weight: 800;
-      font-size: 13px;
-      text-align: left;
-    }
-
-    .searchResults{
-      width: min(860px, 96%);
-      margin: 12px auto 16px;
-      display:none;
-    }
-
-    .searchResults.on{ display:block; }
-
-    .resultItem{
-      border:1px solid rgba(0,0,0,0.08);
-      border-radius:16px;
-      padding:12px 14px;
-      margin:10px 0;
-      background:#fff;
-      box-shadow:0 10px 24px rgba(0,0,0,0.06);
-    }
-
-    .resultTop{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
-    }
-
-    .resultTitle{
-      font-weight: 900;
-      color: var(--blue);
-      text-decoration:none;
-      cursor:pointer;
-    }
-
-    .resultTitle:visited{ color: var(--blue); }
-
-    .resultTitle:hover{ text-decoration: underline; }
-
-    .resultTag{
-      flex:0 0 auto;
-      font-weight: 900;
-      font-size: 12px;
-      color: #fff;
-      background: var(--blue);
-      padding: 6px 10px;
-      border-radius: 999px;
-      opacity: 0.9;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-    }
-
-    .resultSub{
-      margin-top: 6px;
-      color: var(--muted);
-      font-weight: 800;
-      font-size: 12.5px;
-    }
-
-    .resultDesc{
-      margin-top: 10px;
-      color: var(--muted);
-      line-height: 1.5;
-      font-weight: 700;
-      white-space: pre-line;
-    }
-
-    /* =========================
-       NEW badges
-       ========================= */
-    .newBadge{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-weight: 900;
-      font-size: 11px;
-      line-height: 1;
-      color:#fff;
-      background: var(--red);
-      margin-left: 8px;
-      vertical-align: middle;
-      box-shadow: 0 10px 22px rgba(215,25,32,0.18);
-    }
-
-    /* Button-level NEW badge (top-right of pill) */
-    .dashBtn .newBadgeBtn{
-      position:absolute;
-      top:-7px;
-      right:-6px;
-      transform: rotate(-8deg);
-      padding: 4px 7px;
-      font-size: 10px;
-      box-shadow: 0 10px 22px rgba(215,25,32,0.22);
-      margin-left:0;
-    }
-
-    /* List item layout */
-    .lessonRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:10px 12px;
-      border:1px solid rgba(0,0,0,0.06);
-      border-radius:14px;
-      margin:10px 0;
-      background:#fff;
-      box-shadow:0 10px 22px rgba(0,0,0,0.05);
-    }
-
-    /* LIST LINKS MUST STAY RED (even visited) */
-    .lessonRow a,
-    .lessonRow a:visited{
-      font-weight: 900;
-      color: var(--red);
-      text-decoration:none;
-      cursor:pointer;
-      min-width:0;
-      overflow:hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .lessonRow a:hover{ text-decoration: underline; }
-
-    .lessonMeta{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex:0 0 auto;
-      white-space:nowrap;
-    }
-
-    .lessonDate{
-      font-weight: 900;
-      font-size: 12px;
-      color: var(--muted);
-      opacity: 0.9;
-    }
-
-    .sepRow{
-      padding:10px 12px;
-      border-radius:14px;
-      margin:10px 0;
-      background: rgba(0,0,0,0.03);
-      border:1px solid rgba(0,0,0,0.06);
-      font-weight: 900;
-      color: var(--muted);
-    }
-  </style>
+</style>
 </head>
 
 <body>
-  <div class="topbar">
-    <a href="https://futureperfect.education/" class="topbarLogoLink">
-      <img src="assets/fpt-logo.png" class="topbarLogo" alt="Future Perfect Tuitions" />
-    </a>
 
-    <div class="topbarActions">
-      <button class="topbarInfo" type="button" onclick="toggleHelpVideo()" title="How to use Google Drive for homework" aria-label="Help: Google Drive for homework">
-        ℹ
-      </button>
-      <button class="topbarLogout" onclick="logout()">Log out</button>
-    </div>
-  </div>
+<div class="topbar">
 
-  <main class="appMain">
-    <div class="card wide">
-      <h1 class="yearHeading" id="dashTitle">Loading…</h1>
-      <div class="dashWelcome" id="dashWelcome"></div>
+<a href="https://futureperfect.education/" class="topbarLogoLink">
+<img src="assets/fpt-logo.png" class="topbarLogo">
+</a>
 
-      <!-- HELP VIDEO (opens under greeting) -->
-      <div id="helpWrap" class="helpWrap" aria-hidden="true">
-        <div class="helpHeader">
-          <div class="helpTitle" id="helpTitle">How to use Google Drive for homework</div>
-          <button class="btnPlain" type="button" onclick="closeHelpVideo()">Close</button>
-        </div>
-        <div class="helpBox">
-          <iframe
-            id="helpPlayer"
-            src="about:blank"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowfullscreen
-            scrolling="no"
-            referrerpolicy="no-referrer"
-          ></iframe>
-        </div>
-        <div class="helpDesc" id="helpDesc">
-          Watch this short guide to learn how to open, download, and use your homework from Google Drive.
-        </div>
-      </div>
+<button class="topbarLogout" onclick="logout()">Log out</button>
 
-      <!-- Global search -->
-      <div class="searchWrap">
-        <div class="searchIcon">🔍</div>
-        <input
-          id="globalSearch"
-          class="searchInput"
-          type="search"
-          placeholder="Search all lessons (e.g. Fractions, Algebra, Commas, FAR280125Y5E28 02)…"
-          autocomplete="off"
-        />
-      </div>
-      <div id="searchMeta" class="searchMeta"></div>
-      <div id="searchResults" class="searchResults"></div>
+</div>
 
-      <div id="error" class="error" style="display:none;"></div>
 
-      <div id="dashGrid" class="dashGrid"></div>
+<main class="appMain">
 
-      <!-- One global player at the bottom (keeps page clean) -->
-      <div id="playerWrap" class="playerWrap">
-        <div class="playerHeader">
-          <div class="playerTitle" id="playerTitle">Lesson</div>
-          <button class="btnPlain" type="button" id="closePlayerBtn">Close</button>
-        </div>
-        <div class="playerBox">
-          <iframe
-            id="player"
-            src="about:blank"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowfullscreen
-            scrolling="no"
-            referrerpolicy="no-referrer"
-          ></iframe>
-        </div>
-        <div id="playerDesc" class="playerDesc"></div>
-      </div>
+<div class="card wide">
 
-      <div class="dashHint" style="text-align:center; margin-top:16px;">
-        Tip: Click a button like “Lessons” to load the list, then click a lesson to play it below.
-      </div>
-    </div>
+<h1 id="dashTitle">Loading...</h1>
 
-    <div id="siteFooter"></div>
-  </main>
+<div class="dashWelcome" id="dashWelcome"></div>
 
-  <script src="footer.js"></script>
 
-  <script>
-    const WORKER_BASE = "https://frosty-rain-828e.futureperfectlessons.workers.dev";
+<div id="dashGrid" class="dashGrid"></div>
 
-    // HELP video ScreenPal ID (Google Drive for Homework)
-    const HELP_SP_ID = "cOnD6sn0r8K";
 
-    // NEW badge window
-    const NEW_DAYS = 7;
+<div id="playerWrap" class="playerWrap">
 
-    const username = sessionStorage.getItem("fpt_user");
-    const password = sessionStorage.getItem("fpt_pass");
-    if (!username || !password) location.href = "index.html";
+<div class="playerHeader">
+<div class="playerTitle" id="playerTitle">Lesson</div>
+<button class="btnPlain" onclick="closePlayer()">Close</button>
+</div>
 
-    function authHeader() {
-      return "Basic " + btoa(username + ":" + password);
-    }
+<div class="playerBox">
+<iframe id="player"></iframe>
+</div>
 
-    function logout() {
-      sessionStorage.clear();
-      location.href = "index.html";
-    }
+</div>
 
-    // ----- Greeting helpers -----
-    function timeGreeting(){
-      const hour = new Date().getHours();
-      if (hour < 12) return "Good morning";
-      if (hour < 17) return "Good afternoon";
-      return "Good evening";
-    }
+</div>
 
-    function firstNameOf(name){
-      const s = String(name || "").trim();
-      if (!s) return "";
-      return s.split(/\s+/)[0];
-    }
+<div id="siteFooter"></div>
 
-    // ----- UI helpers -----
-    function yearLabel(code) {
-      const m = String(code || "").match(/^Y(\d)(?:_(11plus))?/);
-      if (!m) return code || "";
-      return m[2] ? `Year ${m[1]} 11+` : `Year ${m[1]}`;
-    }
+</main>
 
-    function subjectLabel(s) {
-      if (s === "maths") return "Maths";
-      if (s === "vr") return "Verbal Reasoning";
-      return s;
-    }
+<script src="footer.js"></script>
 
-    function optionLabel(o) {
-      if (o === "lessons") return "Lessons";
-      if (o === "assessments") return "Assessments";
-      if (o === "howto") return "How-To";
-      return o;
-    }
+<script>
 
-    function showError(msg){
-      const el = document.getElementById("error");
-      el.style.display = "block";
-      el.textContent = msg;
-    }
+const username=sessionStorage.getItem("fpt_user");
+const password=sessionStorage.getItem("fpt_pass");
 
-    function screenpalEmbedUrl(spId){
-      const id = encodeURIComponent(spId);
-      return `https://go.screenpal.com/player/${id}?ff=1&ahc=1&dcc=1&bg=transparent`;
-    }
+if(!username||!password){
+location.href="index.html";
+}
 
-    // ----- HELP video (opens under greeting) -----
-    const helpWrap = document.getElementById("helpWrap");
-    const helpPlayer = document.getElementById("helpPlayer");
+function logout(){
+sessionStorage.clear();
+location.href="index.html";
+}
 
-    function openHelpVideo(){
-      helpPlayer.src = screenpalEmbedUrl(HELP_SP_ID);
-      helpWrap.style.display = "block";
-      helpWrap.setAttribute("aria-hidden", "false");
-      helpWrap.scrollIntoView({ behavior:"smooth", block:"start" });
-    }
+</script>
 
-    function closeHelpVideo(){
-      helpPlayer.src = "about:blank";
-      helpWrap.style.display = "none";
-      helpWrap.setAttribute("aria-hidden", "true");
-    }
-
-    function toggleHelpVideo(){
-      const isOpen = helpWrap.style.display === "block";
-      if (isOpen) closeHelpVideo();
-      else openHelpVideo();
-    }
-
-    // ----- Player (lesson embed at bottom) -----
-    const playerWrap = document.getElementById("playerWrap");
-    const player = document.getElementById("player");
-    const playerTitle = document.getElementById("playerTitle");
-    const playerDesc = document.getElementById("playerDesc");
-    document.getElementById("closePlayerBtn").addEventListener("click", closePlayer);
-
-    // Remembers which list the current video came from
-    const lastOrigin = { listWrap: null, btn: null };
-
-    function openLesson(lesson, origin){
-      if (!lesson || !lesson.sp) return;
-
-      // Track where the lesson was launched from (so Close returns to that list)
-      if (origin && origin.listWrap && origin.btn){
-        lastOrigin.listWrap = origin.listWrap;
-        lastOrigin.btn = origin.btn;
-      } else {
-        lastOrigin.listWrap = null;
-        lastOrigin.btn = null;
-      }
-
-      // Load video
-      playerTitle.textContent = lesson.title || "Lesson";
-      player.src = screenpalEmbedUrl(lesson.sp);
-
-      const desc = (lesson.desc || "").trim();
-      if (desc) {
-        playerDesc.style.display = "block";
-        playerDesc.textContent = desc;
-      } else {
-        playerDesc.style.display = "none";
-        playerDesc.textContent = "";
-      }
-
-      playerWrap.style.display = "block";
-      playerWrap.scrollIntoView({ behavior:"smooth", block:"start" });
-    }
-
-    function closePlayer(){
-      player.src = "about:blank";
-      playerWrap.style.display = "none";
-      playerDesc.style.display = "none";
-      playerDesc.textContent = "";
-
-      // If the list is still open (parent hasn't closed it), return them to it
-      if (lastOrigin.listWrap && lastOrigin.btn && lastOrigin.btn.getAttribute("aria-pressed") === "true"){
-        lastOrigin.listWrap.classList.add("on");
-        lastOrigin.listWrap.scrollIntoView({ behavior:"smooth", block:"start" });
-      }
-    }
-
-    // ----- Date / NEW helpers -----
-    function parseAddedDate(x){
-      const raw = (x && x.added) ? String(x.added).trim() : "";
-      if (!raw) return null;
-      // Expect YYYY-MM-DD
-      const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (!m) return null;
-      const y = parseInt(m[1], 10);
-      const mo = parseInt(m[2], 10) - 1;
-      const d = parseInt(m[3], 10);
-      const dt = new Date(Date.UTC(y, mo, d));
-      return isNaN(dt.getTime()) ? null : dt;
-    }
-
-    function daysBetweenUTC(a, b){
-      const ms = 24 * 60 * 60 * 1000;
-      const da = Date.UTC(a.getUTCFullYear(), a.getUTCMonth(), a.getUTCDate());
-      const db = Date.UTC(b.getUTCFullYear(), b.getUTCMonth(), b.getUTCDate());
-      return Math.floor((db - da) / ms);
-    }
-
-    function isNewItem(item){
-      const dt = parseAddedDate(item);
-      if (!dt) return false;
-      const now = new Date();
-      const diff = daysBetweenUTC(dt, now);
-      return diff >= 0 && diff <= NEW_DAYS;
-    }
-
-    function formatAdded(item){
-      const dt = parseAddedDate(item);
-      if (!dt) return "";
-      const y = dt.getUTCFullYear();
-      const m = String(dt.getUTCMonth() + 1).padStart(2, "0");
-      const d = String(dt.getUTCDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
-    }
-
-    // ----- Data caches (avoid refetching when student clicks around) -----
-    const cacheSubjects = new Map(); // year -> ["maths","vr"]
-    const cacheOptions  = new Map(); // year|subject -> ["lessons","assessments"]
-    const cacheLessons  = new Map(); // year|subject|option -> lesson array
-
-    async function apiJSON(path){
-      const res = await fetch(WORKER_BASE + path, { headers: { Authorization: authHeader() } });
-      if (!res.ok) {
-        const t = await res.text().catch(() => "");
-        throw new Error(`API failed (${res.status}) ${t}`);
-      }
-      return await res.json();
-    }
-
-    async function getSubjects(year){
-      if (cacheSubjects.has(year)) return cacheSubjects.get(year);
-      const data = await apiJSON(`/subjects?year=${encodeURIComponent(year)}`);
-      cacheSubjects.set(year, data);
-      return data;
-    }
-
-    async function getOptions(year, subject){
-      const key = `${year}|${subject}`;
-      if (cacheOptions.has(key)) return cacheOptions.get(key);
-      const data = await apiJSON(`/options?year=${encodeURIComponent(year)}&subject=${encodeURIComponent(subject)}`);
-      cacheOptions.set(key, data);
-      return data;
-    }
-
-    async function getLessons(year, subject, option){
-      const key = `${year}|${subject}|${option}`;
-      if (cacheLessons.has(key)) return cacheLessons.get(key);
-      const data = await apiJSON(`/lessons?year=${encodeURIComponent(year)}&subject=${encodeURIComponent(subject)}&option=${encodeURIComponent(option)}`);
-      cacheLessons.set(key, data);
-      return data;
-    }
-
-    // ----- Global Search Index -----
-    let lessonIndex = [];          // [{title, desc, sp, year, subject, option, added}]
-    let indexBuilt = false;
-    let indexBuilding = false;
-
-    const searchInputEl = document.getElementById("globalSearch");
-    const searchMetaEl  = document.getElementById("searchMeta");
-    const searchResultsEl = document.getElementById("searchResults");
-
-    function setSearchMeta(msg){
-      searchMetaEl.textContent = msg || "";
-    }
-
-    function showSearchResults(on){
-      searchResultsEl.classList.toggle("on", !!on);
-    }
-
-    function normalizeText(s){
-      return String(s || "").toLowerCase();
-    }
-
-    function shortLabel(year, subject, option){
-      const y = yearLabel(year);
-      const s = subjectLabel(subject);
-      const o = optionLabel(option);
-      return `${y} • ${s} • ${o}`;
-    }
-
-    async function buildSearchIndex(years){
-      if (indexBuilt || indexBuilding) return;
-
-      indexBuilding = true;
-      setSearchMeta("Building search index… (first time only)");
-
-      const items = [];
-
-      for (const year of years) {
-        let subjects = [];
-        try { subjects = await getSubjects(year); } catch { subjects = []; }
-
-        for (const subject of subjects) {
-          let options = [];
-          try { options = await getOptions(year, subject); } catch { options = []; }
-
-          for (const option of options) {
-            let lessons = [];
-            try { lessons = await getLessons(year, subject, option); } catch { lessons = []; }
-
-            for (const l of lessons) {
-              if (!l || !l.sp) continue;
-              items.push({
-                title: l.title || "Lesson",
-                desc: (l.desc || "").trim(),
-                sp: l.sp,
-                added: l.added || "",
-                year,
-                subject,
-                option
-              });
-            }
-          }
-        }
-      }
-
-      lessonIndex = items;
-      indexBuilt = true;
-      indexBuilding = false;
-
-      setSearchMeta(`Search ready: ${lessonIndex.length} lesson(s) available.`);
-    }
-
-    function renderSearchResults(query){
-      const q = normalizeText(query).trim();
-
-      if (!q) {
-        showSearchResults(false);
-        if (indexBuilt) setSearchMeta(`Search ready: ${lessonIndex.length} lesson(s) available.`);
-        else setSearchMeta("Type to search all lessons…");
-        return;
-      }
-
-      const matches = lessonIndex.filter(x =>
-        normalizeText(x.title).includes(q) || normalizeText(x.desc).includes(q)
-      );
-
-      searchResultsEl.innerHTML = "";
-
-      if (!matches.length) {
-        showSearchResults(true);
-        searchResultsEl.innerHTML = `<div class="resultItem"><div class="resultSub">No matches.</div></div>`;
-        setSearchMeta(`No matches for “${query}”.`);
-        return;
-      }
-
-      const MAX = 30;
-      const shown = matches.slice(0, MAX);
-
-      shown.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "resultItem";
-
-        const top = document.createElement("div");
-        top.className = "resultTop";
-
-        const a = document.createElement("a");
-        a.href = "#";
-        a.className = "resultTitle";
-        a.textContent = item.title;
-        a.addEventListener("click", (e) => {
-          e.preventDefault();
-          openLesson({ title: item.title, sp: item.sp, desc: item.desc }, null);
-        });
-
-        const tag = document.createElement("div");
-        tag.className = "resultTag";
-        tag.textContent = item.option === "assessments" ? "Assessments" :
-                          item.option === "howto" ? "How-To" : "Lessons";
-
-        top.appendChild(a);
-        top.appendChild(tag);
-
-        const sub = document.createElement("div");
-        sub.className = "resultSub";
-        sub.textContent = shortLabel(item.year, item.subject, item.option);
-
-        div.appendChild(top);
-        div.appendChild(sub);
-
-        if (item.desc) {
-          const d = document.createElement("div");
-          d.className = "resultDesc";
-          d.textContent = item.desc;
-          div.appendChild(d);
-        }
-
-        if (isNewItem(item)) {
-          const nb = document.createElement("span");
-          nb.className = "newBadge";
-          nb.textContent = "NEW";
-          tag.appendChild(nb);
-        }
-
-        searchResultsEl.appendChild(div);
-      });
-
-      showSearchResults(true);
-
-      const extra = matches.length > MAX ? ` (showing ${MAX} of ${matches.length})` : ` (${matches.length})`;
-      setSearchMeta(`Results for “${query}”${extra}`);
-    }
-
-    let searchTimer = null;
-    searchInputEl.addEventListener("input", () => {
-      clearTimeout(searchTimer);
-
-      searchTimer = setTimeout(async () => {
-        const q = searchInputEl.value || "";
-
-        // Lazy-build the index on first real search
-        if (q.trim() && !indexBuilt) {
-          await buildSearchIndex(window.__fptYears || []);
-        }
-
-        if (indexBuilt) {
-          renderSearchResults(q);
-        } else {
-          if (q.trim()) setSearchMeta("Preparing search…");
-        }
-      }, 160);
-    });
-
-    // ----- Render -----
-    function renderLessonList(listEl, lessons, origin){
-      listEl.innerHTML = "";
-
-      if (!Array.isArray(lessons) || lessons.length === 0){
-        const div = document.createElement("div");
-        div.className = "lessonRow";
-        div.textContent = "Content coming shortly.";
-        listEl.appendChild(div);
-        return;
-      }
-
-      lessons.forEach(lesson => {
-        // Separator rows (sp:"") from worker merge logic
-        if (!lesson || !lesson.sp) {
-          const sep = document.createElement("div");
-          sep.className = "sepRow";
-          sep.textContent = (lesson && lesson.title) ? lesson.title : "";
-          listEl.appendChild(sep);
-          return;
-        }
-
-        const row = document.createElement("div");
-        row.className = "lessonRow";
-
-        const a = document.createElement("a");
-        a.href = "#";
-        a.textContent = lesson.title || "Lesson";
-        a.addEventListener("click", (e) => {
-          e.preventDefault();
-          openLesson(lesson, origin);
-        });
-
-        const meta = document.createElement("div");
-        meta.className = "lessonMeta";
-
-        const dt = formatAdded(lesson);
-        if (dt) {
-          const d = document.createElement("div");
-          d.className = "lessonDate";
-          d.textContent = dt;
-          meta.appendChild(d);
-        }
-
-        if (isNewItem(lesson)) {
-          const nb = document.createElement("span");
-          nb.className = "newBadge";
-          nb.textContent = "NEW";
-          meta.appendChild(nb);
-        }
-
-        row.appendChild(a);
-        row.appendChild(meta);
-        listEl.appendChild(row);
-      });
-    }
-
-    async function buildDashboard(){
-      const dashTitleEl = document.getElementById("dashTitle");
-      const dashWelcomeEl = document.getElementById("dashWelcome");
-
-      const me = await apiJSON("/me");
-      const studentName = (me && me.name) ? me.name : username;
-      const first = firstNameOf(studentName) || firstNameOf(username) || "there";
-
-      // Friendly greeting
-      dashTitleEl.textContent = `${timeGreeting()} ${first}, welcome to your dashboard.`;
-      dashWelcomeEl.textContent = `Ready to learn, ${first}?`;
-
-      // Tab title
-      document.title = `${studentName}'s Dashboard`;
-
-      const years = Array.isArray(me.years) ? me.years : [];
-      window.__fptYears = years;
-      setSearchMeta("Type to search all lessons…");
-
-      const grid = document.getElementById("dashGrid");
-      grid.innerHTML = "";
-
-      // Show shared VR How-To only once: prefer Y4 11+, else Y5 11+
-      const hasY4_11 = years.includes("Y4_11plus");
-      const hasY5_11 = years.includes("Y5_11plus");
-      const howtoYear = hasY4_11 ? "Y4_11plus" : (hasY5_11 ? "Y5_11plus" : null);
-
-      for (const year of years) {
-        const card = document.createElement("div");
-        card.className = "dashCard";
-
-        const h = document.createElement("div");
-        h.className = "dashYear";
-        h.textContent = yearLabel(year);
-        card.appendChild(h);
-
-        // Build subject sections for this year
-        let subjects = [];
-        try { subjects = await getSubjects(year); } catch { subjects = []; }
-
-        for (const subject of subjects) {
-          const section = document.createElement("div");
-          section.className = "dashSection";
-
-          const st = document.createElement("div");
-          st.className = "dashSectionTitle";
-          st.textContent = subjectLabel(subject);
-          section.appendChild(st);
-
-          const btnRow = document.createElement("div");
-          btnRow.className = "dashBtns";
-          section.appendChild(btnRow);
-
-          const listWrap = document.createElement("div");
-          listWrap.className = "dashList";
-          section.appendChild(listWrap);
-
-          let options = [];
-          try { options = await getOptions(year, subject); } catch { options = []; }
-
-          for (const option of options) {
-            // Show VR_HOWTO only once in preferred year
-            if (option === "howto" && howtoYear && year !== howtoYear) continue;
-
-            const btn = document.createElement("button");
-            btn.className = "dashBtn";
-            btn.type = "button";
-            btn.textContent = optionLabel(option);
-            btn.setAttribute("aria-pressed", "false");
-
-            // Pre-compute: does this option have any NEW items?
-            (async () => {
-              try {
-                const lessons = await getLessons(year, subject, option);
-                const hasNew = Array.isArray(lessons) && lessons.some(l => l && l.sp && isNewItem(l));
-                if (hasNew) {
-                  const nb = document.createElement("span");
-                  nb.className = "newBadge newBadgeBtn";
-                  nb.textContent = "NEW";
-                  btn.appendChild(nb);
-                }
-              } catch {
-                // ignore
-              }
-            })();
-
-            btn.addEventListener("click", async () => {
-              const isOpen = btn.getAttribute("aria-pressed") === "true";
-
-              if (isOpen) {
-                btn.setAttribute("aria-pressed", "false");
-                listWrap.classList.remove("on");
-                listWrap.innerHTML = "";
-
-                // If the user closed the list themselves, don’t force it back open on Close Video
-                if (typeof lastOrigin !== "undefined" && lastOrigin.listWrap === listWrap) {
-                  lastOrigin.listWrap = null;
-                  lastOrigin.btn = null;
-                }
-
-                return;
-              }
-
-              [...btnRow.querySelectorAll("button")].forEach(b => b.setAttribute("aria-pressed", "false"));
-              btn.setAttribute("aria-pressed", "true");
-
-              listWrap.classList.add("on");
-              listWrap.innerHTML = `<div class="lessonRow">Loading…</div>`;
-
-              btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
-
-              try {
-                const lessons = await getLessons(year, subject, option);
-                renderLessonList(listWrap, lessons, { listWrap, btn });
-              } catch (e) {
-                console.error("Load failed:", year, subject, option, e);
-                listWrap.innerHTML = `<div class="lessonRow" style="color:var(--muted); font-weight:900;">Failed to load.</div>`;
-              }
-            });
-
-            btnRow.appendChild(btn);
-          }
-
-          card.appendChild(section);
-        }
-
-        grid.appendChild(card);
-      }
-    }
-
-    (async () => {
-      try {
-        await buildDashboard();
-      } catch (e) {
-        console.error(e);
-        showError("Could not load dashboard. Please log in again.");
-      }
-    })();
-  </script>
 </body>
 </html>
