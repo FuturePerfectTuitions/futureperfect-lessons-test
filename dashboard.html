@@ -982,11 +982,13 @@
 let code = fullTitle.trim();
 let desc = "";
 
-const m = fullTitle.match(/^(.+?)\s*\((.*)\)\s*$/);
+// Split at the LAST bracket group, not the first one
+const openIdx = fullTitle.lastIndexOf("(");
+const closeIdx = fullTitle.lastIndexOf(")");
 
-if (m) {
-  code = m[1].trim();
-  desc = m[2].trim();
+if (openIdx > 0 && closeIdx > openIdx) {
+  code = fullTitle.slice(0, openIdx).trim();
+  desc = fullTitle.slice(openIdx + 1, closeIdx).trim();
 }
 
 a.innerHTML = desc
