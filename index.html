@@ -156,13 +156,19 @@
           }
         });
 
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+          const msg = await res.text();
+          errorEl.textContent = msg || "Invalid login";
+          errorEl.style.display = "block";
+          return;
+        }
 
         sessionStorage.setItem("fpt_user", u);
         sessionStorage.setItem("fpt_pass", p);
 
         location.href = "dashboard.html";
       } catch {
+        errorEl.textContent = "Invalid login";
         errorEl.style.display = "block";
       }
     }
