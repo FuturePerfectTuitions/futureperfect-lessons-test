@@ -630,10 +630,25 @@
       el.textContent = msg;
     }
 
-    function screenpalEmbedUrl(spId){
-      const id = encodeURIComponent(spId);
-      return `https://go.screenpal.com/player/${id}?ff=1&ahc=1&dcc=1&bg=transparent`;
-    }
+function screenpalEmbedUrl(spId, quizId){
+  const id = encodeURIComponent(spId);
+
+  let url = `https://go.screenpal.com/player/${id}?`;
+
+  if (quizId) {
+    url += `quiz_id=${encodeURIComponent(quizId)}&`;
+  }
+
+  url += "width=100%25";
+  url += "&height=100%25";
+  url += "&ff=1";
+  url += "&title=0";
+  url += "&dcc=0";
+  url += "&bg=transparent";
+  url += "&embedded=1";
+
+  return url;
+}
 
     // ----- HELP video (opens under greeting) -----
     const helpWrap = document.getElementById("helpWrap");
@@ -682,7 +697,7 @@
 
       // Load video
       playerTitle.textContent = lesson.title || "Lesson";
-      player.src = screenpalEmbedUrl(lesson.sp);
+      player.src = screenpalEmbedUrl(lesson.sp, lesson.quiz);
 
       const desc = (lesson.desc || "").trim();
       if (desc) {
