@@ -680,6 +680,37 @@ function screenpalEmbedUrl(spId, quizId){
     const playerDesc = document.getElementById("playerDesc");
     document.getElementById("closePlayerBtn").addEventListener("click", closePlayer);
 
+    function requestVideoFullscreen(iframe){
+      if (!iframe || document.fullscreenElement) return;
+
+      try {
+        if (iframe.requestFullscreen) {
+          const request = iframe.requestFullscreen();
+          if (request && typeof request.catch === "function") {
+            request.catch(() => {
+              // Browsers may refuse fullscreen when user activation is unavailable.
+              // In that case ScreenPal continues playing normally in the page.
+            });
+          }
+        } else if (iframe.webkitRequestFullscreen) {
+          iframe.webkitRequestFullscreen();
+        }
+      } catch {
+        // Keep normal in-page playback as the fallback.
+      }
+    }
+
+    window.addEventListener("message", (event) => {
+      if (event.origin !== "https://go.screenpal.com") return;
+      if (!event.data || event.data.type !== "videoPlayerPlay") return;
+
+      if (event.source === player.contentWindow) {
+        requestVideoFullscreen(player);
+      } else if (event.source === helpPlayer.contentWindow) {
+        requestVideoFullscreen(helpPlayer);
+      }
+    });
+
     // Remembers which list the current video came from
     const lastOrigin = { listWrap: null, btn: null };
 
