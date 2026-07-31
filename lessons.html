@@ -172,6 +172,33 @@
     const playerTitle = document.getElementById("playerTitle");
     const closePlayerBtn = document.getElementById("closePlayerBtn");
 
+    function requestVideoFullscreen() {
+      if (document.fullscreenElement) return;
+
+      try {
+        if (player.requestFullscreen) {
+          const request = player.requestFullscreen();
+          if (request && typeof request.catch === "function") {
+            request.catch(() => {
+              // Keep normal in-page playback if the browser refuses fullscreen.
+            });
+          }
+        } else if (player.webkitRequestFullscreen) {
+          player.webkitRequestFullscreen();
+        }
+      } catch {
+        // Keep normal in-page playback as the fallback.
+      }
+    }
+
+    window.addEventListener("message", (event) => {
+      if (event.origin !== "https://go.screenpal.com") return;
+      if (event.source !== player.contentWindow) return;
+      if (!event.data || event.data.type !== "videoPlayerPlay") return;
+
+      requestVideoFullscreen();
+    });
+
     function screenpalEmbedUrl(spId) {
       const id = encodeURIComponent(spId);
       return `https://go.screenpal.com/player/${id}?ff=1&ahc=1&dcc=1&bg=transparent`;
