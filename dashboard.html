@@ -292,6 +292,103 @@
       font-weight: 700;
     }
 
+    /* Secure mock-video password gate */
+    .mockGate[hidden]{ display:none; }
+
+    .mockGate{
+      position:fixed;
+      inset:0;
+      z-index:1000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background:rgba(0,0,0,0.58);
+    }
+
+    .mockGateCard{
+      width:min(460px, 100%);
+      padding:24px;
+      border-radius:18px;
+      background:#fff;
+      box-shadow:0 24px 70px rgba(0,0,0,0.30);
+      text-align:left;
+    }
+
+    .mockGateTitle{
+      margin:0 0 8px;
+      color:var(--blue);
+      font-size:22px;
+      font-weight:900;
+    }
+
+    .mockGateHelp{
+      margin:0 0 16px;
+      color:var(--muted);
+      line-height:1.5;
+      font-weight:700;
+    }
+
+    .mockGateLabel{
+      display:block;
+      margin-bottom:7px;
+      color:var(--text);
+      font-weight:900;
+    }
+
+    .mockGateInput{
+      width:100%;
+      box-sizing:border-box;
+      padding:13px 14px;
+      border:1px solid rgba(0,0,0,0.18);
+      border-radius:12px;
+      font-size:16px;
+      outline:none;
+    }
+
+    .mockGateInput:focus{
+      border-color:rgba(1,33,105,0.45);
+      box-shadow:0 0 0 4px rgba(11,42,111,0.10);
+    }
+
+    .mockGateError{
+      min-height:20px;
+      margin-top:10px;
+      color:var(--red);
+      font-weight:900;
+    }
+
+    .mockGateActions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .mockGateSubmit{
+      border:0;
+      border-radius:12px;
+      padding:11px 16px;
+      background:var(--red);
+      color:#fff;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .mockGateSubmit:disabled{
+      cursor:wait;
+      opacity:0.65;
+    }
+
+    .mockLock{
+      border-radius:999px;
+      padding:5px 8px;
+      background:rgba(1,33,105,0.08);
+      color:var(--blue);
+      font-size:11px;
+      font-weight:900;
+    }
+
     /* =========================
        Global Search (Dashboard)
        ========================= */
@@ -558,6 +655,37 @@
         <div id="playerDesc" class="playerDesc"></div>
       </div>
 
+      <div
+        id="mockGate"
+        class="mockGate"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mockGateTitle"
+        hidden
+      >
+        <form id="mockGateForm" class="mockGateCard">
+          <h2 id="mockGateTitle" class="mockGateTitle">Unlock mock answers</h2>
+          <p id="mockGateHelp" class="mockGateHelp"></p>
+
+          <label class="mockGateLabel" for="mockPassword">Daily password</label>
+          <input
+            id="mockPassword"
+            class="mockGateInput"
+            type="password"
+            autocomplete="off"
+            spellcheck="false"
+            required
+          />
+
+          <div id="mockGateError" class="mockGateError" aria-live="polite"></div>
+
+          <div class="mockGateActions">
+            <button id="mockGateCancel" class="btnPlain" type="button">Cancel</button>
+            <button id="mockGateSubmit" class="mockGateSubmit" type="submit">Unlock</button>
+          </div>
+        </form>
+      </div>
+
       <div class="dashHint" style="text-align:center; margin-top:16px;">
         Tip: Click a button like “Lessons” to load the list, then click a lesson to play it below.
       </div>
@@ -715,6 +843,90 @@ function screenpalEmbedUrl(spId, quizId){
     // Remembers which list the current video came from
     const lastOrigin = { listWrap: null, btn: null };
 
+    const MOCK_UNLOCK_STORAGE_KEY = "fpt_mock_unlocks_v1";
+    const unlockedMockDays = new Map();
+    let pendingMockUnlock = null;
+
+    const mockGate = document.getElementById("mockGate");
+    const mockGateForm = document.getElementById("mockGateForm");
+    const mockGateTitle = document.getElementById("mockGateTitle");
+    const mockGateHelp = document.getElementById("mockGateHelp");
+    const mockPassword = document.getElementById("mockPassword");
+    const mockGateError = document.getElementById("mockGateError");
+    const mockGateSubmit = document.getElementById("mockGateSubmit");
+    const mockGateCancel = document.getElementById("mockGateCancel");
+
+    function restoreMockUnlocks(){
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(MOCK_UNLOCK_STORAGE_KEY) || "{}");
+        Object.entries(saved).forEach(([day, videos]) => {
+          if (Array.isArray(videos)) unlockedMockDays.set(Number(day), videos);
+        });
+      } catch {
+        sessionStorage.removeItem(MOCK_UNLOCK_STORAGE_KEY);
+      }
+    }
+
+    function saveMockUnlocks(){
+      const saved = {};
+      unlockedMockDays.forEach((videos, day) => {
+        saved[String(day)] = videos;
+      });
+      sessionStorage.setItem(MOCK_UNLOCK_STORAGE_KEY, JSON.stringify(saved));
+    }
+
+    function matchingUnlockedMock(lesson){
+      const day = Number(lesson?.mockDay);
+      const subject = String(lesson?.subject || "").trim().toLowerCase();
+      const videos = unlockedMockDays.get(day) || [];
+
+      return videos.find(video =>
+        String(video?.subject || "").trim().toLowerCase() === subject &&
+        (lesson?.n === undefined || Number(video?.n) === Number(lesson.n))
+      ) || videos.find(video =>
+        String(video?.subject || "").trim().toLowerCase() === subject
+      ) || null;
+    }
+
+    function closeMockGate(){
+      mockGate.hidden = true;
+      mockPassword.value = "";
+      mockGateError.textContent = "";
+      mockGateSubmit.disabled = false;
+      mockGateSubmit.textContent = "Unlock";
+      pendingMockUnlock = null;
+    }
+
+    function showMockGate(lesson, origin){
+      const day = Number(lesson?.mockDay);
+      pendingMockUnlock = { lesson, origin };
+      mockGateTitle.textContent = `Unlock Mock ${day} answers`;
+      mockGateHelp.textContent =
+        `The Mock ${day} password unlocks both Maths Mock ${day} and VR Mock ${day} for this browser session.`;
+      mockGateError.textContent = "";
+      mockPassword.value = "";
+      mockGate.hidden = false;
+      window.setTimeout(() => mockPassword.focus(), 0);
+    }
+
+    function openLessonOrUnlock(lesson, origin){
+      if (!lesson) return;
+
+      if (lesson.locked) {
+        const unlocked = matchingUnlockedMock(lesson);
+        if (unlocked && unlocked.sp) {
+          openLesson(unlocked, origin);
+        } else {
+          showMockGate(lesson, origin);
+        }
+        return;
+      }
+
+      openLesson(lesson, origin);
+    }
+
+    restoreMockUnlocks();
+
     function openLesson(lesson, origin){
       if (!lesson || !lesson.sp) return;
 
@@ -809,6 +1021,81 @@ function screenpalEmbedUrl(spId, quizId){
       return await res.json();
     }
 
+    async function apiPostJSON(path, body){
+      const res = await fetch(WORKER_BASE + path, {
+        method: "POST",
+        headers: {
+          Authorization: authHeader(),
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const message = await res.text().catch(() => "");
+        throw new Error(message || `API failed (${res.status})`);
+      }
+
+      return await res.json();
+    }
+
+    mockGateCancel.addEventListener("click", closeMockGate);
+
+    mockGate.addEventListener("click", event => {
+      if (event.target === mockGate) closeMockGate();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !mockGate.hidden) closeMockGate();
+    });
+
+    mockGateForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (!pendingMockUnlock) return;
+
+      const passwordValue = mockPassword.value.trim();
+      if (!passwordValue) {
+        mockGateError.textContent = "Please enter the daily password.";
+        mockPassword.focus();
+        return;
+      }
+
+      const requested = pendingMockUnlock;
+      const day = Number(requested.lesson?.mockDay);
+
+      mockGateError.textContent = "";
+      mockGateSubmit.disabled = true;
+      mockGateSubmit.textContent = "Checking…";
+
+      try {
+        const result = await apiPostJSON("/mock-unlock", {
+          day,
+          password: passwordValue
+        });
+
+        if (!result || !Array.isArray(result.videos)) {
+          throw new Error("The mock videos could not be unlocked.");
+        }
+
+        unlockedMockDays.set(day, result.videos);
+        saveMockUnlocks();
+
+        const unlocked = matchingUnlockedMock(requested.lesson);
+        if (!unlocked || !unlocked.sp) {
+          throw new Error("The requested answer video is unavailable.");
+        }
+
+        closeMockGate();
+        openLesson(unlocked, requested.origin);
+      } catch (error) {
+        mockGateError.textContent = error?.message || "The password could not be checked.";
+        mockGateSubmit.disabled = false;
+        mockGateSubmit.textContent = "Unlock";
+        mockPassword.value = "";
+        mockPassword.focus();
+      }
+    });
+
     async function getSubjects(year){
       if (cacheSubjects.has(year)) return cacheSubjects.get(year);
       const data = await apiJSON(`/subjects?year=${encodeURIComponent(year)}`);
@@ -833,7 +1120,7 @@ function screenpalEmbedUrl(spId, quizId){
     }
 
     // ----- Global Search Index -----
-    let lessonIndex = [];          // [{title, desc, sp, year, subject, option, added}]
+    let lessonIndex = [];          // Playable lessons plus locked mock metadata
     let indexBuilt = false;
     let indexBuilding = false;
 
@@ -881,11 +1168,15 @@ function screenpalEmbedUrl(spId, quizId){
             try { lessons = await getLessons(year, subject, option); } catch { lessons = []; }
 
             for (const l of lessons) {
-              if (!l || !l.sp) continue;
+              if (!l || (!l.sp && !l.locked)) continue;
               items.push({
                 title: l.title || "Lesson",
                 desc: (l.desc || "").trim(),
-                sp: l.sp,
+                sp: l.sp || "",
+                quiz: l.quiz || "",
+                locked: Boolean(l.locked),
+                mockDay: l.mockDay,
+                n: l.n,
                 added: l.added || "",
                 year,
                 subject,
@@ -942,7 +1233,7 @@ function screenpalEmbedUrl(spId, quizId){
         a.textContent = item.title;
         a.addEventListener("click", (e) => {
           e.preventDefault();
-          openLesson({ title: item.title, sp: item.sp, desc: item.desc }, null);
+          openLessonOrUnlock(item, null);
         });
 
         const tag = document.createElement("div");
@@ -1009,7 +1300,7 @@ function screenpalEmbedUrl(spId, quizId){
 
       lessons.forEach(lesson => {
         // Separator rows (sp:"") from worker merge logic
-        if (!lesson || !lesson.sp) {
+        if (!lesson || (!lesson.sp && !lesson.locked)) {
           const sep = document.createElement("div");
           sep.className = "sepRow";
           sep.textContent = (lesson && lesson.title) ? lesson.title : "";
@@ -1048,11 +1339,18 @@ a.innerHTML = desc
 
         a.addEventListener("click", (e) => {
           e.preventDefault();
-          openLesson(lesson, origin);
+          openLessonOrUnlock(lesson, origin);
         });
 
         const meta = document.createElement("div");
         meta.className = "lessonMeta";
+
+        if (lesson.locked) {
+          const lock = document.createElement("div");
+          lock.className = "mockLock";
+          lock.textContent = "🔒 Password";
+          meta.appendChild(lock);
+        }
 
         const dt = formatAdded(lesson);
         if (dt) {
