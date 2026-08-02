@@ -621,6 +621,7 @@
       if (o === "lessons") return "Lessons";
       if (o === "assessments") return "Assessments";
       if (o === "howto") return "How-To";
+      if (o === "mocks") return "Mock Tests";
       return o;
     }
 
@@ -946,8 +947,7 @@ function screenpalEmbedUrl(spId, quizId){
 
         const tag = document.createElement("div");
         tag.className = "resultTag";
-        tag.textContent = item.option === "assessments" ? "Assessments" :
-                          item.option === "howto" ? "How-To" : "Lessons";
+        tag.textContent = optionLabel(item.option);
 
         top.appendChild(a);
         top.appendChild(tag);
