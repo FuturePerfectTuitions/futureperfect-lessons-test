@@ -1,18 +1,21 @@
-// footer.js — Future Perfect Tuitions portal footer (auto year + links)
+// Shared Future Perfect Tuitions portal footer: automatic year + legal links.
 (function () {
-  const el = document.getElementById("siteFooter");
-  if (!el) return;
-
   const year = new Date().getFullYear();
+  const footers = document.querySelectorAll("[data-site-footer]");
+  if (!footers.length) return;
 
-  el.innerHTML = `
+  const markup = `
     <div class="footerInner">
       <div class="footerCopy">© Future Perfect Tuitions ${year}</div>
       <div class="footerLinks">
         <a href="privacy.html">Privacy</a>
-        <span class="footerSep">|</span>
+        <span class="footerSep" aria-hidden="true">|</span>
         <a href="terms.html">Terms</a>
       </div>
     </div>
   `;
+
+  footers.forEach((footer) => {
+    footer.innerHTML = markup;
+  });
 })();
