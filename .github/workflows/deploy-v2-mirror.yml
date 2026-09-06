@@ -1,0 +1,67 @@
+name: Deploy Portal V2 to lessons site
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    if: github.event.head_commit.message == 'Bootstrap V2 mirror deployment'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out destination repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check out Portal V2 source
+        uses: actions/checkout@v4
+        with:
+          repository: FuturePerfectTuitions/futureperfect-lessons-v2
+          ref: main
+          path: _v2_source
+
+      - name: Replace legacy site with Portal V2 frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='worker/' \
+            --exclude='docs/' \
+            --exclude='tests/' \
+            --exclude='examples/' \
+            --exclude='scripts/' \
+            --exclude='IMPLEMENTATION_HANDOVER.md' \
+            --exclude='README.md' \
+            --exclude='CNAME' \
+            --exclude='_v2_source/' \
+            _v2_source/ ./
+          rm -rf _v2_source
+
+          # Keep the existing production custom-domain binding.
+          printf '%s\n' 'lessons.futureperfect.education' > CNAME
+
+          # The current student-facing V2 shell is phase11-change8.html.
+          # Make that shell the production root page rather than the old V2 development landing page.
+          cp phase11-change8.html index.html
+          sed -i 's#<span class="phase5-dev-badge">DEVELOPMENT</span>##g' index.html
+
+      - name: Commit Portal V2 deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'FuturePerfectTuitions'
+          git config user.email 'futureperfectlessons@gmail.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No deployment changes were required.'
+            exit 0
+          fi
+          git commit -m 'Deploy Portal V2 to lessons site'
+          git push origin main
