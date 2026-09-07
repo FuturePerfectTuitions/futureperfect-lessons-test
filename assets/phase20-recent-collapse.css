@@ -56,6 +56,20 @@
 .phase20-collapse-body[hidden], #lesson-description[hidden] { display:none !important; }
 .phase7-resource-section[data-fpt-collapsible="true"] { padding-top:18px; padding-bottom:18px; }
 
+/* Final lesson-page control alignment.
+   The lesson heading's content column must span the available width so Detail
+   lands on the same right-hand control line as every section View/Hide button.
+   Phase 16 reserved extra right padding for the old video control; remove that
+   reservation now that the shared Phase 20 control column owns the button. */
+body.phase11-change8 .phase7-lesson-heading > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+}
+body.phase11-change8 #video-section .phase7-section-heading {
+  padding-right: 0;
+}
+
 @media (max-width:760px) {
   .phase20-recent-shares { margin-top:16px; padding:14px; }
   .phase20-recent-shares-list { max-height:210px; }
@@ -63,6 +77,7 @@
   .phase20-description-bar,
   .phase7-section-heading { grid-template-columns:minmax(0,1fr) 84px; column-gap:10px; }
   .phase20-collapse-toggle { width:80px; min-width:80px; }
+  body.phase11-change8 #video-section .phase7-section-heading { padding-right:0; }
 }
 
 
