@@ -99,7 +99,8 @@ body.phase11-change8 #video-section .phase12-video-toggle-row .phase7-resource-c
 
 body.phase11-change8 #video-section .phase12-video-toggle {
   position: absolute;
-  top: 48px;
+  /* 22px section padding + (52px heading - 46px button) / 2 = 25px. */
+  top: 25px;
   right: 22px;
   z-index: 2;
   width: auto;
@@ -136,8 +137,9 @@ body.phase11-change8 #video-section #video-error:not([hidden]) {
   }
 
   body.phase11-change8 #video-section .phase12-video-toggle {
-    top: 46px;
-    right: 18px;
+    /* 22px section padding + (48px heading - 42px button) / 2 = 25px. */
+    top: 25px;
+    right: 22px;
     width: auto;
     max-width: 80px;
     min-width: 68px;
