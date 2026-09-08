@@ -5,6 +5,7 @@
   const HOME_TTL_MS = 5000;
   const holder = document.getElementById('phase7-message');
   const LOADING_MESSAGE = 'Loading your curriculum… Please wait.';
+  const FAST_NAV_PATH = '/api/v1/student/navigation';
   let homePromise = null;
   let homeExpiresAt = 0;
   let homeReady = false;
@@ -68,22 +69,31 @@
     return homePromise;
   }
 
-  function homeUrlFrom(url) {
-    const homeUrl = new URL(url.toString());
-    homeUrl.pathname = '/api/v1/student/home';
-    homeUrl.search = '';
-    homeUrl.hash = '';
-    return homeUrl.toString();
+  function navigationUrlFrom(url) {
+    const navUrl = new URL(url.toString());
+    navUrl.pathname = FAST_NAV_PATH;
+    navUrl.search = '';
+    navUrl.hash = '';
+    return navUrl.toString();
+  }
+
+  function fetchNavigation(url, init = {}) {
+    const headers = new Headers(init.headers || {});
+    if (!headers.has('Accept')) headers.set('Accept', 'application/json');
+    return downstreamFetch(navigationUrlFrom(url), {
+      ...init,
+      method: 'GET',
+      headers,
+      credentials: 'include',
+      cache: 'no-store'
+    });
   }
 
   function primeHome(loginUrl) {
     if (freshHomePromise()) return;
-    const promise = Promise.resolve().then(() => downstreamFetch(homeUrlFrom(loginUrl), {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-      credentials: 'include',
-      cache: 'no-store'
-    }));
+    // Prime only the lightweight navigation response. The lesson catalogue and
+    // resources are fetched later when the student actually opens a Year/Level.
+    const promise = Promise.resolve().then(() => fetchNavigation(loginUrl));
     rememberHomeRequest(promise);
   }
 
@@ -155,7 +165,10 @@
         return response.clone();
       }
 
-      const promise = rememberHomeRequest(downstreamFetch(input, init));
+      // phase7 still asks for /student/home, but it only needs subject/year
+      // navigation plus recent-share labels at this point. Satisfy that request
+      // from the fast endpoint instead of blocking on the full legacy home build.
+      const promise = rememberHomeRequest(fetchNavigation(info.url, init));
       const response = await promise;
       if (response.ok) {
         homeReady = true;
