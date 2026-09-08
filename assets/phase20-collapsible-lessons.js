@@ -14,7 +14,7 @@
   }
 
   function setDescriptionExpanded(button, description, expanded) {
-    setExpanded(button, description, expanded, { closed:'Detail', open:'Hide detail' });
+    setExpanded(button, description, expanded, { closed:'Details', open:'Hide details' });
   }
 
   function enhanceDescription() {
