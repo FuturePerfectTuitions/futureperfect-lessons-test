@@ -13,9 +13,6 @@
   const LESSON_LOADING_MESSAGE = 'Loading your knowledge bank of lessons, hang on';
   const downstreamFetch = window.fetch.bind(window);
   let lessonRequestSerial = 0;
-  let lessonLoadActive = false;
-  let pendingLessonEmptyText = '';
-  let writingLessonLoadingMessage = false;
 
   function clearLoading() {
     const loading = list.querySelector(`.${LOADING_CLASS}`);
@@ -71,38 +68,31 @@
   function writeLessonLoadingMessage() {
     if (!lessonEmpty || !lessonsScreen || lessonsScreen.hidden) return;
     if (lessonList?.children.length) {
-      lessonEmpty.hidden = true;
+      if (!lessonEmpty.hidden) lessonEmpty.hidden = true;
       return;
     }
 
-    writingLessonLoadingMessage = true;
-    lessonEmpty.textContent = LESSON_LOADING_MESSAGE;
-    lessonEmpty.hidden = false;
-    lessonEmpty.setAttribute('role', 'status');
-    lessonEmpty.setAttribute('aria-live', 'polite');
-    writingLessonLoadingMessage = false;
+    if (lessonEmpty.textContent.trim() !== LESSON_LOADING_MESSAGE) {
+      lessonEmpty.textContent = LESSON_LOADING_MESSAGE;
+    }
+    if (lessonEmpty.hidden) lessonEmpty.hidden = false;
+    if (lessonEmpty.getAttribute('role') !== 'status') lessonEmpty.setAttribute('role', 'status');
+    if (lessonEmpty.getAttribute('aria-live') !== 'polite') lessonEmpty.setAttribute('aria-live', 'polite');
   }
 
   function finishLessonLoading() {
-    lessonLoadActive = false;
     if (!lessonEmpty) return;
 
     lessonEmpty.removeAttribute('role');
     lessonEmpty.removeAttribute('aria-live');
 
     if (lessonList?.children.length) {
-      lessonEmpty.hidden = true;
-      pendingLessonEmptyText = '';
+      if (!lessonEmpty.hidden) lessonEmpty.hidden = true;
       return;
     }
 
-    if (pendingLessonEmptyText) {
-      lessonEmpty.textContent = pendingLessonEmptyText;
-      lessonEmpty.hidden = false;
-      pendingLessonEmptyText = '';
-      return;
-    }
-
+    // If the core lesson renderer has already written an empty/error message,
+    // preserve it. Only clear our own temporary loading message.
     if (lessonEmpty.textContent.trim() === LESSON_LOADING_MESSAGE) {
       lessonEmpty.textContent = '';
       lessonEmpty.hidden = true;
@@ -114,8 +104,6 @@
     if (!isViewLessonsRequest(info)) return downstreamFetch(input, init);
 
     const serial = ++lessonRequestSerial;
-    lessonLoadActive = true;
-    pendingLessonEmptyText = '';
     writeLessonLoadingMessage();
 
     try {
@@ -149,25 +137,10 @@
     });
   }
 
-  if (lessonsScreen && lessonEmpty) {
-    const lessonObserver = new MutationObserver(() => {
-      if (!lessonLoadActive) return;
-
-      const text = lessonEmpty.textContent.trim();
-      if (!writingLessonLoadingMessage && text && text !== LESSON_LOADING_MESSAGE) {
-        pendingLessonEmptyText = text;
-      }
-      writeLessonLoadingMessage();
-    });
-
-    lessonObserver.observe(lessonsScreen, {
-      attributes: true,
-      attributeFilter: ['hidden'],
-      childList: true,
-      characterData: true,
-      subtree: true
-    });
-  }
+  // Deliberately no MutationObserver on the lessons screen. The previous
+  // implementation observed lessonEmpty and then rewrote lessonEmpty from inside
+  // its own callback, creating an endless microtask/render loop when a view such
+  // as L3 was opened. The fetch lifecycle is sufficient to own this loading state.
 
   syncPortalVisibility();
 })();
