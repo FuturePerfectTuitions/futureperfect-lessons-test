@@ -161,6 +161,14 @@ body.phase11-change8 .phase12-video-toggle {
   line-height:1 !important;
 }
 
+/* A locked video is rendered inside a normal resource row, whose 16px right
+   padding otherwise moves the disabled control left of the View/Hide column.
+   Offset that padding while keeping the locked row and its visual treatment. */
+body.phase11-change8 #video-locked-row .phase7-resource-action {
+  margin-left:auto;
+  margin-right:-16px;
+}
+
 @media (max-width:760px) {
   body.phase11-change8 .phase20-collapse-toggle,
   body.phase11-change8 .phase7-resource-action,
