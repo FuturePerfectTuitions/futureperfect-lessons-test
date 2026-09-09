@@ -25,6 +25,15 @@
     const remaining = lessonList.querySelectorAll('.phase6-lesson-row').length;
     if (remaining > 0 || !lessonEmpty) return;
 
+    // Do not overwrite the genuine in-flight loading state. A Year/Level click
+    // opens the lesson screen before the API response arrives, so the list is
+    // legitimately empty for a moment. Treating that transient state as "no
+    // lessons" is misleading and was exactly what parents/students were seeing.
+    if (/^Loading\b/i.test(String(lessonEmpty.textContent || '').trim())) {
+      lessonEmpty.hidden = false;
+      return;
+    }
+
     const query = String(lessonSearch?.value || '').trim();
     lessonEmpty.textContent = query
       ? 'No available lessons match your search.'
