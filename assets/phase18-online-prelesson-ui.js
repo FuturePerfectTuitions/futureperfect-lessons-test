@@ -1,8 +1,11 @@
 (() => {
+  'use strict';
+
   const PRELESSON_MESSAGE = 'Only PreLesson Sheets available to download and print. Other resources will be unlocked once the lesson is marked Completed.';
   const originalFetch = window.fetch.bind(window);
   let prelessonList = new Set();
   let currentDetail = null;
+  let queued = false;
 
   function requestUrl(input) {
     try {
@@ -10,6 +13,18 @@
       if (input?.url) return new URL(input.url, window.location.href);
     } catch (_) {}
     return null;
+  }
+
+  function setTextIfChanged(element, text) {
+    if (!element) return;
+    const next = String(text || '');
+    if (element.textContent !== next) element.textContent = next;
+  }
+
+  function setHiddenIfChanged(element, hidden) {
+    if (!element) return;
+    const next = Boolean(hidden);
+    if (element.hidden !== next) element.hidden = next;
   }
 
   window.fetch = async (...args) => {
@@ -44,13 +59,16 @@
   };
 
   function applyListLabels() {
-    document.querySelectorAll('.phase6-lesson-row').forEach(row => {
+    const lessonList = document.getElementById('lesson-list');
+    if (!lessonList || prelessonList.size === 0) return;
+
+    lessonList.querySelectorAll('.phase6-lesson-row').forEach(row => {
       const code = String(row.querySelector('.phase6-lesson-code')?.textContent || '').trim();
       if (!code || !prelessonList.has(code)) return;
       const state = row.querySelector('.phase6-lesson-state');
       if (!state) return;
-      state.classList.remove('locked');
-      state.textContent = 'PreLesson only';
+      if (state.classList.contains('locked')) state.classList.remove('locked');
+      setTextIfChanged(state, 'PreLesson only');
     });
   }
 
@@ -58,35 +76,52 @@
     if (!currentDetail) return;
     const code = String(document.getElementById('lesson-code')?.textContent || '').trim();
     if (!code || ![currentDetail.lessonId, currentDetail.displayLessonId].includes(code)) return;
+
     const state = document.getElementById('lesson-state');
     if (state) {
-      state.classList.remove('locked');
-      state.textContent = 'PreLesson only';
+      if (state.classList.contains('locked')) state.classList.remove('locked');
+      setTextIfChanged(state, 'PreLesson only');
     }
+
     const note = document.getElementById('lesson-locked-note');
     if (note) {
-      note.textContent = currentDetail.message || PRELESSON_MESSAGE;
-      note.hidden = false;
+      setTextIfChanged(note, currentDetail.message || PRELESSON_MESSAGE);
+      setHiddenIfChanged(note, false);
     }
   }
 
-  let queued = false;
+  function apply() {
+    applyListLabels();
+    applyDetailMessage();
+  }
+
   function queueApply() {
     if (queued) return;
     queued = true;
     requestAnimationFrame(() => {
       queued = false;
-      applyListLabels();
-      applyDetailMessage();
+      apply();
     });
   }
 
-  new MutationObserver(queueApply).observe(document.documentElement, {
+  function observe(target, options) {
+    if (!target) return;
+    new MutationObserver(queueApply).observe(target, options);
+  }
+
+  observe(document.getElementById('lesson-list'), {
     subtree: true,
     childList: true,
-    characterData: true,
     attributes: true,
-    attributeFilter: ['hidden']
+    attributeFilter: ['class']
   });
+
+  observe(document.getElementById('screen-lesson'), {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ['hidden', 'class']
+  });
+
   queueApply();
 })();
