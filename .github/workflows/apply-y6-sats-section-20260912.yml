@@ -1,0 +1,98 @@
+name: Apply Y6 SATs lesson section 2026-09-12
+
+on:
+  push:
+    branches: [feature/y6-sats-section-20260912]
+    paths:
+      - '.github/workflows/apply-y6-sats-section-20260912.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-check:
+    if: github.repository == 'FuturePerfectTuitions/futureperfect-lessons-test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/y6-sats-section-20260912
+
+      - name: Add SATs boundary to the Year 6 lesson list
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          js_path = Path('assets/phase7.js')
+          css_path = Path('assets/phase6.css')
+          html_path = Path('index.html')
+
+          js = js_path.read_text(encoding='utf-8')
+          js_old = """    for (const lesson of filtered) {\n    const noPreLesson = lesson?.accessMode === 'prelesson' && lesson?.preLessonAvailable === false;"""
+          js_new = """    let satsHeadingRendered = false;\n    for (const lesson of filtered) {\n      const displayId = lessonDisplayId(lesson);\n      const isYear6SatsLesson = /^Y6MS(?:[1-9]|1[0-9])$/i.test(displayId);\n      if (isYear6SatsLesson && !satsHeadingRendered) {\n        const sectionHeading = document.createElement('div');\n        sectionHeading.className = 'phase6-lesson-section-heading';\n        sectionHeading.setAttribute('role', 'heading');\n        sectionHeading.setAttribute('aria-level', '3');\n        sectionHeading.textContent = 'SATs';\n        els.lessonList.appendChild(sectionHeading);\n        satsHeadingRendered = true;\n      }\n\n    const noPreLesson = lesson?.accessMode === 'prelesson' && lesson?.preLessonAvailable === false;"""
+          if js.count(js_old) != 1:
+              raise SystemExit(f'Expected one renderLessonList patch target, found {js.count(js_old)}')
+          js = js.replace(js_old, js_new, 1)
+          js_path.write_text(js, encoding='utf-8')
+
+          css = css_path.read_text(encoding='utf-8')
+          css_anchor = """.phase6-lesson-row {\n  width: 100%;"""
+          css_insert = """.phase6-lesson-section-heading {\n  display: flex;\n  align-items: center;\n  gap: 14px;\n  margin: 12px 0 0;\n  padding: 20px 4px 4px;\n  color: #012169;\n  font-size: clamp(20px, 2.4vw, 24px);\n  font-weight: 800;\n  line-height: 1.2;\n}\n\n.phase6-lesson-section-heading::after {\n  content: '';\n  flex: 1 1 auto;\n  height: 1px;\n  background: rgba(1, 33, 105, 0.18);\n}\n\n.phase6-lesson-row {\n  width: 100%;"""
+          if css.count(css_anchor) != 1:
+              raise SystemExit(f'Expected one phase6 CSS patch target, found {css.count(css_anchor)}')
+          css = css.replace(css_anchor, css_insert, 1)
+          css_path.write_text(css, encoding='utf-8')
+
+          html = html_path.read_text(encoding='utf-8')
+          replacements = {
+              'href="assets/phase6.css"': 'href="assets/phase6.css?v=20260912-y6-sats-section-1"',
+              'src="assets/phase7.js?v=20260909-l3-stable-core-1"': 'src="assets/phase7.js?v=20260912-y6-sats-section-1"',
+          }
+          for old, new in replacements.items():
+              if html.count(old) != 1:
+                  raise SystemExit(f'Expected one index cache-bust target {old!r}, found {html.count(old)}')
+              html = html.replace(old, new, 1)
+          html_path.write_text(html, encoding='utf-8')
+          PY
+
+      - name: Verify SATs and no-placeholder-video contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check assets/phase7.js
+          python - <<'PY'
+          from pathlib import Path
+          js = Path('assets/phase7.js').read_text(encoding='utf-8')
+          css = Path('assets/phase6.css').read_text(encoding='utf-8')
+          html = Path('index.html').read_text(encoding='utf-8')
+
+          required_js = [
+              "const isYear6SatsLesson = /^Y6MS(?:[1-9]|1[0-9])$/i.test(displayId);",
+              "sectionHeading.textContent = 'SATs';",
+              "els.lessonList.appendChild(sectionHeading);",
+              "els.videoSection.hidden = !video;",
+              "if (!video) return;",
+          ]
+          for marker in required_js:
+              assert marker in js, marker
+          assert js.count("sectionHeading.textContent = 'SATs';") == 1
+          assert '.phase6-lesson-section-heading {' in css
+          assert 'assets/phase6.css?v=20260912-y6-sats-section-1' in html
+          assert 'assets/phase7.js?v=20260912-y6-sats-section-1' in html
+          print('SATs section contract: PASS')
+          print('No-video section contract: PASS')
+          PY
+
+      - name: Commit patched live frontend files to feature branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'FuturePerfectTuitions'
+          git config user.email 'futureperfectlessons@gmail.com'
+          git add assets/phase7.js assets/phase6.css index.html
+          git diff --cached --check
+          git commit -m 'Show Year 6 SATs as a distinct lesson section'
+          git push origin HEAD:feature/y6-sats-section-20260912
