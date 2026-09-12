@@ -150,6 +150,25 @@
   margin-top: 22px;
 }
 
+.phase6-lesson-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 12px 0 0;
+  padding: 20px 4px 4px;
+  color: #012169;
+  font-size: clamp(20px, 2.4vw, 24px);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.phase6-lesson-section-heading::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(1, 33, 105, 0.18);
+}
+
 .phase6-lesson-row {
   width: 100%;
   padding: 18px 20px;

@@ -484,7 +484,20 @@
       return;
     }
 
+    let satsHeadingRendered = false;
     for (const lesson of filtered) {
+      const displayId = lessonDisplayId(lesson);
+      const isYear6SatsLesson = /^Y6MS(?:[1-9]|1[0-9])$/i.test(displayId);
+      if (isYear6SatsLesson && !satsHeadingRendered) {
+        const sectionHeading = document.createElement('div');
+        sectionHeading.className = 'phase6-lesson-section-heading';
+        sectionHeading.setAttribute('role', 'heading');
+        sectionHeading.setAttribute('aria-level', '3');
+        sectionHeading.textContent = 'SATs';
+        els.lessonList.appendChild(sectionHeading);
+        satsHeadingRendered = true;
+      }
+
     const noPreLesson = lesson?.accessMode === 'prelesson' && lesson?.preLessonAvailable === false;
     const row = document.createElement(noPreLesson ? 'div' : 'button');
     if (!noPreLesson) row.type = 'button';
