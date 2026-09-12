@@ -13,6 +13,25 @@
     return sessionStorage.getItem(PREVIEW_FLAG) === '1';
   }
 
+  function removeEmptyLessonSectionHeadings() {
+    if (!lessonList) return;
+
+    for (const heading of [...lessonList.querySelectorAll('.phase6-lesson-section-heading')]) {
+      let sibling = heading.nextElementSibling;
+      let hasLessonRow = false;
+
+      while (sibling && !sibling.classList.contains('phase6-lesson-section-heading')) {
+        if (sibling.classList.contains('phase6-lesson-row')) {
+          hasLessonRow = true;
+          break;
+        }
+        sibling = sibling.nextElementSibling;
+      }
+
+      if (!hasLessonRow) heading.remove();
+    }
+  }
+
   function hideUnavailableEnrolledLessons() {
     if (!lessonList || previewActive()) return;
 
@@ -21,6 +40,11 @@
       const unavailablePreLesson = row.classList.contains('phase6-lesson-row-unavailable');
       if (locked || unavailablePreLesson) row.remove();
     }
+
+    // Section headings are rendered before this enrolled-only visibility pass.
+    // Remove a heading whenever all lesson rows belonging to that section were
+    // removed, so an empty SATs divider can never remain on its own.
+    removeEmptyLessonSectionHeadings();
 
     const remaining = lessonList.querySelectorAll('.phase6-lesson-row').length;
     if (remaining > 0 || !lessonEmpty) return;

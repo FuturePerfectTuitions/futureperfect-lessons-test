@@ -1,0 +1,32 @@
+name: Y6 SATs section regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - assets/phase7.js
+      - assets/phase21-enrolled-visibility.js
+      - assets/phase6.css
+      - index.html
+      - tests/y6-sats-section-regression.mjs
+      - .github/workflows/y6-sats-section-regression-20260912.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          set -euo pipefail
+          node --check assets/phase7.js
+          node --check assets/phase21-enrolled-visibility.js
+      - name: SATs section regression
+        run: node tests/y6-sats-section-regression.mjs
