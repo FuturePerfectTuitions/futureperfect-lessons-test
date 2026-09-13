@@ -84,7 +84,7 @@ async function login(page) {
   await page.goto('/');
   await expect(page.getByRole('heading',{name:'Student Login'})).toBeVisible();
   await page.getByLabel('Username').fill('ava0101');
-  await page.getByLabel('Password').fill('L9in');
+  await page.getByRole('textbox',{name:'Password',exact:true}).fill('L9in');
   await page.getByRole('button',{name:'Log in'}).click();
   await expect(page.getByRole('heading',{name:/Welcome/})).toBeVisible();
 }
