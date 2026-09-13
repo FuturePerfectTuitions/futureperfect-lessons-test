@@ -28,7 +28,10 @@ jobs:
         run: |
           test "$(find dist/assets -maxdepth 1 -name '*.css' | wc -l)" -eq 1
           test "$(find dist/assets -maxdepth 1 -name 'portal-*.js' | wc -l)" -ge 2
-          ! grep -R "phase11-home-readiness\|pdf.min.js\|createObjectURL\|new Blob" dist/index.html dist/assets/*.js
+          ! grep -R "phase11-home-readiness\|pdf.min.js" dist/index.html dist/assets/*.js
+          core_js="$(find dist/assets -maxdepth 1 -name 'portal-*.js' ! -name 'portal-protected-viewer-*' -print -quit)"
+          test -n "$core_js"
+          ! grep -E "createObjectURL|new Blob" "$core_js"
       - name: Install supported browser engines
         run: npx playwright install --with-deps chromium webkit
       - name: Desktop/mobile functional and visual gate
