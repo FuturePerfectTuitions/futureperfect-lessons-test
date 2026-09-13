@@ -1,0 +1,45 @@
+name: Rebuild Checkpoint 7 - New Frontend
+
+on:
+  push:
+    branches:
+      - rebuild/checkpoint7-new-frontend-2026-09-13
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checkpoint7-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install frontend dependencies
+        run: npm install --no-audit --no-fund
+      - name: Static architecture gate
+        run: npm run test:static
+      - name: Build clean frontend
+        run: npm run build
+      - name: Prove one compiled stylesheet and lazy viewer chunk
+        run: |
+          test "$(find dist/assets -maxdepth 1 -name '*.css' | wc -l)" -eq 1
+          test "$(find dist/assets -maxdepth 1 -name 'portal-*.js' | wc -l)" -ge 2
+          ! grep -R "phase11-home-readiness\|pdf.min.js\|createObjectURL\|new Blob" dist/index.html dist/assets/*.js
+      - name: Install supported browser engines
+        run: npx playwright install --with-deps chromium webkit
+      - name: Desktop/mobile functional and visual gate
+        run: npm run test:browser
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkpoint7-playwright-evidence
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
