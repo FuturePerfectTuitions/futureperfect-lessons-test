@@ -51,6 +51,19 @@ jobs:
           git diff --check
       - name: Install browser engines
         run: npx playwright install --with-deps chromium webkit
+      - name: Scope retained video-lazy selector to video control
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tests/checkpoint7.spec.mjs')
+          s = p.read_text()
+          old = "await page.getByRole('button',{name:'View'}).click();"
+          new = "await page.locator('#video-toggle').click();"
+          assert s.count(old) == 1
+          p.write_text(s.replace(old, new, 1))
+          PY
       - name: Run retained real-browser suite
         run: npm run test:browser
       - name: Commit tested candidate source
