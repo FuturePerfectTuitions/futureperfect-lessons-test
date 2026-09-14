@@ -6,6 +6,7 @@ on:
       - fix/cp12-full-approved-v2-ui-2026-09-14
     paths:
       - .github/workflows/cp12-approved-v2-ui-parity-build.yml
+      - scripts/cp12-normalize-retained-css-contracts.py
 
 permissions:
   contents: write
