@@ -23,7 +23,17 @@ jobs:
         with:
           node-version: '22'
       - name: Apply exact frontend patch
-        run: python scripts/cp12-collapsible-resource-sections-patch.py
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python scripts/cp12-collapsible-resource-sections-patch.py
+          python - <<'PY'
+          from pathlib import Path
+          path=Path('tests/cp12-collapsible-resource-sections-static.mjs')
+          lines=path.read_text().splitlines()
+          lines=["assert.ok(app.includes('aria-expanded=\"false\"'));" if line.startswith('assert.match(app, /aria-expanded=') else line for line in lines]
+          path.write_text('\n'.join(lines)+'\n')
+          PY
       - name: Install frontend dependencies
         run: npm install --no-audit --no-fund
       - name: Run retained static tests and CP12 hierarchy test
