@@ -10,4 +10,7 @@ replacements = {
 }
 for old, new in replacements.items():
     css = css.replace(old, new)
+marker = '/* CP12 old-Portal-V2 collapsible lesson resource hierarchy */\n'
+if marker not in css:
+    css = marker + css
 path.write_text(css)
