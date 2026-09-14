@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+
+const app = fs.readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
+const css = fs.readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
+assert.match(app, /presentationScopes/);
+assert.match(app, /presentationGroup/);
+assert.match(app, /Verbal Reasoning/);
+assert.match(app, /VR PreLesson/);
+assert.match(app, /VR Homework/);
+assert.match(app, /11\+ PreLesson/);
+assert.match(app, /11\+ Homework/);
+assert.match(app, /data-resource-toggle/);
+assert.ok(app.includes('aria-expanded="false"'));
+assert.match(app, /button\.textContent = opening \? 'Hide' : 'View'/);
+assert.ok(!/displayName[^\n]{0,80}(?:includes|match|test)[^\n]{0,80}VR/i.test(app), 'Grouping must not infer VR from filenames/display names.');
+assert.match(css, /CP12 old-Portal-V2 collapsible lesson resource hierarchy/);
+assert.match(css, /\.resource-collapse-toggle/);
+assert.match(css, /\.resource-subgroup/);
+console.log('CP12_COLLAPSIBLE_RESOURCE_SECTIONS_STATIC_PASS');
