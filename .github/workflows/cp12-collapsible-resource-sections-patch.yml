@@ -1,0 +1,46 @@
+name: CP12 collapsible resource sections patch
+
+on:
+  push:
+    branches:
+      - fix/cp12-collapsible-resource-sections-2026-09-14
+    paths:
+      - .github/workflows/cp12-collapsible-resource-sections-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/cp12-collapsible-resource-sections-2026-09-14
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply exact frontend patch
+        run: python scripts/cp12-collapsible-resource-sections-patch.py
+      - name: Install frontend dependencies
+        run: npm install --no-audit --no-fund
+      - name: Run retained static tests and CP12 hierarchy test
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          npm run test:static
+          node tests/cp12-collapsible-resource-sections-static.mjs
+          npm run build
+          git diff --check
+      - name: Commit tested frontend source patch
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name FuturePerfectTuitions
+          git config user.email futureperfectlessons@gmail.com
+          git add src/app.js src/styles.css tests/cp12-collapsible-resource-sections-static.mjs
+          git diff --cached --quiet && { echo 'No frontend source changes'; exit 1; }
+          git commit -m 'CP12: restore collapsible resource section hierarchy'
+          git push origin HEAD:fix/cp12-collapsible-resource-sections-2026-09-14
