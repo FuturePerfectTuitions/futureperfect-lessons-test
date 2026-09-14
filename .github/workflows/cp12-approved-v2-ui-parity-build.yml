@@ -23,7 +23,19 @@ jobs:
         with:
           node-version: '22'
       - name: Apply canonical presentation patch
-        run: python scripts/cp12-approved-v2-ui-parity-patch.py
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('scripts/cp12-approved-v2-ui-parity-patch.py')
+          s = p.read_text()
+          old = "app2, count = re.subn(pattern, replacement, app, count=1, flags=re.S)"
+          new = "app2, count = re.subn(pattern, lambda _m: replacement, app, count=1, flags=re.S)"
+          assert s.count(old) == 1
+          p.write_text(s.replace(old, new, 1))
+          PY
+          python scripts/cp12-approved-v2-ui-parity-patch.py
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Static architecture and UI gates
