@@ -51,7 +51,7 @@ jobs:
           git diff --check
       - name: Install browser engines
         run: npx playwright install --with-deps chromium webkit
-      - name: Scope retained video-lazy selector to video control
+      - name: Align retained journey with approved collapsed controls
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -59,10 +59,15 @@ jobs:
           from pathlib import Path
           p = Path('tests/checkpoint7.spec.mjs')
           s = p.read_text()
-          old = "await page.getByRole('button',{name:'View'}).click();"
-          new = "await page.locator('#video-toggle').click();"
-          assert s.count(old) == 1
-          p.write_text(s.replace(old, new, 1))
+          old_video = "await page.getByRole('button',{name:'View'}).click();"
+          new_video = "await page.locator('#video-toggle').click();"
+          assert s.count(old_video) == 1
+          s = s.replace(old_video, new_video, 1)
+          old_answer = "  await page.getByRole('button',{name:'Open'}).last().click();"
+          new_answer = "  await page.locator('[data-resource-toggle=\"core-homework-body\"]').click();\n  await page.getByRole('button',{name:'Open'}).last().click();"
+          assert s.count(old_answer) == 1
+          s = s.replace(old_answer, new_answer, 1)
+          p.write_text(s)
           PY
       - name: Run retained real-browser suite
         run: npm run test:browser
