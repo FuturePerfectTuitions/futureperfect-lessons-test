@@ -22,11 +22,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
       - name: Apply canonical presentation patch
         run: python scripts/cp12-approved-v2-ui-parity-patch.py
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
       - name: Static architecture and UI gates
         shell: bash
         run: |
