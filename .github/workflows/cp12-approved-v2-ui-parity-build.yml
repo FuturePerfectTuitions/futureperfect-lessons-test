@@ -1,0 +1,52 @@
+name: CP12 approved V2 UI parity build
+
+on:
+  push:
+    branches:
+      - fix/cp12-full-approved-v2-ui-2026-09-14
+    paths:
+      - .github/workflows/cp12-approved-v2-ui-parity-build.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-build-browser-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/cp12-full-approved-v2-ui-2026-09-14
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Apply canonical presentation patch
+        run: python scripts/cp12-approved-v2-ui-parity-patch.py
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Static architecture and UI gates
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          npm run test:static
+          node tests/cp12-collapsible-resource-sections-static.mjs
+          node tests/cp12-approved-v2-ui-parity-static.mjs
+          npm run build
+          git diff --check
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium webkit
+      - name: Run retained real-browser suite
+        run: npm run test:browser
+      - name: Commit tested candidate source
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name FuturePerfectTuitions
+          git config user.email futureperfectlessons@gmail.com
+          git add src/app.js src/styles.css tests/cp12-approved-v2-ui-parity-static.mjs
+          git diff --cached --quiet && { echo 'No source candidate changes'; exit 1; }
+          git commit -m 'CP12: restore approved Portal V2 UI on fast frontend'
+          git push origin HEAD:fix/cp12-full-approved-v2-ui-2026-09-14
