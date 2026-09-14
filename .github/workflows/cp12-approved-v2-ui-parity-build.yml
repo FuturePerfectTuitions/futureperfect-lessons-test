@@ -36,6 +36,7 @@ jobs:
           p.write_text(s.replace(old, new, 1))
           PY
           python scripts/cp12-approved-v2-ui-parity-patch.py
+          python scripts/cp12-normalize-retained-css-contracts.py
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Static architecture and UI gates
