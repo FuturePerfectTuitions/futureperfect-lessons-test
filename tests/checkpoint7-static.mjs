@@ -29,11 +29,25 @@ assert.match(css, /@media \(max-width: 720px\)/);
 assert.match(css, /grid-template-columns: minmax\(0,1fr\) 118px/);
 assert.match(css, /@media print \{ body \{ display: none !important; \} \}/);
 
+const answerFunctionStart = app.indexOf('async function openAnswerPack(resource)');
+const answerFunctionEnd = app.indexOf('\nasync function logout()', answerFunctionStart);
+assert.ok(answerFunctionStart >= 0 && answerFunctionEnd > answerFunctionStart, 'Answer Pack open flow must remain present');
+const answerFlow = app.slice(answerFunctionStart, answerFunctionEnd);
+const viewerImportIndex = answerFlow.indexOf("await import('./protected-viewer.js')");
+const authorizeIndex = answerFlow.indexOf('await requestJson(resourceOpenPath(resource)');
+const viewerOpenIndex = answerFlow.indexOf('await viewerModule.openProtectedViewer');
+const promptCloseIndex = answerFlow.indexOf('close();', viewerOpenIndex);
+assert.ok(viewerImportIndex >= 0, 'protected viewer must remain lazy-loaded');
+assert.ok(authorizeIndex > viewerImportIndex, 'protected viewer module must load before password authorisation');
+assert.ok(viewerOpenIndex > authorizeIndex, 'protected viewer must open only after successful password authorisation');
+assert.ok(promptCloseIndex > viewerOpenIndex, 'password prompt must remain attached until protected viewer has opened');
+
 console.log(JSON.stringify({
   marker: 'REBUILD_CHECKPOINT7_FRONTEND_STATIC_PASS',
   oneCoreEntry: true,
   oneCompiledCssSource: true,
   lazyProtectedViewer: true,
+  protectedViewerOpenSequencing: true,
   subjectSelectionLocal: true,
   abortAndDedupPresent: true,
   videoLazy: true,
