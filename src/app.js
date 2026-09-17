@@ -479,10 +479,10 @@ async function openAnswerPack(resource) {
   backdrop.querySelector('#answer-form').addEventListener('submit', async event => {
     event.preventDefault(); const button = backdrop.querySelector('#answer-submit'); const error = backdrop.querySelector('#answer-error'); button.disabled = true; button.textContent='Checking…'; error.hidden=true;
     try {
-      const payload = await requestJson(resourceOpenPath(resource), { method:'POST', body:{ password:backdrop.querySelector('#answer-password').value } });
-      close();
       const viewerModule = await import('./protected-viewer.js');
+      const payload = await requestJson(resourceOpenPath(resource), { method:'POST', body:{ password:backdrop.querySelector('#answer-password').value } });
       state.viewer = await viewerModule.openProtectedViewer({ url:apiUrl(payload.viewerUrl), title:resource.displayName || 'Answer Pack', watermark:`Future Perfect Tuitions · ${state.account?.firstName||'Student'}`, onClose:()=>{state.viewer=null;} });
+      close();
     } catch (err) {
       if (err.status === 429) error.textContent = 'Too many incorrect attempts. Please try again shortly.';
       else if (err.status === 401) error.textContent = 'Incorrect Answer Pack password.';
