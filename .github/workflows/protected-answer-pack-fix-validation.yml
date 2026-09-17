@@ -1,0 +1,35 @@
+name: Protected Answer Pack Fix Validation
+
+on:
+  push:
+    branches:
+      - fix/protected-answer-pack-open-2026-09-17
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Static regression gate
+        run: npm run test:static
+      - name: Build production frontend
+        run: npm run build
+      - name: Verify lazy protected-viewer chunk still exists
+        run: |
+          test "$(find dist/assets -maxdepth 1 -name '*.css' | wc -l)" -eq 1
+          test "$(find dist/assets -maxdepth 1 -name 'portal-protected-viewer-*.js' | wc -l)" -ge 1
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Protected Answer Pack browser journey
+        run: npx playwright test --project=desktop-chromium -g "clean desktop journey keeps subject local and video lazy"
