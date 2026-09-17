@@ -3,7 +3,8 @@
 
   const WINDOW_KEY = 'fpt_v2_window_login_v2';
   const WINDOW_HEADER = 'X-FPT-Window-Token';
-  const TRIAL_ENDED_MESSAGE = 'Trial access ended, please contact Future Perfect Tuitions to continue accessing content';
+  const TRIAL_ENDED_TITLE = 'Your Future Perfect trial has now ended.';
+  const TRIAL_ENDED_BODY = 'To continue accessing lessons and resources, please contact us to discuss the right programme for your child.';
   const TRIAL_MESSAGE = 'Trial access includes full lesson descriptions and lesson videos only.';
   const SUBJECT_PREVIEW_MESSAGE = 'Full access available to enrolled students of the subject only';
   const originalFetch = window.fetch.bind(window);
@@ -11,6 +12,7 @@
   let listModes = new Map();
   let currentDetail = null;
   let lastLoginError = '';
+  let lastLoginErrorKind = '';
   let queued = false;
 
   function requestUrl(input) {
@@ -70,11 +72,55 @@
     if (element.hidden !== next) element.hidden = next;
   }
 
+  function ensureTrialEndedStyles() {
+    if (document.getElementById('phase19-trial-ended-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'phase19-trial-ended-styles';
+    style.textContent = `
+      #login-error.phase19-trial-ended {
+        color: #174c3a;
+        background: #eef8f3;
+        border-color: #b8dfce;
+        font-weight: 400;
+        line-height: 1.45;
+        text-align: left;
+      }
+      #login-error.phase19-trial-ended strong {
+        display: block;
+        color: #0d3f2d;
+        font-weight: 800;
+        margin-bottom: 4px;
+      }
+      #login-error.phase19-trial-ended span {
+        display: block;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function setTrialEndedState(body) {
+    if (body?.error !== 'TRIAL_ACCESS_ENDED') return false;
+    lastLoginErrorKind = 'trial-ended';
+    lastLoginError = `${TRIAL_ENDED_TITLE} ${TRIAL_ENDED_BODY}`;
+    queueApply();
+    return true;
+  }
+
+  function clearTrialEndedState() {
+    lastLoginError = '';
+    lastLoginErrorKind = '';
+    const error = document.getElementById('login-error');
+    error?.classList.remove('phase19-trial-ended');
+    if (error?.dataset?.phase19TrialEnded === '1') delete error.dataset.phase19TrialEnded;
+  }
+
   window.fetch = async (input, init) => {
     const url = requestUrl(input);
     const studentApi = Boolean(url?.pathname?.startsWith('/api/v1/student/'));
     const login = url?.pathname === '/api/v1/student/auth/login';
     const logout = url?.pathname === '/api/v1/student/auth/logout';
+
+    if (login) clearTrialEndedState();
 
     if (studentApi && !login && !getWindowToken()) {
       return new Response(JSON.stringify({ error: 'WINDOW_LOGIN_REQUIRED' }), {
@@ -84,12 +130,18 @@
     }
 
     const response = await originalFetch(input, init);
+    let studentBody = null;
+    if (studentApi && (login || !response.ok)) {
+      studentBody = await response.clone().json().catch(() => null);
+      setTrialEndedState(studentBody);
+    }
 
     if (login) {
-      const body = await response.clone().json().catch(() => null);
-      lastLoginError = body?.error === 'TRIAL_ACCESS_ENDED'
-        ? String(body?.message || TRIAL_ENDED_MESSAGE)
-        : '';
+      const body = studentBody || await response.clone().json().catch(() => null);
+      if (body?.error !== 'TRIAL_ACCESS_ENDED') {
+        lastLoginError = '';
+        lastLoginErrorKind = '';
+      }
       if (response.ok && body?.ok) {
         try { sessionStorage.setItem(WINDOW_KEY, 'authenticated'); } catch (_) {}
       } else {
@@ -134,10 +186,25 @@
   };
 
   function applyLoginError() {
-    if (!lastLoginError) return;
     const error = document.getElementById('login-error');
-    if (!error || error.hidden) return;
-    setTextIfChanged(error, lastLoginError);
+    if (!error) return;
+
+    if (lastLoginErrorKind !== 'trial-ended') {
+      error.classList.remove('phase19-trial-ended');
+      if (error.dataset.phase19TrialEnded === '1') delete error.dataset.phase19TrialEnded;
+      return;
+    }
+    if (error.hidden) return;
+
+    error.classList.add('phase19-trial-ended');
+    if (error.dataset.phase19TrialEnded === '1') return;
+
+    const title = document.createElement('strong');
+    title.textContent = TRIAL_ENDED_TITLE;
+    const body = document.createElement('span');
+    body.textContent = TRIAL_ENDED_BODY;
+    error.replaceChildren(title, body);
+    error.dataset.phase19TrialEnded = '1';
   }
 
   function applyListLabels() {
@@ -204,6 +271,8 @@
     if (!target) return;
     new MutationObserver(queueApply).observe(target, options);
   }
+
+  ensureTrialEndedStyles();
 
   observe(document.getElementById('lesson-list'), {
     subtree: true,
