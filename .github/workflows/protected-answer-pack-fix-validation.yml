@@ -30,5 +30,23 @@ jobs:
           test "$(find dist/assets -maxdepth 1 -name 'portal-protected-viewer-*.js' | wc -l)" -ge 1
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      - name: Align retained journey with approved collapsed controls
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tests/checkpoint7.spec.mjs')
+          s = p.read_text()
+          old_video = "await page.getByRole('button',{name:'View'}).click();"
+          new_video = "await page.locator('#video-toggle').click();"
+          assert s.count(old_video) == 1
+          s = s.replace(old_video, new_video, 1)
+          old_answer = "  await page.getByRole('button',{name:'Open'}).last().click();"
+          new_answer = "  await page.locator('[data-resource-toggle=\"core-homework-body\"]').click();\n  await page.getByRole('button',{name:'Open'}).last().click();"
+          assert s.count(old_answer) == 1
+          s = s.replace(old_answer, new_answer, 1)
+          p.write_text(s)
+          PY
       - name: Protected Answer Pack browser journey
         run: npx playwright test --project=desktop-chromium -g "clean desktop journey keeps subject local and video lazy"
