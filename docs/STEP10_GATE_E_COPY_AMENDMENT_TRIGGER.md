@@ -6,3 +6,5 @@ Owner-approved copy change only:
 - to: `Take a real exam style GL quiz`
 
 No visibility, placement, eligibility, navigation, launch, backend, or Quiz behaviour change is authorised by this trigger.
+
+Retry note: static test expectation is now aligned to the approved owner copy before rerunning the guarded amendment.
