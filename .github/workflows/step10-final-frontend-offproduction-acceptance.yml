@@ -1,0 +1,69 @@
+name: Step 10 final frontend off-production acceptance
+
+on:
+  push:
+    branches:
+      - mastery/step10-v2-maths-practice-2026-09-18
+    paths:
+      - 'docs/STEP10_FINAL_FRONTEND_ACCEPTANCE_TRIGGER.md'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies and Playwright browsers
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium webkit
+      - name: Run retained Portal static regressions
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          npm run test:static
+          node tests/cp12-collapsible-resource-sections-static.mjs
+          node tests/cp12-approved-v2-ui-parity-static.mjs
+          node tests/step10-v2-maths-practice-static.mjs
+      - name: Build exact candidate frontend
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          npm run build
+          git diff --check
+      - name: Run retained Portal plus Step 10 browser acceptance
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          npx playwright test
+      - name: Record acceptance marker
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          node - <<'NODE'
+          const fs=require('fs');
+          fs.writeFileSync('/tmp/step10-final-frontend-acceptance.json',JSON.stringify({
+            marker:'STEP10_FINAL_FRONTEND_OFFPRODUCTION_PASS',
+            sourceCommit:process.env.GITHUB_SHA,
+            productionMutation:false,
+            criteria:[
+              {number:1,name:'Portal remains usable if Quiz eligibility or launch is unavailable',status:'PASS'},
+              {number:2,name:'Practice card renders only when server eligibility is true and only on Maths',status:'PASS'},
+              {name:'Quiz launch 401/403 fails closed without breaking Maths',status:'PASS'},
+              {name:'Approved card copy and launch-origin/path guard retained',status:'PASS'}
+            ]
+          },null,2));
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: step10-final-frontend-offproduction-acceptance
+          path: /tmp/step10-final-frontend-acceptance.json
+          retention-days: 90
