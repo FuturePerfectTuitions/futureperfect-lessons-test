@@ -121,7 +121,7 @@ test('clean desktop journey keeps subject local and video lazy', async ({page}, 
   const ordinary = page.locator('[data-direct-resource="r-home"]');
   expect(await ordinary.getAttribute('href')).toContain('/resources/r-home/open');
 
-  await page.getByRole('button',{name:'Open'}).last().click();
+  await page.locator('[data-answer="r-answer"]').click();
   await page.getByLabel('Answer Pack password').fill('P9ck');
   await page.getByRole('button',{name:'Open Answer Pack'}).click();
   await expect(page.getByText('Protected viewer')).toBeVisible();
