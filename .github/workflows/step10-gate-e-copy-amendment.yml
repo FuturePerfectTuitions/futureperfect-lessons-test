@@ -1,0 +1,66 @@
+name: Step 10 Gate E practice card copy amendment
+
+on:
+  push:
+    branches:
+      - mastery/step10-v2-maths-practice-2026-09-18
+    paths:
+      - 'docs/STEP10_GATE_E_COPY_AMENDMENT_TRIGGER.md'
+
+permissions:
+  contents: write
+
+jobs:
+  amend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: mastery/step10-v2-maths-practice-2026-09-18
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply exact owner-approved copy change
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/app.js')
+          s = p.read_text()
+          old = 'Take a Maths quiz'
+          new = 'Take a real exam style GL quiz'
+          if s.count(old) != 1:
+              raise SystemExit(f'Expected exactly one old card subtitle, found {s.count(old)}')
+          if new in s:
+              raise SystemExit('New card subtitle already present before amendment')
+          p.write_text(s.replace(old, new, 1))
+          PY
+          grep -Fq 'Take a real exam style GL quiz' src/app.js
+          ! grep -Fq 'Take a Maths quiz' src/app.js
+      - name: Run frontend regression gates
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          npm install --no-audit --no-fund
+          npm run test:static
+          node tests/cp12-collapsible-resource-sections-static.mjs
+          node tests/cp12-approved-v2-ui-parity-static.mjs
+          node tests/step10-v2-maths-practice-static.mjs
+          npm run build
+          grep -R -Fq 'Take a real exam style GL quiz' dist
+          grep -R -Fq '/api/v2/student/quiz/eligibility' dist
+          grep -R -Fq '/api/v2/student/quiz/launch' dist
+          ! grep -R -Fq '/api/v1/student/quiz/' dist
+          git diff --check
+      - name: Commit exact copy amendment
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name 'FuturePerfectTuitions'
+          git config user.email 'futureperfectlessons@gmail.com'
+          git add src/app.js
+          git diff --cached --quiet && { echo 'Expected copy amendment missing'; exit 1; }
+          git commit -m 'Step10 Gate E: refine 11+ Practice card copy'
+          git push origin HEAD:mastery/step10-v2-maths-practice-2026-09-18
