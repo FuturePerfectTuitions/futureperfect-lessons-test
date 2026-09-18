@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const app = fs.readFileSync('src/app.js','utf8');
+assert.ok(app.includes("requestJson('/api/v2/student/quiz/eligibility')"));
+assert.ok(app.includes("requestJson('/api/v2/student/quiz/launch', { method: 'POST' })"));
+assert.ok(app.includes("if (subject === 'maths') void revealMathsPracticeCard();"));
+assert.ok(app.includes("if (state.subject !== 'maths') return;"));
+assert.ok(app.includes("payload?.eligible !== true"));
+assert.ok(app.includes('data-view-grid="${escapeHtml(group)}"'));
+assert.ok(app.includes("document.querySelector('[data-view-grid=\"current\"]')"));
+assert.ok(app.includes("button.dataset.quizPractice = 'true'"));
+assert.ok(app.includes('11+ Practice'));
+assert.ok(app.includes('Take a Maths quiz'));
+assert.ok(app.includes("url.hostname !== 'quiz.futureperfect.education'"));
+assert.ok(app.includes("url.pathname !== '/launch'"));
+assert.ok(!app.includes('/api/v1/student/quiz/eligibility'));
+console.log('STEP10_V2_MATHS_PRACTICE_STATIC_PASS');
