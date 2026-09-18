@@ -111,10 +111,11 @@ test('clean desktop journey keeps subject local and video lazy', async ({page}, 
   await expect(page.getByRole('heading',{name:'Ratio and Proportion'})).toBeVisible();
   expect(protectedAssets.length).toBe(0);
   const iframe = page.locator('#lesson-player');
+  const videoToggle = page.locator('#video-toggle');
   expect(await iframe.getAttribute('src')).toBeNull();
-  await page.getByRole('button',{name:'View'}).click();
+  await videoToggle.click();
   await expect.poll(() => iframe.getAttribute('src')).toContain('/resources/r-video/open');
-  await page.getByRole('button',{name:'Hide'}).click();
+  await videoToggle.click();
   expect(await iframe.getAttribute('src')).toContain('/resources/r-video/open');
 
   const ordinary = page.locator('[data-direct-resource="r-home"]');
