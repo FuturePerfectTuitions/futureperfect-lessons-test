@@ -27,18 +27,22 @@ jobs:
           set -Eeuo pipefail
           python - <<'PY'
           from pathlib import Path
-          p = Path('src/app.js')
-          s = p.read_text()
-          old = 'Take a Maths quiz'
-          new = 'Take a real exam style GL quiz'
-          if s.count(old) != 1:
-              raise SystemExit(f'Expected exactly one old card subtitle, found {s.count(old)}')
-          if new in s:
-              raise SystemExit('New card subtitle already present before amendment')
-          p.write_text(s.replace(old, new, 1))
+          replacements = [
+              (Path('src/app.js'), 'Take a Maths quiz', 'Take a real exam style GL quiz'),
+              (Path('tests/step10-v2-maths-practice-static.mjs'), 'Take a Maths quiz', 'Take a real exam style GL quiz'),
+          ]
+          for p, old, new in replacements:
+              s = p.read_text()
+              if s.count(old) != 1:
+                  raise SystemExit(f'{p}: expected exactly one old string, found {s.count(old)}')
+              if new in s:
+                  raise SystemExit(f'{p}: new string already present before amendment')
+              p.write_text(s.replace(old, new, 1))
           PY
           grep -Fq 'Take a real exam style GL quiz' src/app.js
+          grep -Fq 'Take a real exam style GL quiz' tests/step10-v2-maths-practice-static.mjs
           ! grep -Fq 'Take a Maths quiz' src/app.js
+          ! grep -Fq 'Take a Maths quiz' tests/step10-v2-maths-practice-static.mjs
       - name: Run frontend regression gates
         shell: bash
         run: |
@@ -60,7 +64,7 @@ jobs:
           set -Eeuo pipefail
           git config user.name 'FuturePerfectTuitions'
           git config user.email 'futureperfectlessons@gmail.com'
-          git add src/app.js
+          git add src/app.js tests/step10-v2-maths-practice-static.mjs
           git diff --cached --quiet && { echo 'Expected copy amendment missing'; exit 1; }
           git commit -m 'Step10 Gate E: refine 11+ Practice card copy'
           git push origin HEAD:mastery/step10-v2-maths-practice-2026-09-18
