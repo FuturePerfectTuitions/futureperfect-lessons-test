@@ -10,7 +10,7 @@ assert.ok(app.includes('data-view-grid="${escapeHtml(group)}"'));
 assert.ok(app.includes("document.querySelector('[data-view-grid=\"current\"]')"));
 assert.ok(app.includes("button.dataset.quizPractice = 'true'"));
 assert.ok(app.includes('11+ Practice'));
-assert.ok(app.includes('Take a Maths quiz'));
+assert.ok(app.includes('Take a real exam style GL quiz'));
 assert.ok(app.includes("url.hostname !== 'quiz.futureperfect.education'"));
 assert.ok(app.includes("url.pathname !== '/launch'"));
 assert.ok(!app.includes('/api/v1/student/quiz/eligibility'));

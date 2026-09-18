@@ -254,7 +254,7 @@ async function revealMathsPracticeCard() {
     button.className = 'view-card practice-card';
     button.type = 'button';
     button.dataset.quizPractice = 'true';
-    button.innerHTML = '<span class="view-label">11+ Practice</span><span class="view-count">Take a Maths quiz</span>';
+    button.innerHTML = '<span class="view-label">11+ Practice</span><span class="view-count">Take a real exam style GL quiz</span>';
     button.addEventListener('click', () => launchMathsPractice(button));
     grid.appendChild(button);
   } catch {
