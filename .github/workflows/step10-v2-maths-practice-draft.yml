@@ -1,0 +1,149 @@
+name: Step 10 v2 Maths practice draft
+
+on:
+  push:
+    branches:
+      - mastery/step10-v2-maths-practice-2026-09-18
+    paths:
+      - .github/workflows/step10-v2-maths-practice-draft.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: mastery/step10-v2-maths-practice-2026-09-18
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply isolated Maths-page practice-card patch
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/app.js')
+          app = path.read_text()
+
+          marker = 'function renderViews(subject) {'
+          assert app.count(marker) == 1, 'renderViews anchor must be unique'
+
+          helpers = r'''function safeQuizLaunchUrl(value) {
+            try {
+              const url = new URL(String(value || ''));
+              if (url.protocol !== 'https:' || url.hostname !== 'quiz.futureperfect.education' || url.pathname !== '/launch') return '';
+              return url.toString();
+            } catch {
+              return '';
+            }
+          }
+
+          async function launchMathsPractice(button) {
+            if (!button || state.subject !== 'maths') return;
+            const meta = button.querySelector('.view-count');
+            button.disabled = true;
+            if (meta) meta.textContent = 'Opening quiz…';
+            try {
+              const payload = await requestJson('/api/v2/student/quiz/launch', { method: 'POST' });
+              const launchUrl = safeQuizLaunchUrl(payload?.launchUrl);
+              if (!launchUrl) throw new Error('QUIZ_LAUNCH_INVALID');
+              window.location.assign(launchUrl);
+            } catch (error) {
+              if (error?.status === 401 || error?.status === 403) {
+                button.remove();
+                return;
+              }
+              button.disabled = false;
+              if (meta) meta.textContent = 'Quiz unavailable · Try again';
+            }
+          }
+
+          async function revealMathsPracticeCard() {
+            if (state.subject !== 'maths') return;
+            const grid = document.querySelector('[data-view-grid="current"]');
+            if (!grid || grid.querySelector('[data-quiz-practice]')) return;
+            try {
+              const payload = await requestJson('/api/v2/student/quiz/eligibility');
+              if (state.subject !== 'maths' || payload?.eligible !== true || !grid.isConnected) return;
+              const button = document.createElement('button');
+              button.className = 'view-card practice-card';
+              button.type = 'button';
+              button.dataset.quizPractice = 'true';
+              button.innerHTML = '<span class="view-label">11+ Practice</span><span class="view-count">Take a Maths quiz</span>';
+              button.addEventListener('click', () => launchMathsPractice(button));
+              grid.appendChild(button);
+            } catch {
+              // Fail closed: non-eligible, unavailable, or unauthenticated means no practice card.
+            }
+          }
+
+          '''
+          app = app.replace(marker, helpers + marker, 1)
+
+          old_sections = "const sections = groups.map(([, title, rows]) => `<section class=\"view-section\"><h2 class=\"view-section-title\">${title}</h2><div class=\"view-grid\">${rows.map(view => `<button class=\"view-card ${view.lockedPreview?'locked':''}\" type=\"button\" data-view=\"${escapeHtml(view.viewId)}\"><span class=\"view-label\">${view.lockedPreview?'🔒 ':''}${escapeHtml(view.label)}</span><span class=\"view-count\">${Number(view.openLessonCount||0)} open · ${Number(view.lockedLessonCount||0)} locked</span></button>`).join('')}</div></section>`).join('');"
+          new_sections = "const sections = groups.map(([group, title, rows]) => `<section class=\"view-section\"><h2 class=\"view-section-title\">${title}</h2><div class=\"view-grid\" data-view-grid=\"${escapeHtml(group)}\">${rows.map(view => `<button class=\"view-card ${view.lockedPreview?'locked':''}\" type=\"button\" data-view=\"${escapeHtml(view.viewId)}\"><span class=\"view-label\">${view.lockedPreview?'🔒 ':''}${escapeHtml(view.label)}</span><span class=\"view-count\">${Number(view.openLessonCount||0)} open · ${Number(view.lockedLessonCount||0)} locked</span></button>`).join('')}</div></section>`).join('');"
+          assert app.count(old_sections) == 1, 'view sections anchor must be unique'
+          app = app.replace(old_sections, new_sections, 1)
+
+          old_bind = "  document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => loadView(button.dataset.view)));\n}"
+          new_bind = "  document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => loadView(button.dataset.view)));\n  if (subject === 'maths') void revealMathsPracticeCard();\n}"
+          assert app.count(old_bind) == 1, 'renderViews binding anchor must be unique'
+          app = app.replace(old_bind, new_bind, 1)
+
+          path.write_text(app)
+          PY
+
+      - name: Add Step 10 Maths visibility regression
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          cat > tests/step10-v2-maths-practice-static.mjs <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const app = fs.readFileSync('src/app.js','utf8');
+          assert.ok(app.includes("requestJson('/api/v2/student/quiz/eligibility')"));
+          assert.ok(app.includes("requestJson('/api/v2/student/quiz/launch', { method: 'POST' })"));
+          assert.ok(app.includes("if (subject === 'maths') void revealMathsPracticeCard();"));
+          assert.ok(app.includes("if (state.subject !== 'maths') return;"));
+          assert.ok(app.includes("payload?.eligible !== true"));
+          assert.ok(app.includes('data-view-grid="${escapeHtml(group)}"'));
+          assert.ok(app.includes("document.querySelector('[data-view-grid=\"current\"]')"));
+          assert.ok(app.includes("button.dataset.quizPractice = 'true'"));
+          assert.ok(app.includes('11+ Practice'));
+          assert.ok(app.includes('Take a Maths quiz'));
+          assert.ok(app.includes("url.hostname !== 'quiz.futureperfect.education'"));
+          assert.ok(app.includes("url.pathname !== '/launch'"));
+          assert.ok(!app.includes('/api/v1/student/quiz/eligibility'));
+          console.log('STEP10_V2_MATHS_PRACTICE_STATIC_PASS');
+          NODE
+
+      - name: Run retained frontend gates and build
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          npm install --no-audit --no-fund
+          npm run test:static
+          node tests/cp12-collapsible-resource-sections-static.mjs
+          node tests/cp12-approved-v2-ui-parity-static.mjs
+          node tests/step10-v2-maths-practice-static.mjs
+          npm run build
+          git diff --check
+
+      - name: Commit tested draft source only
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name FuturePerfectTuitions
+          git config user.email futureperfectlessons@gmail.com
+          git add src/app.js tests/step10-v2-maths-practice-static.mjs
+          git diff --cached --quiet && { echo 'No Step 10 draft changes'; exit 1; }
+          git commit -m 'Step10: place Maths practice card on eligible Maths landing page'
+          git push origin HEAD:mastery/step10-v2-maths-practice-2026-09-18
