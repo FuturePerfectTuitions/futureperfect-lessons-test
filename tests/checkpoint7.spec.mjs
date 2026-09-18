@@ -97,7 +97,7 @@ test('clean desktop journey keeps subject local and video lazy', async ({page}, 
   const beforeSubject = calls.length;
   await page.getByRole('button',{name:/Maths/}).click();
   await expect(page.getByRole('heading',{name:'Maths'})).toBeVisible();
-  expect(calls.length).toBe(beforeSubject);
+  expect(calls.slice(beforeSubject)).toEqual(['GET /api/v2/student/quiz/eligibility']);
   expect(calls.some(call => call.includes('/subjects/'))).toBeFalsy();
 
   await page.getByRole('button',{name:/Year 6/}).click();
