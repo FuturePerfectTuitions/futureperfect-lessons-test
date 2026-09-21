@@ -213,6 +213,55 @@ function renderSubjects() {
   document.querySelectorAll('[data-subject]').forEach(button => button.addEventListener('click', () => renderViews(button.dataset.subject)));
 }
 
+function safeQuizLaunchUrl(value) {
+  try {
+    const url = new URL(String(value || ''));
+    if (url.protocol !== 'https:' || url.hostname !== 'quiz.futureperfect.education' || url.pathname !== '/launch') return '';
+    return url.toString();
+  } catch {
+    return '';
+  }
+}
+
+async function launchMathsPractice(button) {
+  if (!button || state.subject !== 'maths') return;
+  const meta = button.querySelector('.view-count');
+  button.disabled = true;
+  if (meta) meta.textContent = 'Opening quiz…';
+  try {
+    const payload = await requestJson('/api/v2/student/quiz/launch', { method: 'POST' });
+    const launchUrl = safeQuizLaunchUrl(payload?.launchUrl);
+    if (!launchUrl) throw new Error('QUIZ_LAUNCH_INVALID');
+    window.location.assign(launchUrl);
+  } catch (error) {
+    if (error?.status === 401 || error?.status === 403) {
+      button.remove();
+      return;
+    }
+    button.disabled = false;
+    if (meta) meta.textContent = 'Quiz unavailable · Try again';
+  }
+}
+
+async function revealMathsPracticeCard() {
+  if (state.subject !== 'maths') return;
+  const grid = document.querySelector('[data-view-grid="current"]');
+  if (!grid || grid.querySelector('[data-quiz-practice]')) return;
+  try {
+    const payload = await requestJson('/api/v2/student/quiz/eligibility');
+    if (state.subject !== 'maths' || payload?.eligible !== true || !grid.isConnected) return;
+    const button = document.createElement('button');
+    button.className = 'view-card practice-card';
+    button.type = 'button';
+    button.dataset.quizPractice = 'true';
+    button.innerHTML = '<span class="view-label">11+ Practice</span><span class="view-count">Take a real exam style GL quiz</span>';
+    button.addEventListener('click', () => launchMathsPractice(button));
+    grid.appendChild(button);
+  } catch {
+    // Fail closed: non-eligible, unavailable, or unauthenticated means no practice card.
+  }
+}
+
 function renderViews(subject) {
   navigationEpoch += 1; abortScope('view'); abortScope('lesson'); clearLessonMedia(); state.subject = subject;
   const label = subject === 'maths' ? 'Maths' : 'English';
@@ -221,10 +270,11 @@ function renderViews(subject) {
     ['current', 'Current', views.filter(view => view.group === 'current' || view.current === true)],
     ['previous', 'Previous', views.filter(view => view.group === 'previous' && view.current !== true)]
   ].filter(([, , rows]) => rows.length);
-  const sections = groups.map(([, title, rows]) => `<section class="view-section"><h2 class="view-section-title">${title}</h2><div class="view-grid">${rows.map(view => `<button class="view-card ${view.lockedPreview?'locked':''}" type="button" data-view="${escapeHtml(view.viewId)}"><span class="view-label">${view.lockedPreview?'🔒 ':''}${escapeHtml(view.label)}</span><span class="view-count">${Number(view.openLessonCount||0)} open · ${Number(view.lockedLessonCount||0)} locked</span></button>`).join('')}</div></section>`).join('');
+  const sections = groups.map(([group, title, rows]) => `<section class="view-section"><h2 class="view-section-title">${title}</h2><div class="view-grid" data-view-grid="${escapeHtml(group)}">${rows.map(view => `<button class="view-card ${view.lockedPreview?'locked':''}" type="button" data-view="${escapeHtml(view.viewId)}"><span class="view-label">${view.lockedPreview?'🔒 ':''}${escapeHtml(view.label)}</span><span class="view-count">${Number(view.openLessonCount||0)} open · ${Number(view.lockedLessonCount||0)} locked</span></button>`).join('')}</div></section>`).join('');
   root.innerHTML = shell(`<section class="card">${backButton('back-subjects','Subjects')}<p class="eyebrow">Student Portal</p><h1>${label}</h1><p class="intro">Choose a year or level.</p>${sections || '<div class="empty-state">No years or levels are currently available.</div>'}</section>`, { portal:true });
   bindShell(); document.querySelector('#back-subjects').addEventListener('click', renderSubjects);
   document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => loadView(button.dataset.view)));
+  if (subject === 'maths') void revealMathsPracticeCard();
 }
 
 async function loadView(viewId) {
