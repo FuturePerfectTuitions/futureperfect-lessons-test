@@ -1,0 +1,148 @@
+name: CP12 apply guarded Quiz surface patch
+on:
+  push:
+    branches: [feature/cp12-quiz-surface-2026-09-21]
+    paths: ['.github/workflows/cp12-apply-quiz-surface.yml']
+permissions:
+  contents: write
+concurrency:
+  group: cp12-frontend-source-patch
+  cancel-in-progress: false
+jobs:
+  patch-test-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Guard exact production source base
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          BASE='1b911253463796b9011b1a45909f67c6395b752f'
+          test "$(git rev-parse HEAD^)" = "$BASE" || { echo "Unexpected frontend base $(git rev-parse HEAD^)" >&2; exit 1; }
+          ! grep -Fq '/api/v2/student/quiz/eligibility' src/app.js
+          ! grep -Fq '/api/v2/student/quiz/launch' src/app.js
+          ! grep -Fq 'data-quiz-practice' src/app.js
+          git diff --exit-code "$BASE" -- src/app.js src/styles.css
+      - name: Apply minimal server-authorised Quiz surface patch
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/app.js')
+          s=p.read_text()
+          marker='''function renderViews(subject) {
+          '''.replace('          ','')
+          helpers=r'''function safeQuizLaunchUrl(value) {
+            try {
+              const url = new URL(String(value || ''));
+              if (url.protocol !== 'https:' || url.hostname !== 'quiz.futureperfect.education' || url.pathname !== '/launch') return '';
+              return url.toString();
+            } catch {
+              return '';
+            }
+          }
+
+          async function launchMathsPractice(button) {
+            if (!button || state.subject !== 'maths') return;
+            const meta = button.querySelector('.view-count');
+            button.disabled = true;
+            if (meta) meta.textContent = 'Opening quiz…';
+            try {
+              const payload = await requestJson('/api/v2/student/quiz/launch', { method: 'POST' });
+              const launchUrl = safeQuizLaunchUrl(payload?.launchUrl);
+              if (!launchUrl) throw new Error('QUIZ_LAUNCH_INVALID');
+              window.location.assign(launchUrl);
+            } catch (error) {
+              if (error?.status === 401 || error?.status === 403) {
+                button.remove();
+                return;
+              }
+              button.disabled = false;
+              if (meta) meta.textContent = 'Quiz unavailable · Try again';
+            }
+          }
+
+          async function revealMathsPracticeCard() {
+            if (state.subject !== 'maths') return;
+            const grid = document.querySelector('[data-view-grid="current"]');
+            if (!grid || grid.querySelector('[data-quiz-practice]')) return;
+            try {
+              const payload = await requestJson('/api/v2/student/quiz/eligibility');
+              if (state.subject !== 'maths' || payload?.eligible !== true || !grid.isConnected) return;
+              const button = document.createElement('button');
+              button.className = 'view-card practice-card';
+              button.type = 'button';
+              button.dataset.quizPractice = 'true';
+              button.innerHTML = '<span class="view-label">11+ Practice</span><span class="view-count">Take a real exam style GL quiz</span>';
+              button.addEventListener('click', () => launchMathsPractice(button));
+              grid.appendChild(button);
+            } catch {
+              // Fail closed: non-eligible, unavailable, or unauthenticated means no practice card.
+            }
+          }
+
+          function renderViews(subject) {
+          '''.replace('          ','')
+          if s.count(marker)!=1:
+              raise SystemExit(f'expected one renderViews marker, found {s.count(marker)}')
+          s=s.replace(marker,helpers,1)
+
+          old='''  const sections = groups.map(([, title, rows]) => `<section class="view-section"><h2 class="view-section-title">${title}</h2><div class="view-grid">${rows.map(view => `<button class="view-card ${view.lockedPreview?'locked':''}" type="button" data-view="${escapeHtml(view.viewId)}"><span class="view-label">${view.lockedPreview?'🔒 ':''}${escapeHtml(view.label)}</span><span class="view-count">${Number(view.openLessonCount||0)} open · ${Number(view.lockedLessonCount||0)} locked</span></button>`).join('')}</div></section>`).join('');
+          '''.replace('          ','')
+          new='''  const sections = groups.map(([group, title, rows]) => `<section class="view-section"><h2 class="view-section-title">${title}</h2><div class="view-grid" data-view-grid="${escapeHtml(group)}">${rows.map(view => `<button class="view-card ${view.lockedPreview?'locked':''}" type="button" data-view="${escapeHtml(view.viewId)}"><span class="view-label">${view.lockedPreview?'🔒 ':''}${escapeHtml(view.label)}</span><span class="view-count">${Number(view.openLessonCount||0)} open · ${Number(view.lockedLessonCount||0)} locked</span></button>`).join('')}</div></section>`).join('');
+          '''.replace('          ','')
+          if s.count(old)!=1:
+              raise SystemExit(f'expected one view-grid rendering target, found {s.count(old)}')
+          s=s.replace(old,new,1)
+
+          old2="  document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => loadView(button.dataset.view)));\n}"
+          new2="  document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => loadView(button.dataset.view)));\n  if (subject === 'maths') void revealMathsPracticeCard();\n}"
+          if s.count(old2)!=1:
+              raise SystemExit(f'expected one renderViews binding target, found {s.count(old2)}')
+          s=s.replace(old2,new2,1)
+          p.write_text(s)
+          PY
+          node --check src/app.js
+          grep -Fq '/api/v2/student/quiz/eligibility' src/app.js
+          grep -Fq '/api/v2/student/quiz/launch' src/app.js
+          grep -Fq 'quiz.futureperfect.education' src/app.js
+          grep -Fq 'data-view-grid="${escapeHtml(group)}"' src/app.js
+          grep -Fq "if (subject === 'maths') void revealMathsPracticeCard();" src/app.js
+          test "$(grep -Fc 'data-quiz-practice' src/app.js)" = '1'
+          git diff --check
+          echo CP12_FRONTEND_PATCH_STATIC_PASS
+      - name: Install and run existing frontend regressions
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          npm ci
+          npm run test:static
+          npm run build
+          test -f dist/index.html
+          grep -R -Fq '/api/v2/student/quiz/eligibility' dist/assets
+          grep -R -Fq '/api/v2/student/quiz/launch' dist/assets
+          grep -R -Fq '11+ Practice' dist/assets
+          grep -R -Fq 'quiz.futureperfect.education' dist/assets
+          echo CP12_FRONTEND_BUILD_PASS
+      - name: Commit only reviewed frontend source change
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git status --short
+          test -n "$(git status --short -- src/app.js)"
+          test -z "$(git status --short -- src/styles.css package.json package-lock.json index.html)"
+          git config user.name 'FuturePerfectTuitions'
+          git config user.email 'futureperfectlessons@gmail.com'
+          git add src/app.js
+          git diff --cached --check
+          git commit -m 'CP12: restore server-authorised 11+ Practice card'
+          git push origin HEAD:feature/cp12-quiz-surface-2026-09-21
+          echo "CP12_FRONTEND_SOURCE_COMMIT=$(git rev-parse HEAD)"
