@@ -245,11 +245,23 @@ async function launchMathsPractice(button) {
 
 async function revealMathsPracticeCard() {
   if (state.subject !== 'maths') return;
-  const grid = document.querySelector('[data-view-grid="current"]');
-  if (!grid || grid.querySelector('[data-quiz-practice]')) return;
+  let grid = document.querySelector('[data-view-grid="current"]');
+  if (grid?.querySelector('[data-quiz-practice]')) return;
   try {
     const payload = await requestJson('/api/v2/student/quiz/eligibility');
-    if (state.subject !== 'maths' || payload?.eligible !== true || !grid.isConnected) return;
+    if (state.subject !== 'maths' || payload?.eligible !== true) return;
+    if (!grid) {
+      const card = document.querySelector('.main > .card');
+      if (!card) return;
+      document.querySelector('.empty-state')?.remove();
+      const section = document.createElement('section');
+      section.className = 'view-section';
+      section.dataset.quizOnlySection = 'true';
+      section.innerHTML = '<h2 class="view-section-title">Current</h2><div class="view-grid" data-view-grid="current"></div>';
+      card.appendChild(section);
+      grid = section.querySelector('[data-view-grid="current"]');
+    }
+    if (!grid?.isConnected || grid.querySelector('[data-quiz-practice]')) return;
     const button = document.createElement('button');
     button.className = 'view-card practice-card';
     button.type = 'button';
