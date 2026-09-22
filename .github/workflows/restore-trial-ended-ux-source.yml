@@ -1,0 +1,106 @@
+name: Restore Trial-ended UX source
+
+on:
+  push:
+    branches:
+      - fix/trial-ended-ux-2026-09-22
+    paths:
+      - '.github/workflows/restore-trial-ended-ux-source.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/trial-ended-ux-2026-09-22
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply narrow Trial-ended UX restoration
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          app = Path('src/app.js')
+          text = app.read_text()
+
+          replacements = [
+              (
+                  "button.disabled = true; button.textContent = 'Logging in…'; error.hidden = true;",
+                  "button.disabled = true; button.textContent = 'Logging in…'; error.hidden = true; error.classList.remove('trial-ended');"
+              ),
+              (
+                  "error.textContent = err.status === 401 ? 'Invalid username or password.' : friendlyError(err);\n      error.hidden = false;",
+                  "error.textContent = err.status === 401 ? 'Invalid username or password.' : friendlyError(err);\n      error.classList.toggle('trial-ended', isTrialEndedError(err));\n      error.hidden = false;"
+              ),
+              (
+                  "function friendlyError(error) {\n  if (error?.name === 'AbortError') return 'This is taking longer than expected. Please try again.';\n  if (error?.message === 'ACCOUNT_LOCKED') return 'Your access to Future Perfect Material has now been withdrawn.';\n  return 'This part of the portal could not be loaded. Please try again.';\n}",
+                  "function isTrialEndedError(error) {\n  return error?.message === 'TRIAL_ACCESS_ENDED' || error?.payload?.error === 'TRIAL_ACCESS_ENDED';\n}\n\nfunction friendlyError(error) {\n  if (error?.name === 'AbortError') return 'This is taking longer than expected. Please try again.';\n  if (error?.message === 'ACCOUNT_LOCKED') return 'Your access to Future Perfect Material has now been withdrawn.';\n  if (isTrialEndedError(error)) return 'Your Future Perfect trial has now ended.\\nTo continue accessing lessons and resources, please contact us to discuss the right programme for your child.';\n  return 'This part of the portal could not be loaded. Please try again.';\n}"
+              ),
+              (
+                  "root.innerHTML = shell(`<section class=\"card\"><p class=\"eyebrow\">Student Portal</p><h1>${escapeHtml(title)}</h1><div class=\"error-box\" role=\"alert\">${escapeHtml(friendlyError(error))}</div><p><button id=\"retry\" class=\"button button-primary\" type=\"button\">Try again</button></p></section>`, { portal: true });",
+                  "const errorClass = isTrialEndedError(error) ? 'error-box trial-ended' : 'error-box';\n  root.innerHTML = shell(`<section class=\"card\"><p class=\"eyebrow\">Student Portal</p><h1>${escapeHtml(title)}</h1><div class=\"${errorClass}\" role=\"alert\">${escapeHtml(friendlyError(error))}</div><p><button id=\"retry\" class=\"button button-primary\" type=\"button\">Try again</button></p></section>`, { portal: true });"
+              ),
+          ]
+
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit(f'Expected app.js anchor missing: {old[:100]!r}')
+              text = text.replace(old, new, 1)
+
+          app.write_text(text)
+
+          css = Path('src/styles.css')
+          css_text = css.read_text()
+          rule = ".error-box.trial-ended{background:#eef8f3;color:#174c3a;border-color:#b8dfce;white-space:pre-line;font-weight:500}"
+          if '.error-box.trial-ended' not in css_text:
+              css.write_text(css_text.rstrip() + '\n' + rule + '\n')
+
+          assert "TRIAL_ACCESS_ENDED" in text
+          assert "Your Future Perfect trial has now ended." in text
+          assert "right programme for your child." in text
+          assert "This part of the portal could not be loaded. Please try again." in text
+          PY
+
+          git diff --check
+          grep -Fq 'TRIAL_ACCESS_ENDED' src/app.js
+          grep -Fq 'Your Future Perfect trial has now ended.' src/app.js
+          grep -Fq 'right programme for your child.' src/app.js
+          grep -Fq '.error-box.trial-ended' src/styles.css
+
+      - name: Build and run accepted frontend static tests
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          npm install --no-package-lock --no-audit --no-fund
+          npm run test:static
+          npm run build
+          BUNDLE=$(find dist/assets -maxdepth 1 -type f -name 'portal-*.js' ! -name '*protected*' | head -n1)
+          STYLE=$(find dist/assets -maxdepth 1 -type f -name 'portal-*.css' | head -n1)
+          test -n "$BUNDLE"; test -n "$STYLE"
+          grep -Fq 'TRIAL_ACCESS_ENDED' "$BUNDLE"
+          grep -Fq 'Your Future Perfect trial has now ended.' "$BUNDLE"
+          grep -Fq 'right programme for your child.' "$BUNDLE"
+          grep -Fq 'This part of the portal could not be loaded. Please try again.' "$BUNDLE"
+          grep -Fq 'eef8f3' "$STYLE"
+          echo TRIAL_ENDED_SOURCE_BUILD_PASS
+
+      - name: Commit tested source restoration
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name 'FuturePerfectTuitions'
+          git config user.email 'futureperfectlessons@gmail.com'
+          git add src/app.js src/styles.css
+          git commit -m 'Restore friendly exhausted-Trial guidance'
+          git push origin HEAD:fix/trial-ended-ux-2026-09-22
+          echo TRIAL_ENDED_SOURCE_COMMIT_PASS
