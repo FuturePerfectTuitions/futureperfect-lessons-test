@@ -1,0 +1,91 @@
+name: Apply Trial Quiz card patch
+on:
+  push:
+    branches: [fix/trial-11plus-quiz-card-2026-09-22]
+    paths: ['.github/workflows/apply-trial-quiz-card-patch.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/trial-11plus-quiz-card-2026-09-22
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply minimal UI patch
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('src/app.js')
+          s=p.read_text()
+          old='''async function revealMathsPracticeCard() {
+            if (state.subject !== 'maths') return;
+            const grid = document.querySelector('[data-view-grid="current"]');
+            if (!grid || grid.querySelector('[data-quiz-practice]')) return;
+            try {
+              const payload = await requestJson('/api/v2/student/quiz/eligibility');
+              if (state.subject !== 'maths' || payload?.eligible !== true || !grid.isConnected) return;
+              const button = document.createElement('button');
+              button.className = 'view-card practice-card';
+              button.type = 'button';
+              button.dataset.quizPractice = 'true';
+              button.innerHTML = '<span class="view-label">11+ Practice</span><span class="view-count">Take a real exam style GL quiz</span>';
+              button.addEventListener('click', () => launchMathsPractice(button));
+              grid.appendChild(button);
+            } catch {
+              // Fail closed: non-eligible, unavailable, or unauthenticated means no practice card.
+            }
+          }'''.replace('          ','')
+          new='''async function revealMathsPracticeCard() {
+            if (state.subject !== 'maths') return;
+            let grid = document.querySelector('[data-view-grid="current"]');
+            if (grid?.querySelector('[data-quiz-practice]')) return;
+            try {
+              const payload = await requestJson('/api/v2/student/quiz/eligibility');
+              if (state.subject !== 'maths' || payload?.eligible !== true) return;
+              if (!grid) {
+                const card = document.querySelector('.main > .card');
+                if (!card) return;
+                document.querySelector('.empty-state')?.remove();
+                const section = document.createElement('section');
+                section.className = 'view-section';
+                section.dataset.quizOnlySection = 'true';
+                section.innerHTML = '<h2 class="view-section-title">Current</h2><div class="view-grid" data-view-grid="current"></div>';
+                card.appendChild(section);
+                grid = section.querySelector('[data-view-grid="current"]');
+              }
+              if (!grid?.isConnected || grid.querySelector('[data-quiz-practice]')) return;
+              const button = document.createElement('button');
+              button.className = 'view-card practice-card';
+              button.type = 'button';
+              button.dataset.quizPractice = 'true';
+              button.innerHTML = '<span class="view-label">11+ Practice</span><span class="view-count">Take a real exam style GL quiz</span>';
+              button.addEventListener('click', () => launchMathsPractice(button));
+              grid.appendChild(button);
+            } catch {
+              // Fail closed: non-eligible, unavailable, or unauthenticated means no practice card.
+            }
+          }'''.replace('          ','')
+          if old not in s:
+              raise SystemExit('Expected revealMathsPracticeCard block not found; no patch applied')
+          p.write_text(s.replace(old,new,1))
+      - name: Verify patch
+        run: |
+          set -Eeuo pipefail
+          node tests/trial-quiz-card-static.mjs
+          node tests/cp12-approved-v2-ui-parity-static.mjs
+          npm install --no-audit --no-fund
+          npm run build
+      - name: Commit patched UI
+        run: |
+          set -Eeuo pipefail
+          git config user.name FuturePerfectTuitions
+          git config user.email futureperfectlessons@gmail.com
+          git add src/app.js
+          git diff --cached --check
+          git commit -m 'Show 11+ Practice for eligible Trials without Maths views'
+          git push origin HEAD:fix/trial-11plus-quiz-card-2026-09-22
