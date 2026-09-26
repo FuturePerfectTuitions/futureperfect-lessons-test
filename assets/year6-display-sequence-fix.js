@@ -12,13 +12,13 @@
   function rankForCode(code) {
     let match = /^Y6T([123])M(\d+)$/i.exec(code);
     if (match) {
-      return { section: 0, lesson: Number(match[2]), term: Number(match[1]) };
+      return { section: 0, term: Number(match[1]), lesson: Number(match[2]) };
     }
     match = /^Y6MS(\d+)$/i.exec(code);
     if (match) {
-      return { section: 1, lesson: Number(match[1]), term: 0 };
+      return { section: 1, term: 0, lesson: Number(match[1]) };
     }
-    return { section: 2, lesson: Number.MAX_SAFE_INTEGER, term: Number.MAX_SAFE_INTEGER };
+    return { section: 2, term: Number.MAX_SAFE_INTEGER, lesson: Number.MAX_SAFE_INTEGER };
   }
 
   function compareRows(a, b) {
@@ -26,8 +26,8 @@
     const rb = rankForCode(codeForRow(b));
     return (
       ra.section - rb.section ||
-      ra.lesson - rb.lesson ||
-      ra.term - rb.term
+      ra.term - rb.term ||
+      ra.lesson - rb.lesson
     );
   }
 
