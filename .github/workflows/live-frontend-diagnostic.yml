@@ -17,65 +17,52 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Inspect live custom-domain routing and exact served files
+      - name: Trace actual live portal bundle provenance
         shell: bash
         run: |
           set -u
           BASE='https://lessons.futureperfect.education'
-          GH='https://futureperfecttuitions.github.io/futureperfect-lessons-test'
+          JS='portal-oe75FQBP.js'
+          CSS='portal-DH0TASY8.css'
 
-          echo '=== DNS ==='
-          getent ahosts lessons.futureperfect.education || true
-          getent ahosts futureperfecttuitions.github.io || true
+          curl --silent --show-error --location --dump-header /tmp/root.headers "$BASE/" -o /tmp/root.html || true
+          curl --silent --show-error --location --dump-header /tmp/js.headers "$BASE/assets/$JS" -o /tmp/portal.js || true
+          curl --silent --show-error --location --dump-header /tmp/css.headers "$BASE/assets/$CSS" -o /tmp/portal.css || true
+          curl --silent --show-error --location --dump-header /tmp/map.headers "$BASE/assets/$JS.map" -o /tmp/portal.js.map || true
 
-          fetch() {
-            local name="$1" url="$2"
-            echo "=== $name ==="
-            curl --silent --show-error --location --dump-header "/tmp/${name}.headers" \
-              --write-out 'HTTP=%{http_code} FINAL=%{url_effective} IP=%{remote_ip}\n' \
-              "$url" --output "/tmp/${name}.body" || true
-            cat "/tmp/${name}.headers" || true
-            echo 'BODY-FIRST-200:'
-            head -c 200 "/tmp/${name}.body" 2>/dev/null || true
-            echo
-          }
+          echo '=== LIVE ROOT ==='
+          cat /tmp/root.headers || true
+          sha256sum /tmp/root.html || true
+          grep -Eo '<script[^>]+src="[^"]+"[^>]*>' /tmp/root.html || true
+          grep -Eo '<link[^>]+rel="stylesheet"[^>]+href="[^"]+"[^>]*>' /tmp/root.html || true
 
-          fetch custom_root "$BASE/"
-          fetch custom_index "$BASE/index.html"
-          fetch custom_normalizer "$BASE/assets/maths-equivalent-home-normalizer.js?v=20260927-primary-home-1"
-          fetch custom_y6fix "$BASE/assets/year6-display-sequence-fix.js?v=20260927-grouped-maths-cards-1"
-          fetch custom_phase7 "$BASE/assets/phase7.js?v=20260912-y6-sats-section-1"
-          fetch custom_config "$BASE/config.js"
-          fetch gh_root "$GH/"
-          fetch gh_index "$GH/index.html"
-          fetch gh_normalizer "$GH/assets/maths-equivalent-home-normalizer.js?v=20260927-primary-home-1"
+          echo '=== LIVE JS ==='
+          cat /tmp/js.headers || true
+          wc -c /tmp/portal.js || true
+          sha256sum /tmp/portal.js || true
+          echo 'TAIL:'
+          tail -c 500 /tmp/portal.js || true
+          echo
+          echo 'API/DOMAIN STRINGS:'
+          grep -Eo 'https?://[^"'"'[:space:]]+|/api/v1/[A-Za-z0-9_/?=&.-]+' /tmp/portal.js | sort -u | head -n 100 || true
+          echo 'PORTAL TEXT STRINGS:'
+          grep -Eo 'Year [456]|L[123]|11\+ Practice|Choose a year or level\.|Student Portal|SATS|Lessons|Current|Previous' /tmp/portal.js | sort | uniq -c || true
+          echo 'SOURCE MAP MARKER:'
+          grep -Eo 'sourceMappingURL=[^[:space:]]+' /tmp/portal.js | tail -n 5 || true
 
-          echo '=== LIVE ROOT HTML IDENTITY ==='
-          wc -c /tmp/custom_root.body || true
-          grep -Eo '<title>[^<]*</title>' /tmp/custom_root.body || true
-          echo 'SCRIPT SRCS:'
-          grep -Eo '<script[^>]+src="[^"]+"[^>]*>' /tmp/custom_root.body || true
-          echo 'STYLESHEET HREFS:'
-          grep -Eo '<link[^>]+rel="stylesheet"[^>]+href="[^"]+"[^>]*>' /tmp/custom_root.body || true
-          echo 'MODULE/PRELOAD HREFS:'
-          grep -Eo '<link[^>]+href="[^"]+"[^>]*>' /tmp/custom_root.body | grep -Ei 'modulepreload|preload' || true
-          echo 'VISIBLE PORTAL TEXT MARKERS:'
-          grep -Eo 'Choose a year or level\.|Student Portal|11\+ Practice|Future Perfect Tuitions' /tmp/custom_root.body | head -n 20 || true
+          echo '=== SOURCE MAP REQUEST ==='
+          cat /tmp/map.headers || true
+          wc -c /tmp/portal.js.map || true
+          head -c 300 /tmp/portal.js.map || true
+          echo
+          if command -v jq >/dev/null 2>&1 && jq -e . /tmp/portal.js.map >/dev/null 2>&1; then
+            echo 'SOURCE MAP SOURCES:'
+            jq -r '.sources[]?' /tmp/portal.js.map | head -n 200
+          fi
 
-          echo '=== REPOSITORY SHA256 ==='
-          sha256sum index.html assets/maths-equivalent-home-normalizer.js assets/year6-display-sequence-fix.js assets/phase7.js config.js
+          echo '=== LIVE CSS ==='
+          cat /tmp/css.headers || true
+          wc -c /tmp/portal.css || true
+          sha256sum /tmp/portal.css || true
 
-          echo '=== LIVE BODY SHA256 WHEN PRESENT ==='
-          for f in /tmp/custom_*.body /tmp/gh_*.body; do
-            [ -f "$f" ] && sha256sum "$f"
-          done
-
-          echo '=== CUSTOM DOMAIN MARKERS WHEN PRESENT ==='
-          grep -F 'maths-equivalent-home-normalizer.js?v=20260927-primary-home-1' /tmp/custom_root.body /tmp/custom_index.body 2>/dev/null || true
-          grep -F 'year6-display-sequence-fix.js?v=20260927-grouped-maths-cards-1' /tmp/custom_root.body /tmp/custom_index.body 2>/dev/null || true
-          grep -F 'frontend-home-normalizer-v1' /tmp/custom_normalizer.body 2>/dev/null || true
-          grep -F 'logicalCardGrids' /tmp/custom_y6fix.body 2>/dev/null || true
-          grep -F 'readSession();' /tmp/custom_phase7.body 2>/dev/null || true
-          grep -F 'https://fpt-portal-v2-worker.futureperfectlessons.workers.dev' /tmp/custom_config.body 2>/dev/null || true
-
-          echo 'LIVE_FRONTEND_ROUTING_DIAGNOSTIC_COMPLETE'
+          echo 'LIVE_PORTAL_BUNDLE_PROVENANCE_DIAGNOSTIC_COMPLETE'
