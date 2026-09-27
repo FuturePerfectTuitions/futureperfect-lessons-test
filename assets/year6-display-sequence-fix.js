@@ -3,12 +3,14 @@
   const lessonsHeading = document.getElementById('lessons-heading');
   const viewGrid = document.getElementById('view-grid');
   const viewsHeading = document.getElementById('views-heading');
+  const base = String(window.FPT_V2_CONFIG?.workerBaseUrl || '').replace(/\/$/, '');
   if (!lessonList || !lessonsHeading || !viewGrid || !viewsHeading) return;
 
   const SECTION_KEY = 'fpt_y6_portal_section';
   let applyingCards = false;
   let applyingLessons = false;
   let pendingYear6Section = '';
+  let satsOpenCountPromise = null;
 
   function titleNode(card) {
     return card?.querySelector('.phase6-view-card-title') || null;
@@ -51,8 +53,23 @@
     }, true);
   }
 
-  function makeSatsClone(baseCard) {
-    let clone = viewGrid.querySelector(':scope > .phase6-view-card[data-fpt-synthetic-sats="true"]');
+  function directCards(grid) {
+    return [...grid.children].filter(child =>
+      child.classList?.contains('phase6-view-card') && child.dataset.upsellPreview !== 'true'
+    );
+  }
+
+  function logicalCardGrids() {
+    const grids = [];
+    if (directCards(viewGrid).length) grids.push(viewGrid);
+    for (const grid of viewGrid.querySelectorAll('.phase6-view-grid')) {
+      if (grid !== viewGrid && directCards(grid).length) grids.push(grid);
+    }
+    return grids;
+  }
+
+  function makeSatsClone(baseCard, grid) {
+    let clone = directCards(grid).find(card => card.dataset.fptSyntheticSats === 'true') || null;
     if (clone) return clone;
 
     clone = baseCard.cloneNode(true);
@@ -80,68 +97,99 @@
     return cards.find(card => matcher.test(cardTitle(card))) || null;
   }
 
-  function applyMathsCards() {
+  function openCountFromCard(card) {
+    const text = String(card?.querySelector('.phase6-view-card-meta')?.textContent || '');
+    const match = text.match(/(\d+)\s+open/i);
+    return match ? Number(match[1]) : 0;
+  }
+
+  async function liveSatsOpenCount() {
+    if (!base) return 0;
+    if (!satsOpenCountPromise) {
+      satsOpenCountPromise = fetch(`${base}/api/v1/student/views/maths-sats/lessons`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        credentials: 'include',
+        cache: 'no-store'
+      }).then(async response => {
+        if (!response.ok) return 0;
+        const body = await response.json().catch(() => null);
+        if (!body?.ok || !Array.isArray(body.lessons)) return 0;
+        return body.lessons.filter(row => row?.locked === false).length;
+      }).catch(() => 0);
+    }
+    return satsOpenCountPromise;
+  }
+
+  async function applyGridCards(grid) {
+    for (const card of directCards(grid)) {
+      if (card.dataset.fptSyntheticSats === 'true') card.remove();
+    }
+
+    let cards = directCards(grid);
+    if (!cards.length) return;
+
+    const year4 = findCard(cards, /^Year\s*4$/i);
+    const l1 = findCard(cards, /^(?:L1|Level\s*1(?:\s*\(11\+\))?)$/i);
+    const year5 = findCard(cards, /^Year\s*5$/i);
+    const l2 = findCard(cards, /^(?:L2|Level\s*2(?:\s*\(11\+\))?)$/i);
+
+    if (year4 && l1) year4.remove();
+    if (year5 && l2) year5.remove();
+
+    cards = directCards(grid);
+    const year6Base = findCard(cards, /^(?:Year\s*6|Lessons)$/i);
+    const serverSats = findCard(cards, /^SATS$/i);
+    const l3 = findCard(cards, /^(?:L3|Level\s*3(?:\s*\(11\+\))?)$/i);
+
+    if (l3) {
+      setCardTitle(l3, 'L3');
+      wireClearSection(l3);
+
+      if (year6Base) {
+        if (serverSats) {
+          year6Base.remove();
+        } else {
+          const satsOpen = await liveSatsOpenCount();
+          if (satsOpen > 0) {
+            setCardTitle(year6Base, 'SATS');
+            const meta = year6Base.querySelector('.phase6-view-card-meta');
+            if (meta) meta.textContent = `${satsOpen} open`;
+            wireYear6Base(year6Base, 'sats');
+          } else {
+            year6Base.remove();
+          }
+        }
+      }
+      if (serverSats) wireClearSection(serverSats);
+    } else if (year6Base) {
+      setCardTitle(year6Base, 'Lessons');
+      if (serverSats) {
+        wireClearSection(year6Base);
+        wireClearSection(serverSats);
+      } else {
+        wireYear6Base(year6Base, 'lessons');
+        makeSatsClone(year6Base, grid);
+      }
+    } else if (serverSats) {
+      wireClearSection(serverSats);
+    }
+
+    for (const card of directCards(grid)) {
+      if (card.dataset.fptSyntheticSats === 'true') continue;
+      if (card.dataset.fptYear6Base === 'true') continue;
+      wireClearSection(card);
+    }
+  }
+
+  async function applyMathsCards() {
     if (applyingCards) return;
     if (!/^Maths$/i.test(String(viewsHeading.textContent || '').trim())) return;
 
     applyingCards = true;
     try {
-      const oldSynthetic = [...viewGrid.querySelectorAll(':scope > .phase6-view-card[data-fpt-synthetic-sats="true"]')];
-      for (const card of oldSynthetic) card.remove();
-
-      let cards = [...viewGrid.querySelectorAll(':scope > .phase6-view-card')]
-        .filter(card => card.dataset.upsellPreview !== 'true');
-      if (!cards.length) return;
-
-      const year4 = findCard(cards, /^Year\s*4$/i);
-      const l1 = findCard(cards, /^(?:L1|Level\s*1(?:\s*\(11\+\))?)$/i);
-      const year5 = findCard(cards, /^Year\s*5$/i);
-      const l2 = findCard(cards, /^(?:L2|Level\s*2(?:\s*\(11\+\))?)$/i);
-      const year6Base = findCard(cards, /^(?:Year\s*6|Lessons)$/i);
-      const serverSats = findCard(cards, /^SATS$/i);
-      const l3 = findCard(cards, /^(?:L3|Level\s*3(?:\s*\(11\+\))?)$/i);
-
-      // Maths Year 4 and L1 are the same curriculum surface. Never show both.
-      if (year4 && l1) year4.remove();
-
-      // Maths Year 5 and L2 are the same curriculum surface. Never show both.
-      if (year5 && l2) year5.remove();
-
-      // Server-authoritative navigation already returns L3 + SATS, or
-      // Lessons + SATS. Keep this DOM layer only as a compatibility fallback for
-      // an older home response; never manufacture a second SATS card if the
-      // server has already supplied one.
-      if (l3) {
-        setCardTitle(l3, 'L3');
-        wireClearSection(l3);
-        if (year6Base) {
-          if (serverSats) {
-            year6Base.remove();
-          } else {
-            setCardTitle(year6Base, 'SATS');
-            wireYear6Base(year6Base, 'sats');
-          }
-        }
-        if (serverSats) wireClearSection(serverSats);
-      } else if (year6Base) {
-        setCardTitle(year6Base, 'Lessons');
-        if (serverSats) {
-          wireClearSection(year6Base);
-          wireClearSection(serverSats);
-        } else {
-          wireYear6Base(year6Base, 'lessons');
-          makeSatsClone(year6Base);
-        }
-      } else if (serverSats) {
-        wireClearSection(serverSats);
-      }
-
-      cards = [...viewGrid.querySelectorAll(':scope > .phase6-view-card')];
-      for (const card of cards) {
-        if (card.dataset.fptSyntheticSats === 'true') continue;
-        if (card.dataset.fptYear6Base === 'true') continue;
-        wireClearSection(card);
-      }
+      const grids = logicalCardGrids();
+      for (const grid of grids) await applyGridCards(grid);
     } finally {
       applyingCards = false;
     }
@@ -200,7 +248,7 @@
     }
   }
 
-  const viewObserver = new MutationObserver(() => queueMicrotask(applyMathsCards));
+  const viewObserver = new MutationObserver(() => queueMicrotask(() => { void applyMathsCards(); }));
   viewObserver.observe(viewGrid, { childList: true, subtree: true, characterData: true });
 
   const lessonObserver = new MutationObserver(() => queueMicrotask(applyYear6Lessons));
@@ -208,11 +256,12 @@
 
   document.getElementById('maths-choice')?.addEventListener('click', () => {
     setSection('');
-    queueMicrotask(applyMathsCards);
+    satsOpenCountPromise = null;
+    queueMicrotask(() => { void applyMathsCards(); });
   }, true);
-  document.getElementById('back-to-views')?.addEventListener('click', () => queueMicrotask(applyMathsCards), true);
+  document.getElementById('back-to-views')?.addEventListener('click', () => queueMicrotask(() => { void applyMathsCards(); }), true);
   document.getElementById('back-to-subjects')?.addEventListener('click', () => setSection(''), true);
 
-  applyMathsCards();
+  void applyMathsCards();
   applyYear6Lessons();
 })();
