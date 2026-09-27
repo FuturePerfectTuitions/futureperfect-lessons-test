@@ -50,6 +50,18 @@ jobs:
           fetch gh_index "$GH/index.html"
           fetch gh_normalizer "$GH/assets/maths-equivalent-home-normalizer.js?v=20260927-primary-home-1"
 
+          echo '=== LIVE ROOT HTML IDENTITY ==='
+          wc -c /tmp/custom_root.body || true
+          grep -Eo '<title>[^<]*</title>' /tmp/custom_root.body || true
+          echo 'SCRIPT SRCS:'
+          grep -Eo '<script[^>]+src="[^"]+"[^>]*>' /tmp/custom_root.body || true
+          echo 'STYLESHEET HREFS:'
+          grep -Eo '<link[^>]+rel="stylesheet"[^>]+href="[^"]+"[^>]*>' /tmp/custom_root.body || true
+          echo 'MODULE/PRELOAD HREFS:'
+          grep -Eo '<link[^>]+href="[^"]+"[^>]*>' /tmp/custom_root.body | grep -Ei 'modulepreload|preload' || true
+          echo 'VISIBLE PORTAL TEXT MARKERS:'
+          grep -Eo 'Choose a year or level\.|Student Portal|11\+ Practice|Future Perfect Tuitions' /tmp/custom_root.body | head -n 20 || true
+
           echo '=== REPOSITORY SHA256 ==='
           sha256sum index.html assets/maths-equivalent-home-normalizer.js assets/year6-display-sequence-fix.js assets/phase7.js config.js
 
