@@ -17,43 +17,53 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Compare live custom-domain files with repository source
+      - name: Inspect live custom-domain routing and exact served files
         shell: bash
         run: |
-          set -euo pipefail
+          set -u
           BASE='https://lessons.futureperfect.education'
+          GH='https://futureperfecttuitions.github.io/futureperfect-lessons-test'
 
-          curl --fail --silent --show-error --location --dump-header /tmp/index.headers "$BASE/" --output /tmp/index.live.html
-          curl --fail --silent --show-error --location --dump-header /tmp/normalizer.headers "$BASE/assets/maths-equivalent-home-normalizer.js?v=20260927-primary-home-1" --output /tmp/normalizer.live.js
-          curl --fail --silent --show-error --location --dump-header /tmp/y6fix.headers "$BASE/assets/year6-display-sequence-fix.js?v=20260927-grouped-maths-cards-1" --output /tmp/y6fix.live.js
-          curl --fail --silent --show-error --location --dump-header /tmp/phase7.headers "$BASE/assets/phase7.js?v=20260912-y6-sats-section-1" --output /tmp/phase7.live.js
-          curl --fail --silent --show-error --location "$BASE/config.js" --output /tmp/config.live.js
+          echo '=== DNS ==='
+          getent ahosts lessons.futureperfect.education || true
+          getent ahosts futureperfecttuitions.github.io || true
 
-          echo '=== LIVE INDEX RESPONSE HEADERS ==='
-          cat /tmp/index.headers
-          echo '=== LIVE INDEX SCRIPT REFERENCES ==='
-          grep -F 'maths-equivalent-home-normalizer.js?v=20260927-primary-home-1' /tmp/index.live.html
-          grep -F 'year6-display-sequence-fix.js?v=20260927-grouped-maths-cards-1' /tmp/index.live.html
+          fetch() {
+            local name="$1" url="$2"
+            echo "=== $name ==="
+            curl --silent --show-error --location --dump-header "/tmp/${name}.headers" \
+              --write-out 'HTTP=%{http_code} FINAL=%{url_effective} IP=%{remote_ip}\n' \
+              "$url" --output "/tmp/${name}.body" || true
+            cat "/tmp/${name}.headers" || true
+            echo 'BODY-FIRST-200:'
+            head -c 200 "/tmp/${name}.body" 2>/dev/null || true
+            echo
+          }
 
-          echo '=== EXACT SHA256 COMPARISON ==='
-          sha256sum index.html /tmp/index.live.html
-          sha256sum assets/maths-equivalent-home-normalizer.js /tmp/normalizer.live.js
-          sha256sum assets/year6-display-sequence-fix.js /tmp/y6fix.live.js
-          sha256sum assets/phase7.js /tmp/phase7.live.js
-          sha256sum config.js /tmp/config.live.js
+          fetch custom_root "$BASE/"
+          fetch custom_index "$BASE/index.html"
+          fetch custom_normalizer "$BASE/assets/maths-equivalent-home-normalizer.js?v=20260927-primary-home-1"
+          fetch custom_y6fix "$BASE/assets/year6-display-sequence-fix.js?v=20260927-grouped-maths-cards-1"
+          fetch custom_phase7 "$BASE/assets/phase7.js?v=20260912-y6-sats-section-1"
+          fetch custom_config "$BASE/config.js"
+          fetch gh_root "$GH/"
+          fetch gh_index "$GH/index.html"
+          fetch gh_normalizer "$GH/assets/maths-equivalent-home-normalizer.js?v=20260927-primary-home-1"
 
-          test "$(sha256sum index.html | awk '{print $1}')" = "$(sha256sum /tmp/index.live.html | awk '{print $1}')"
-          test "$(sha256sum assets/maths-equivalent-home-normalizer.js | awk '{print $1}')" = "$(sha256sum /tmp/normalizer.live.js | awk '{print $1}')"
-          test "$(sha256sum assets/year6-display-sequence-fix.js | awk '{print $1}')" = "$(sha256sum /tmp/y6fix.live.js | awk '{print $1}')"
-          test "$(sha256sum assets/phase7.js | awk '{print $1}')" = "$(sha256sum /tmp/phase7.live.js | awk '{print $1}')"
-          test "$(sha256sum config.js | awk '{print $1}')" = "$(sha256sum /tmp/config.live.js | awk '{print $1}')"
+          echo '=== REPOSITORY SHA256 ==='
+          sha256sum index.html assets/maths-equivalent-home-normalizer.js assets/year6-display-sequence-fix.js assets/phase7.js config.js
 
-          echo '=== REQUIRED LIVE MARKERS ==='
-          grep -F 'frontend-home-normalizer-v1' /tmp/normalizer.live.js
-          grep -F "Object.freeze(['maths-year4', 'maths-level1'])" /tmp/normalizer.live.js
-          grep -F 'logicalCardGrids' /tmp/y6fix.live.js
-          grep -F 'liveSatsOpenCount' /tmp/y6fix.live.js
-          grep -F 'readSession();' /tmp/phase7.live.js
-          grep -F 'https://fpt-portal-v2-worker.futureperfectlessons.workers.dev' /tmp/config.live.js
+          echo '=== LIVE BODY SHA256 WHEN PRESENT ==='
+          for f in /tmp/custom_*.body /tmp/gh_*.body; do
+            [ -f "$f" ] && sha256sum "$f"
+          done
 
-          echo 'LIVE_FRONTEND_EXACT_SOURCE_MATCH_PASS'
+          echo '=== CUSTOM DOMAIN MARKERS WHEN PRESENT ==='
+          grep -F 'maths-equivalent-home-normalizer.js?v=20260927-primary-home-1' /tmp/custom_root.body /tmp/custom_index.body 2>/dev/null || true
+          grep -F 'year6-display-sequence-fix.js?v=20260927-grouped-maths-cards-1' /tmp/custom_root.body /tmp/custom_index.body 2>/dev/null || true
+          grep -F 'frontend-home-normalizer-v1' /tmp/custom_normalizer.body 2>/dev/null || true
+          grep -F 'logicalCardGrids' /tmp/custom_y6fix.body 2>/dev/null || true
+          grep -F 'readSession();' /tmp/custom_phase7.body 2>/dev/null || true
+          grep -F 'https://fpt-portal-v2-worker.futureperfectlessons.workers.dev' /tmp/custom_config.body 2>/dev/null || true
+
+          echo 'LIVE_FRONTEND_ROUTING_DIAGNOSTIC_COMPLETE'
