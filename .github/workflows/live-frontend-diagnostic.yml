@@ -1,0 +1,59 @@
+name: Live frontend exact-source diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/live-frontend-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare live custom-domain files with repository source
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://lessons.futureperfect.education'
+
+          curl --fail --silent --show-error --location --dump-header /tmp/index.headers "$BASE/" --output /tmp/index.live.html
+          curl --fail --silent --show-error --location --dump-header /tmp/normalizer.headers "$BASE/assets/maths-equivalent-home-normalizer.js?v=20260927-primary-home-1" --output /tmp/normalizer.live.js
+          curl --fail --silent --show-error --location --dump-header /tmp/y6fix.headers "$BASE/assets/year6-display-sequence-fix.js?v=20260927-grouped-maths-cards-1" --output /tmp/y6fix.live.js
+          curl --fail --silent --show-error --location --dump-header /tmp/phase7.headers "$BASE/assets/phase7.js?v=20260912-y6-sats-section-1" --output /tmp/phase7.live.js
+          curl --fail --silent --show-error --location "$BASE/config.js" --output /tmp/config.live.js
+
+          echo '=== LIVE INDEX RESPONSE HEADERS ==='
+          cat /tmp/index.headers
+          echo '=== LIVE INDEX SCRIPT REFERENCES ==='
+          grep -F 'maths-equivalent-home-normalizer.js?v=20260927-primary-home-1' /tmp/index.live.html
+          grep -F 'year6-display-sequence-fix.js?v=20260927-grouped-maths-cards-1' /tmp/index.live.html
+
+          echo '=== EXACT SHA256 COMPARISON ==='
+          sha256sum index.html /tmp/index.live.html
+          sha256sum assets/maths-equivalent-home-normalizer.js /tmp/normalizer.live.js
+          sha256sum assets/year6-display-sequence-fix.js /tmp/y6fix.live.js
+          sha256sum assets/phase7.js /tmp/phase7.live.js
+          sha256sum config.js /tmp/config.live.js
+
+          test "$(sha256sum index.html | awk '{print $1}')" = "$(sha256sum /tmp/index.live.html | awk '{print $1}')"
+          test "$(sha256sum assets/maths-equivalent-home-normalizer.js | awk '{print $1}')" = "$(sha256sum /tmp/normalizer.live.js | awk '{print $1}')"
+          test "$(sha256sum assets/year6-display-sequence-fix.js | awk '{print $1}')" = "$(sha256sum /tmp/y6fix.live.js | awk '{print $1}')"
+          test "$(sha256sum assets/phase7.js | awk '{print $1}')" = "$(sha256sum /tmp/phase7.live.js | awk '{print $1}')"
+          test "$(sha256sum config.js | awk '{print $1}')" = "$(sha256sum /tmp/config.live.js | awk '{print $1}')"
+
+          echo '=== REQUIRED LIVE MARKERS ==='
+          grep -F 'frontend-home-normalizer-v1' /tmp/normalizer.live.js
+          grep -F "Object.freeze(['maths-year4', 'maths-level1'])" /tmp/normalizer.live.js
+          grep -F 'logicalCardGrids' /tmp/y6fix.live.js
+          grep -F 'liveSatsOpenCount' /tmp/y6fix.live.js
+          grep -F 'readSession();' /tmp/phase7.live.js
+          grep -F 'https://fpt-portal-v2-worker.futureperfectlessons.workers.dev' /tmp/config.live.js
+
+          echo 'LIVE_FRONTEND_EXACT_SOURCE_MATCH_PASS'
