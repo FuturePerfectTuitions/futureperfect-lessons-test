@@ -97,7 +97,8 @@
       const l1 = findCard(cards, /^(?:L1|Level\s*1(?:\s*\(11\+\))?)$/i);
       const year5 = findCard(cards, /^Year\s*5$/i);
       const l2 = findCard(cards, /^(?:L2|Level\s*2(?:\s*\(11\+\))?)$/i);
-      const year6 = findCard(cards, /^(?:Year\s*6|Lessons|SATS)$/i);
+      const year6Base = findCard(cards, /^(?:Year\s*6|Lessons)$/i);
+      const serverSats = findCard(cards, /^SATS$/i);
       const l3 = findCard(cards, /^(?:L3|Level\s*3(?:\s*\(11\+\))?)$/i);
 
       // Maths Year 4 and L1 are the same curriculum surface. Never show both.
@@ -106,19 +107,33 @@
       // Maths Year 5 and L2 are the same curriculum surface. Never show both.
       if (year5 && l2) year5.remove();
 
-      // Maths Year 6 and L3 are the same curriculum surface. If L3 exists,
-      // the Year 6-derived card is reserved solely for SATS direct releases.
-      if (year6) {
-        if (l3) {
-          setCardTitle(l3, 'L3');
-          wireClearSection(l3);
-          setCardTitle(year6, 'SATS');
-          wireYear6Base(year6, 'sats');
-        } else {
-          setCardTitle(year6, 'Lessons');
-          wireYear6Base(year6, 'lessons');
-          makeSatsClone(year6);
+      // Server-authoritative navigation already returns L3 + SATS, or
+      // Lessons + SATS. Keep this DOM layer only as a compatibility fallback for
+      // an older home response; never manufacture a second SATS card if the
+      // server has already supplied one.
+      if (l3) {
+        setCardTitle(l3, 'L3');
+        wireClearSection(l3);
+        if (year6Base) {
+          if (serverSats) {
+            year6Base.remove();
+          } else {
+            setCardTitle(year6Base, 'SATS');
+            wireYear6Base(year6Base, 'sats');
+          }
         }
+        if (serverSats) wireClearSection(serverSats);
+      } else if (year6Base) {
+        setCardTitle(year6Base, 'Lessons');
+        if (serverSats) {
+          wireClearSection(year6Base);
+          wireClearSection(serverSats);
+        } else {
+          wireYear6Base(year6Base, 'lessons');
+          makeSatsClone(year6Base);
+        }
+      } else if (serverSats) {
+        wireClearSection(serverSats);
       }
 
       cards = [...viewGrid.querySelectorAll(':scope > .phase6-view-card')];
