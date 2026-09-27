@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Trace actual live portal bundle provenance
+      - name: Read actual live portal bundle source map and routes
         shell: bash
         run: |
           set -u
@@ -25,39 +25,51 @@ jobs:
           JS='portal-oe75FQBP.js'
           CSS='portal-DH0TASY8.css'
 
-          curl --silent --show-error --location --dump-header /tmp/root.headers "$BASE/" -o /tmp/root.html || true
           curl --silent --show-error --location --dump-header /tmp/js.headers "$BASE/assets/$JS" -o /tmp/portal.js || true
-          curl --silent --show-error --location --dump-header /tmp/css.headers "$BASE/assets/$CSS" -o /tmp/portal.css || true
           curl --silent --show-error --location --dump-header /tmp/map.headers "$BASE/assets/$JS.map" -o /tmp/portal.js.map || true
+          curl --silent --show-error --location --dump-header /tmp/css.headers "$BASE/assets/$CSS" -o /tmp/portal.css || true
 
-          echo '=== LIVE ROOT ==='
-          cat /tmp/root.headers || true
-          sha256sum /tmp/root.html || true
-          grep -Eo '<script[^>]+src="[^"]+"[^>]*>' /tmp/root.html || true
-          grep -Eo '<link[^>]+rel="stylesheet"[^>]+href="[^"]+"[^>]*>' /tmp/root.html || true
-
-          echo '=== LIVE JS ==='
+          echo '=== LIVE JS IDENTITY ==='
           cat /tmp/js.headers || true
           wc -c /tmp/portal.js || true
           sha256sum /tmp/portal.js || true
-          echo 'TAIL:'
-          tail -c 500 /tmp/portal.js || true
-          echo
-          echo 'API/DOMAIN STRINGS:'
-          grep -Eo 'https?://[^"'"'[:space:]]+|/api/v1/[A-Za-z0-9_/?=&.-]+' /tmp/portal.js | sort -u | head -n 100 || true
-          echo 'PORTAL TEXT STRINGS:'
-          grep -Eo 'Year [456]|L[123]|11\+ Practice|Choose a year or level\.|Student Portal|SATS|Lessons|Current|Previous' /tmp/portal.js | sort | uniq -c || true
-          echo 'SOURCE MAP MARKER:'
           grep -Eo 'sourceMappingURL=[^[:space:]]+' /tmp/portal.js | tail -n 5 || true
+
+          echo '=== API ROUTES ==='
+          python3 - <<'PY'
+          import re
+          text=open('/tmp/portal.js','r',encoding='utf-8',errors='replace').read()
+          for value in sorted(set(re.findall(r'/api/v[0-9]+/[A-Za-z0-9_/?=&.{}:+-]+', text))):
+              print(value)
+          PY
+
+          echo '=== KEY TEXT CONTEXT ==='
+          python3 - <<'PY'
+          text=open('/tmp/portal.js','r',encoding='utf-8',errors='replace').read()
+          for needle in ['Choose a year or level.','Year 4','L1','Year 5','L2','Year 6','L3','11+ Practice','SATS','CURRENT','Current','Previous']:
+              print('\n###',needle)
+              start=0
+              count=0
+              while True:
+                  i=text.find(needle,start)
+                  if i<0 or count>=5: break
+                  print(text[max(0,i-220):min(len(text),i+420)].replace('\n',' '))
+                  start=i+len(needle); count+=1
+          PY
 
           echo '=== SOURCE MAP REQUEST ==='
           cat /tmp/map.headers || true
           wc -c /tmp/portal.js.map || true
-          head -c 300 /tmp/portal.js.map || true
+          sha256sum /tmp/portal.js.map || true
+          head -c 200 /tmp/portal.js.map || true
           echo
-          if command -v jq >/dev/null 2>&1 && jq -e . /tmp/portal.js.map >/dev/null 2>&1; then
+          if jq -e . /tmp/portal.js.map >/dev/null 2>&1; then
             echo 'SOURCE MAP SOURCES:'
-            jq -r '.sources[]?' /tmp/portal.js.map | head -n 200
+            jq -r '.sources[]?' /tmp/portal.js.map | head -n 300
+            echo 'SOURCE MAP sourceRoot:'
+            jq -r '.sourceRoot // empty' /tmp/portal.js.map
+          else
+            echo 'SOURCE_MAP_NOT_JSON_OR_NOT_AVAILABLE'
           fi
 
           echo '=== LIVE CSS ==='
@@ -65,4 +77,4 @@ jobs:
           wc -c /tmp/portal.css || true
           sha256sum /tmp/portal.css || true
 
-          echo 'LIVE_PORTAL_BUNDLE_PROVENANCE_DIAGNOSTIC_COMPLETE'
+          echo 'LIVE_PORTAL_SOURCE_MAP_DIAGNOSTIC_COMPLETE'
