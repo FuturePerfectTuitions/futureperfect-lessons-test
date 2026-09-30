@@ -163,7 +163,7 @@
       }
       if (serverSats) wireClearSection(serverSats);
     } else if (year6Base) {
-      setCardTitle(year6Base, 'Lessons');
+      setCardTitle(year6Base, 'Year 6');
       if (serverSats) {
         wireClearSection(year6Base);
         wireClearSection(serverSats);
@@ -233,7 +233,7 @@
         for (const row of rows) if (!isSatsCode(codeForRow(row))) row.remove();
         for (const heading of lessonList.querySelectorAll(':scope > .phase6-lesson-section-heading')) heading.remove();
       } else if (section === 'lessons') {
-        lessonsHeading.textContent = 'Lessons';
+        lessonsHeading.textContent = 'Year 6';
         for (const row of rows) if (isSatsCode(codeForRow(row))) row.remove();
         for (const heading of lessonList.querySelectorAll(':scope > .phase6-lesson-section-heading')) heading.remove();
       } else {

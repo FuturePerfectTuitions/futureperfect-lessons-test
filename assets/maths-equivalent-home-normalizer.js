@@ -92,7 +92,7 @@
     const headers = new Headers(response.headers);
     headers.set('content-type', 'application/json; charset=utf-8');
     headers.set('cache-control', 'no-store');
-    headers.set('x-fpt-frontend-maths-equivalent-nav', 'frontend-home-normalizer-v1');
+    headers.set('x-fpt-frontend-maths-equivalent-nav', 'frontend-home-normalizer-v2-year6-label');
     headers.delete('content-length');
     return new Response(JSON.stringify(body), {
       status: response.status,
@@ -136,16 +136,16 @@
         views.splice(Math.max(0, l3Index + 1), 0, sats);
       }
     } else if (year6 && !l3) {
-      // Ordinary Year 6 is presented as two navigation surfaces backed by the
-      // canonical Year 6 catalogue: teaching Lessons and SATS.
+      // Ordinary Year 6 keeps the existing normal-curriculum/SATS split, but
+      // the teaching card is displayed as Year 6, never Lessons.
       const lessons = existingLessons || await loadSynthetic('maths-year6-lessons', signal);
       const sats = existingSats || await loadSynthetic('maths-sats', signal);
       const replacement = [];
       if (lessons) {
-        lessons.label = 'Lessons';
+        lessons.label = 'Year 6';
         replacement.push(lessons);
       } else {
-        replacement.push({ ...year6, viewId:'maths-year6-lessons', label:'Lessons' });
+        replacement.push({ ...year6, viewId:'maths-year6-lessons', label:'Year 6' });
       }
       if (sats) {
         sats.label = 'SATS';
