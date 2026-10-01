@@ -3,14 +3,23 @@
   const lessonsHeading = document.getElementById('lessons-heading');
   const viewGrid = document.getElementById('view-grid');
   const viewsHeading = document.getElementById('views-heading');
+  const viewsIntro = document.querySelector('#screen-views .phase5-subject-intro');
+  const backToSubjects = document.getElementById('back-to-subjects');
   const base = String(window.FPT_V2_CONFIG?.workerBaseUrl || '').replace(/\/$/, '');
   if (!lessonList || !lessonsHeading || !viewGrid || !viewsHeading) return;
 
   const SECTION_KEY = 'fpt_y6_portal_section';
+  const YEAR6_11PLUS_ONLY_CODES = new Set([
+    'MATHS_L3_11P_T2M25_2026',
+    'MATHS_L3_11P_T3M43_2026'
+  ]);
+
   let applyingCards = false;
   let applyingLessons = false;
   let pendingYear6Section = '';
   let satsOpenCountPromise = null;
+  let allowYear6BaseOpen = false;
+  let year6MenuState = null;
 
   function titleNode(card) {
     return card?.querySelector('.phase6-view-card-title') || null;
@@ -23,6 +32,11 @@
   function setCardTitle(card, value) {
     const node = titleNode(card);
     if (node && node.textContent !== value) node.textContent = value;
+  }
+
+  function setCardMeta(card, value) {
+    const node = card?.querySelector('.phase6-view-card-meta') || null;
+    if (node) node.textContent = value;
   }
 
   function setSection(value) {
@@ -40,12 +54,12 @@
     card.addEventListener('click', () => setSection(''), true);
   }
 
-  function wireYear6Base(card, section) {
+  function wireYear6Direct(card, section) {
     if (!card) return;
-    card.dataset.fptYear6Base = 'true';
+    card.dataset.fptYear6Direct = 'true';
     card.dataset.fptYear6Section = section;
-    if (card.dataset.fptYear6Wired === 'true') return;
-    card.dataset.fptYear6Wired = 'true';
+    if (card.dataset.fptYear6DirectWired === 'true') return;
+    card.dataset.fptYear6DirectWired = 'true';
     card.addEventListener('click', () => {
       const next = pendingYear6Section || card.dataset.fptYear6Section || '';
       pendingYear6Section = '';
@@ -68,39 +82,8 @@
     return grids;
   }
 
-  function makeSatsClone(baseCard, grid) {
-    let clone = directCards(grid).find(card => card.dataset.fptSyntheticSats === 'true') || null;
-    if (clone) return clone;
-
-    clone = baseCard.cloneNode(true);
-    clone.dataset.fptSyntheticSats = 'true';
-    clone.removeAttribute('data-fpt-year6-base');
-    clone.removeAttribute('data-fpt-year6-wired');
-    clone.removeAttribute('data-fpt-clear-y6-section');
-    setCardTitle(clone, 'SATS');
-
-    const meta = clone.querySelector('.phase6-view-card-meta');
-    if (meta) meta.textContent = 'SATs lessons';
-
-    clone.addEventListener('click', event => {
-      event.preventDefault();
-      event.stopPropagation();
-      pendingYear6Section = 'sats';
-      baseCard.click();
-    });
-
-    baseCard.insertAdjacentElement('afterend', clone);
-    return clone;
-  }
-
   function findCard(cards, matcher) {
     return cards.find(card => matcher.test(cardTitle(card))) || null;
-  }
-
-  function openCountFromCard(card) {
-    const text = String(card?.querySelector('.phase6-view-card-meta')?.textContent || '');
-    const match = text.match(/(\d+)\s+open/i);
-    return match ? Number(match[1]) : 0;
   }
 
   async function liveSatsOpenCount() {
@@ -121,11 +104,79 @@
     return satsOpenCountPromise;
   }
 
-  async function applyGridCards(grid) {
-    for (const card of directCards(grid)) {
-      if (card.dataset.fptSyntheticSats === 'true') card.remove();
-    }
+  function submenuCard(source, title, meta, onClick) {
+    const card = source.cloneNode(true);
+    card.hidden = false;
+    card.removeAttribute('hidden');
+    card.removeAttribute('data-fpt-year6-parent');
+    card.removeAttribute('data-fpt-year6-parent-wired');
+    card.removeAttribute('data-fpt-year6-direct');
+    card.removeAttribute('data-fpt-year6-direct-wired');
+    card.removeAttribute('data-fpt-year6-section');
+    card.removeAttribute('data-fpt-clear-y6-section');
+    setCardTitle(card, title);
+    setCardMeta(card, meta);
+    card.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      onClick();
+    });
+    return card;
+  }
 
+  function restoreYear6Menu() {
+    if (!year6MenuState) return;
+    const state = year6MenuState;
+    year6MenuState = null;
+    viewGrid.replaceChildren(...state.rootNodes);
+    viewsHeading.textContent = state.heading;
+    if (viewsIntro) viewsIntro.textContent = state.intro;
+    if (backToSubjects) backToSubjects.textContent = state.backLabel;
+    setSection('');
+  }
+
+  function showYear6Menu(baseCard, satsCard) {
+    if (year6MenuState || !baseCard || !satsCard) return;
+
+    const rootNodes = [...viewGrid.childNodes];
+    const heading = String(viewsHeading.textContent || 'Maths');
+    const intro = String(viewsIntro?.textContent || 'Choose a year or level.');
+    const backLabel = String(backToSubjects?.textContent || '← Subjects');
+
+    const lessonsCard = submenuCard(baseCard, 'Lessons', 'Year 6 teaching lessons', () => {
+      setSection('lessons');
+      allowYear6BaseOpen = true;
+      baseCard.click();
+    });
+    const satsMenuCard = submenuCard(satsCard, 'SATS', 'SATs lessons', () => {
+      setSection('sats');
+      satsCard.click();
+    });
+
+    year6MenuState = { rootNodes, heading, intro, backLabel, baseCard, satsCard };
+    viewsHeading.textContent = 'Year 6';
+    if (viewsIntro) viewsIntro.textContent = 'Choose Lessons or SATS.';
+    if (backToSubjects) backToSubjects.textContent = '← Maths';
+    viewGrid.replaceChildren(lessonsCard, satsMenuCard);
+  }
+
+  function wireYear6Parent(baseCard, satsCard) {
+    if (!baseCard || !satsCard) return;
+    baseCard.dataset.fptYear6Parent = 'true';
+    if (baseCard.dataset.fptYear6ParentWired === 'true') return;
+    baseCard.dataset.fptYear6ParentWired = 'true';
+    baseCard.addEventListener('click', event => {
+      if (allowYear6BaseOpen) {
+        allowYear6BaseOpen = false;
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      showYear6Menu(baseCard, satsCard);
+    }, true);
+  }
+
+  async function applyGridCards(grid) {
     let cards = directCards(grid);
     if (!cards.length) return;
 
@@ -145,6 +196,7 @@
     if (l3) {
       setCardTitle(l3, 'L3');
       wireClearSection(l3);
+      if (serverSats) serverSats.hidden = false;
 
       if (year6Base) {
         if (serverSats) {
@@ -153,9 +205,8 @@
           const satsOpen = await liveSatsOpenCount();
           if (satsOpen > 0) {
             setCardTitle(year6Base, 'SATS');
-            const meta = year6Base.querySelector('.phase6-view-card-meta');
-            if (meta) meta.textContent = `${satsOpen} open`;
-            wireYear6Base(year6Base, 'sats');
+            setCardMeta(year6Base, `${satsOpen} open`);
+            wireYear6Direct(year6Base, 'sats');
           } else {
             year6Base.remove();
           }
@@ -165,25 +216,27 @@
     } else if (year6Base) {
       setCardTitle(year6Base, 'Year 6');
       if (serverSats) {
-        wireClearSection(year6Base);
-        wireClearSection(serverSats);
+        serverSats.hidden = true;
+        setCardMeta(year6Base, 'Lessons & SATS');
+        wireYear6Parent(year6Base, serverSats);
       } else {
-        wireYear6Base(year6Base, 'lessons');
-        makeSatsClone(year6Base, grid);
+        wireYear6Direct(year6Base, 'lessons');
       }
     } else if (serverSats) {
+      serverSats.hidden = false;
       wireClearSection(serverSats);
     }
 
     for (const card of directCards(grid)) {
-      if (card.dataset.fptSyntheticSats === 'true') continue;
-      if (card.dataset.fptYear6Base === 'true') continue;
+      if (card.hidden) continue;
+      if (card.dataset.fptYear6Parent === 'true') continue;
+      if (card.dataset.fptYear6Direct === 'true') continue;
       wireClearSection(card);
     }
   }
 
   async function applyMathsCards() {
-    if (applyingCards) return;
+    if (applyingCards || year6MenuState) return;
     if (!/^Maths$/i.test(String(viewsHeading.textContent || '').trim())) return;
 
     applyingCards = true;
@@ -201,6 +254,10 @@
 
   function isSatsCode(code) {
     return /^Y6(?:SM|MS)(?:[1-9]|1[0-9])$/i.test(String(code || '').trim());
+  }
+
+  function isYear6ElevenPlusOnlyCode(code) {
+    return YEAR6_11PLUS_ONLY_CODES.has(String(code || '').trim().toUpperCase());
   }
 
   function rankForCode(code) {
@@ -223,7 +280,10 @@
     const rows = [...lessonList.querySelectorAll(':scope > .phase6-lesson-row')];
     if (!rows.length) return;
 
-    const hasYear6Codes = rows.some(row => /^Y6(?:T[123]M\d+|(?:SM|MS)\d+)$/i.test(codeForRow(row)));
+    const hasYear6Codes = rows.some(row => {
+      const code = codeForRow(row);
+      return /^Y6(?:T[123]M\d+|(?:SM|MS)\d+)$/i.test(code) || isYear6ElevenPlusOnlyCode(code);
+    });
     if (!hasYear6Codes) return;
 
     applyingLessons = true;
@@ -233,8 +293,11 @@
         for (const row of rows) if (!isSatsCode(codeForRow(row))) row.remove();
         for (const heading of lessonList.querySelectorAll(':scope > .phase6-lesson-section-heading')) heading.remove();
       } else if (section === 'lessons') {
-        lessonsHeading.textContent = 'Year 6';
-        for (const row of rows) if (isSatsCode(codeForRow(row))) row.remove();
+        lessonsHeading.textContent = 'Lessons';
+        for (const row of rows) {
+          const code = codeForRow(row);
+          if (isSatsCode(code) || isYear6ElevenPlusOnlyCode(code)) row.remove();
+        }
         for (const heading of lessonList.querySelectorAll(':scope > .phase6-lesson-section-heading')) heading.remove();
       } else {
         const remaining = [...lessonList.querySelectorAll(':scope > .phase6-lesson-row')];
@@ -255,12 +318,31 @@
   lessonObserver.observe(lessonList, { childList: true, subtree: true, characterData: true });
 
   document.getElementById('maths-choice')?.addEventListener('click', () => {
+    if (year6MenuState) restoreYear6Menu();
     setSection('');
     satsOpenCountPromise = null;
     queueMicrotask(() => { void applyMathsCards(); });
   }, true);
-  document.getElementById('back-to-views')?.addEventListener('click', () => queueMicrotask(() => { void applyMathsCards(); }), true);
-  document.getElementById('back-to-subjects')?.addEventListener('click', () => setSection(''), true);
+
+  document.getElementById('english-choice')?.addEventListener('click', () => {
+    if (year6MenuState) restoreYear6Menu();
+    setSection('');
+  }, true);
+
+  document.getElementById('back-to-views')?.addEventListener('click', () => {
+    queueMicrotask(() => { void applyMathsCards(); });
+  }, true);
+
+  backToSubjects?.addEventListener('click', event => {
+    if (year6MenuState) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      restoreYear6Menu();
+      queueMicrotask(() => { void applyMathsCards(); });
+      return;
+    }
+    setSection('');
+  }, true);
 
   void applyMathsCards();
   applyYear6Lessons();

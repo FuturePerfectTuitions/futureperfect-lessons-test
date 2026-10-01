@@ -7,6 +7,7 @@ on:
       - assets/phase7.js
       - assets/phase21-enrolled-visibility.js
       - assets/phase6.css
+      - assets/year6-display-sequence-fix.js
       - index.html
       - tests/y6-sats-section-regression.mjs
       - .github/workflows/y6-sats-section-regression-20260912.yml
@@ -28,5 +29,6 @@ jobs:
           set -euo pipefail
           node --check assets/phase7.js
           node --check assets/phase21-enrolled-visibility.js
+          node --check assets/year6-display-sequence-fix.js
       - name: SATs section regression
         run: node tests/y6-sats-section-regression.mjs
