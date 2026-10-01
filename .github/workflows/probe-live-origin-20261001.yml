@@ -1,0 +1,46 @@
+name: Probe live frontend origin
+
+on:
+  push:
+    branches:
+      - fix/live-v2-year6-nested-20261001
+    paths:
+      - '.github/workflows/probe-live-origin-20261001.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Resolve and inspect custom-domain origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          HOST='lessons.futureperfect.education'
+          BASE="https://$HOST"
+          echo '=== DNS A ==='
+          dig +short A "$HOST" || true
+          echo '=== DNS AAAA ==='
+          dig +short AAAA "$HOST" || true
+          echo '=== DNS CNAME ==='
+          dig +short CNAME "$HOST" || true
+          echo '=== ROOT HEADERS ==='
+          curl --fail --silent --show-error --location --dump-header /tmp/root.headers "$BASE/" -o /tmp/root.html
+          cat /tmp/root.headers
+          echo '=== ROOT IDENTITY ==='
+          wc -c /tmp/root.html
+          sha256sum /tmp/root.html
+          python3 - <<'PY'
+          import re, pathlib
+          text=pathlib.Path('/tmp/root.html').read_text(encoding='utf-8',errors='replace')
+          print('TITLE=', re.findall(r'<title[^>]*>(.*?)</title>', text, re.I|re.S))
+          print('SCRIPTS=', re.findall(r'<script[^>]+src=["\']([^"\']+)', text, re.I))
+          print('STYLES=', re.findall(r'<link[^>]+href=["\']([^"\']+)', text, re.I))
+          print('FIRST_1200=', repr(text[:1200]))
+          PY
+          echo '=== KNOWN VITE ASSET HEADERS ==='
+          curl --fail --silent --show-error --head "$BASE/assets/portal-oe75FQBP.js" || true
+          echo 'LIVE_ORIGIN_PROBE_COMPLETE'
