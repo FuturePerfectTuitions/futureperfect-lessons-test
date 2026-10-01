@@ -1,0 +1,94 @@
+name: Recover exact live V2 source baseline
+
+on:
+  push:
+    branches:
+      - fix/live-v2-year6-nested-20261001
+    paths:
+      - '.github/workflows/recover-live-v2-source-20261001.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  recover-live-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/live-v2-year6-nested-20261001
+          fetch-depth: 0
+
+      - name: Recover exact deployed Vite source from public source map
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://lessons.futureperfect.education'
+          JS='portal-oe75FQBP.js'
+          EXPECTED_APP_SHA256='8735c696eba9d6e5218983a748862bc5bdeea958bfe9864084677416d20750a6'
+
+          curl --fail --silent --show-error --location "$BASE/assets/$JS.map" -o /tmp/portal.js.map
+          curl --fail --silent --show-error --location "$BASE/assets/$JS" -o /tmp/portal.js
+
+          python3 - <<'PY'
+          import json, pathlib
+          data=json.loads(pathlib.Path('/tmp/portal.js.map').read_text(encoding='utf-8'))
+          sources=data.get('sources') or []
+          contents=data.get('sourcesContent') or []
+          target='../../src/app.js'
+          if target not in sources:
+              raise SystemExit(f'{target} not present in source map: {sources!r}')
+          i=sources.index(target)
+          if i >= len(contents) or contents[i] is None:
+              raise SystemExit('app.js sourcesContent missing')
+          pathlib.Path('src/app.js').write_text(contents[i], encoding='utf-8', newline='')
+          PY
+
+          ACTUAL_APP_SHA256="$(sha256sum src/app.js | awk '{print $1}')"
+          test "$ACTUAL_APP_SHA256" = "$EXPECTED_APP_SHA256"
+
+          mkdir -p ops/evidence
+          MAP_SHA256="$(sha256sum /tmp/portal.js.map | awk '{print $1}')"
+          BUNDLE_SHA256="$(sha256sum /tmp/portal.js | awk '{print $1}')"
+          APP_BYTES="$(wc -c < src/app.js | tr -d ' ')"
+          BUNDLE_BYTES="$(wc -c < /tmp/portal.js | tr -d ' ')"
+          MAP_BYTES="$(wc -c < /tmp/portal.js.map | tr -d ' ')"
+          python3 - <<PY
+          import json, pathlib
+          record = {
+            'schema':'fpt.portal.live-v2-source-provenance.v1',
+            'date':'2026-10-01',
+            'status':'RECOVERED_FROM_LIVE_SOURCE_MAP_VERIFIED',
+            'liveBaseUrl':'$BASE',
+            'liveBundle':'assets/$JS',
+            'liveSourceMap':'assets/$JS.map',
+            'sourceMapSource':'../../src/app.js',
+            'appJsSha256':'$ACTUAL_APP_SHA256',
+            'expectedAppJsSha256':'$EXPECTED_APP_SHA256',
+            'appJsBytes':int('$APP_BYTES'),
+            'bundleSha256':'$BUNDLE_SHA256',
+            'bundleBytes':int('$BUNDLE_BYTES'),
+            'sourceMapSha256':'$MAP_SHA256',
+            'sourceMapBytes':int('$MAP_BYTES'),
+            'purpose':'Preserve the exact source currently served by the production custom domain before the forward-only Year 6 nested Lessons/SATS repair.',
+            'productionMutation':False
+          }
+          pathlib.Path('ops/evidence/live-v2-source-provenance-20261001.json').write_text(json.dumps(record, indent=2)+'\n', encoding='utf-8')
+          PY
+
+          git diff -- src/app.js ops/evidence/live-v2-source-provenance-20261001.json
+
+      - name: Commit recovered baseline to repair branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'FuturePerfectTuitions'
+          git config user.email 'futureperfectlessons@gmail.com'
+          git add src/app.js ops/evidence/live-v2-source-provenance-20261001.json
+          if git diff --cached --quiet; then
+            echo 'Exact live source already preserved on branch.'
+            exit 0
+          fi
+          git commit -m 'Preserve exact live V2 source baseline [skip ci]'
+          git push origin HEAD:fix/live-v2-year6-nested-20261001
