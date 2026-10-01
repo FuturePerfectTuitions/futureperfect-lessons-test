@@ -245,11 +245,23 @@ async function launchMathsPractice(button) {
 
 async function revealMathsPracticeCard() {
   if (state.subject !== 'maths') return;
-  const grid = document.querySelector('[data-view-grid="current"]');
-  if (!grid || grid.querySelector('[data-quiz-practice]')) return;
+  let grid = document.querySelector('[data-view-grid="current"]');
+  if (grid?.querySelector('[data-quiz-practice]')) return;
   try {
     const payload = await requestJson('/api/v2/student/quiz/eligibility');
-    if (state.subject !== 'maths' || payload?.eligible !== true || !grid.isConnected) return;
+    if (state.subject !== 'maths' || payload?.eligible !== true) return;
+    if (!grid) {
+      const card = document.querySelector('.main > .card');
+      if (!card) return;
+      document.querySelector('.empty-state')?.remove();
+      const section = document.createElement('section');
+      section.className = 'view-section';
+      section.dataset.quizOnlySection = 'true';
+      section.innerHTML = '<h2 class="view-section-title">Current</h2><div class="view-grid" data-view-grid="current"></div>';
+      card.appendChild(section);
+      grid = section.querySelector('[data-view-grid="current"]');
+    }
+    if (!grid?.isConnected || grid.querySelector('[data-quiz-practice]')) return;
     const button = document.createElement('button');
     button.className = 'view-card practice-card';
     button.type = 'button';
@@ -529,10 +541,10 @@ async function openAnswerPack(resource) {
   backdrop.querySelector('#answer-form').addEventListener('submit', async event => {
     event.preventDefault(); const button = backdrop.querySelector('#answer-submit'); const error = backdrop.querySelector('#answer-error'); button.disabled = true; button.textContent='Checking…'; error.hidden=true;
     try {
-      const payload = await requestJson(resourceOpenPath(resource), { method:'POST', body:{ password:backdrop.querySelector('#answer-password').value } });
-      close();
       const viewerModule = await import('./protected-viewer.js');
+      const payload = await requestJson(resourceOpenPath(resource), { method:'POST', body:{ password:backdrop.querySelector('#answer-password').value } });
       state.viewer = await viewerModule.openProtectedViewer({ url:apiUrl(payload.viewerUrl), title:resource.displayName || 'Answer Pack', watermark:`Future Perfect Tuitions · ${state.account?.firstName||'Student'}`, onClose:()=>{state.viewer=null;} });
+      close();
     } catch (err) {
       if (err.status === 429) error.textContent = 'Too many incorrect attempts. Please try again shortly.';
       else if (err.status === 401) error.textContent = 'Incorrect Answer Pack password.';

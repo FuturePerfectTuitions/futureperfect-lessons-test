@@ -1,0 +1,18 @@
+{
+  "schema": "fpt.portal.live-v2-source-provenance.v1",
+  "date": "2026-10-01",
+  "status": "RECOVERED_FROM_LIVE_SOURCE_MAP_VERIFIED",
+  "liveBaseUrl": "https://lessons.futureperfect.education",
+  "liveBundle": "assets/portal-oe75FQBP.js",
+  "liveSourceMap": "assets/portal-oe75FQBP.js.map",
+  "sourceMapSource": "../../src/app.js",
+  "appJsSha256": "b7dc28557706d4f6946fb05b8db05ccf8e3568c4b8d588927246b394e74f5d80",
+  "expectedAppJsSha256": "b7dc28557706d4f6946fb05b8db05ccf8e3568c4b8d588927246b394e74f5d80",
+  "appJsBytes": 34210,
+  "bundleSha256": "979d872ae7c6633ec8fab139e17315a3f048f893950d4d22a052c93bc2d548c1",
+  "bundleBytes": 26307,
+  "sourceMapSha256": "318b15af9ad59bcf16c829144b5cebf6fd4999928aba7951734ed4ffd30beb21",
+  "sourceMapBytes": 55059,
+  "purpose": "Preserve the exact source currently served by the production custom domain before the forward-only Year 6 nested Lessons/SATS repair.",
+  "productionMutation": false
+}
