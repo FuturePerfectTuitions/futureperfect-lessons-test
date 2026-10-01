@@ -26,7 +26,7 @@ jobs:
           set -euo pipefail
           BASE='https://lessons.futureperfect.education'
           JS='portal-oe75FQBP.js'
-          EXPECTED_APP_SHA256='8735c696eba9d6e5218983a748862bc5bdeea958bfe9864084677416d20750a6'
+          EXPECTED_APP_SHA256='b7dc28557706d4f6946fb05b8db05ccf8e3568c4b8d588927246b394e74f5d80'
 
           curl --fail --silent --show-error --location "$BASE/assets/$JS.map" -o /tmp/portal.js.map
           curl --fail --silent --show-error --location "$BASE/assets/$JS" -o /tmp/portal.js
