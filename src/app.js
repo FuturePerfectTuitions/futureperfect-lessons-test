@@ -14,6 +14,7 @@ const state = {
   home: null,
   subject: '',
   view: null,
+  year6Section: '',
   lessons: [],
   lesson: null,
   lessonResources: [],
@@ -200,10 +201,26 @@ function subjectViews(subject) {
   return (state.home?.views || []).filter(view => String(view.subject).toLowerCase() === subject);
 }
 
+function isYear6TeachingView(view) {
+  const id = String(view?.viewId || '').trim().toLowerCase();
+  const subject = String(view?.subject || state.subject || '').trim().toLowerCase();
+  return subject === 'maths' && (id === 'maths-year6' || id === 'maths-year6-lessons');
+}
+
+function isMathsSatsView(view) {
+  return String(view?.viewId || '').trim().toLowerCase() === 'maths-sats';
+}
+
+function topLevelSubjectViews(subject) {
+  const views = subjectViews(subject);
+  if (subject !== 'maths' || !views.some(isYear6TeachingView)) return views;
+  return views.filter(view => !isMathsSatsView(view));
+}
+
 function renderSubjects() {
-  navigationEpoch += 1; abortScope('view'); abortScope('lesson'); clearLessonMedia(); state.subject=''; state.view=null;
-  const maths = subjectViews('maths');
-  const english = subjectViews('english');
+  navigationEpoch += 1; abortScope('view'); abortScope('lesson'); clearLessonMedia(); state.subject=''; state.view=null; state.year6Section=''; state.search='';
+  const maths = topLevelSubjectViews('maths');
+  const english = topLevelSubjectViews('english');
   root.innerHTML = shell(`<section class="card"><p class="eyebrow">${escapeHtml(portalLabel())}</p><h1>Welcome${state.account?.firstName ? `, ${escapeHtml(state.account.firstName)}` : ''}</h1><p class="intro">Choose a subject to continue.</p>
     <div class="subject-grid">
       <button class="choice-card subject-maths" data-subject="maths" type="button"><span><span class="choice-title">Maths</span><span class="choice-meta">${maths.length} year${maths.length===1?'':'s'} / level${maths.length===1?'':'s'}</span></span><span class="choice-arrow">→</span></button>
@@ -274,10 +291,52 @@ async function revealMathsPracticeCard() {
   }
 }
 
+// YEAR6_NESTED_NAVIGATION_V2_20261001
+function renderYear6Hub(view) {
+  navigationEpoch += 1;
+  abortScope('view'); abortScope('lesson'); clearLessonMedia();
+  state.subject = 'maths';
+  state.view = view || state.view || { viewId:'maths-year6', subject:'maths', label:'Year 6' };
+  state.year6Section = '';
+  state.lessons = [];
+  state.search = '';
+  root.innerHTML = shell(`<section class="card">${backButton('back-views','Maths')}<p class="eyebrow">${escapeHtml(portalLabel())}</p><h1>Year 6</h1><p class="intro">Choose Lessons or SATS.</p>
+    <section class="view-section"><div class="view-grid" data-year6-grid="true">
+      <button class="view-card" type="button" data-year6-section="lessons"><span class="view-label">Lessons</span><span class="view-count">Year 6 teaching lessons</span></button>
+      <button class="view-card" type="button" data-year6-section="sats"><span class="view-label">SATS</span><span class="view-count">Year 6 SATS practice</span></button>
+    </div></section></section>`, { portal:true });
+  bindShell();
+  document.querySelector('#back-views')?.addEventListener('click', () => renderViews('maths'));
+  document.querySelectorAll('[data-year6-section]').forEach(button => button.addEventListener('click', () => loadYear6Section(button.dataset.year6Section)));
+}
+
+async function loadYear6Section(section) {
+  if (!['lessons','sats'].includes(section)) return;
+  const epoch = ++navigationEpoch;
+  abortScope('lesson'); clearLessonMedia();
+  const controller = controllerFor('view');
+  state.year6Section = section;
+  state.search = '';
+  const heading = section === 'sats' ? 'SATS' : 'Lessons';
+  const viewId = String(state.view?.viewId || 'maths-year6');
+  root.innerHTML = shell(`<section class="card">${backButton('back-year6','Year 6')}<p class="eyebrow">${escapeHtml(portalLabel())}</p><h1>${heading}</h1><div class="loading-row"><span class="spinner"></span><span>Loading your knowledge bank of lessons…</span></div></section>`, {portal:true});
+  bindShell();
+  document.querySelector('#back-year6')?.addEventListener('click', () => renderYear6Hub(state.view));
+  try {
+    const payload = await requestJson(`/api/v2/student/views/${enc(viewId)}/lessons`, { signal: controller.signal });
+    if (epoch !== navigationEpoch) return;
+    state.lessons = year6RowsForSection(payload.lessons || [], section);
+    renderLessonList();
+  } catch (error) {
+    if (controller.signal.aborted || epoch !== navigationEpoch) return;
+    renderViewError(error);
+  }
+}
+
 function renderViews(subject) {
-  navigationEpoch += 1; abortScope('view'); abortScope('lesson'); clearLessonMedia(); state.subject = subject;
+  navigationEpoch += 1; abortScope('view'); abortScope('lesson'); clearLessonMedia(); state.subject = subject; state.year6Section=''; state.search='';
   const label = subject === 'maths' ? 'Maths' : 'English';
-  const views = subjectViews(subject);
+  const views = topLevelSubjectViews(subject);
   const groups = [
     ['current', 'Current', views.filter(view => view.group === 'current' || view.current === true)],
     ['previous', 'Previous', views.filter(view => view.group === 'previous' && view.current !== true)]
@@ -285,7 +344,11 @@ function renderViews(subject) {
   const sections = groups.map(([group, title, rows]) => `<section class="view-section"><h2 class="view-section-title">${title}</h2><div class="view-grid" data-view-grid="${escapeHtml(group)}">${rows.map(view => `<button class="view-card ${view.lockedPreview?'locked':''}" type="button" data-view="${escapeHtml(view.viewId)}"><span class="view-label">${view.lockedPreview?'🔒 ':''}${escapeHtml(view.label)}</span><span class="view-count">${Number(view.openLessonCount||0)} open · ${Number(view.lockedLessonCount||0)} locked</span></button>`).join('')}</div></section>`).join('');
   root.innerHTML = shell(`<section class="card">${backButton('back-subjects','Subjects')}<p class="eyebrow">Student Portal</p><h1>${label}</h1><p class="intro">Choose a year or level.</p>${sections || '<div class="empty-state">No years or levels are currently available.</div>'}</section>`, { portal:true });
   bindShell(); document.querySelector('#back-subjects').addEventListener('click', renderSubjects);
-  document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => loadView(button.dataset.view)));
+  document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => {
+    const view = topLevelSubjectViews(state.subject).find(item => item.viewId === button.dataset.view);
+    if (isYear6TeachingView(view)) renderYear6Hub(view);
+    else loadView(button.dataset.view);
+  }));
   if (subject === 'maths') void revealMathsPracticeCard();
 }
 
@@ -295,6 +358,8 @@ async function loadView(viewId) {
   const controller = controllerFor('view');
   const view = subjectViews(state.subject).find(item => item.viewId === viewId) || { viewId, label: viewId };
   state.view = view;
+  state.year6Section = '';
+  state.search = '';
   root.innerHTML = shell(`<section class="card">${backButton('back-views', state.subject==='maths'?'Maths':'English')}<p class="eyebrow">${escapeHtml(state.subject)}</p><h1>${escapeHtml(view.label)}</h1><div class="loading-row"><span class="spinner"></span><span>Loading your knowledge bank of lessons…</span></div></section>`, {portal:true});
   bindShell(); document.querySelector('#back-views').addEventListener('click', () => renderViews(state.subject));
   try {
@@ -309,8 +374,14 @@ async function loadView(viewId) {
 }
 
 function renderViewError(error) {
-  root.innerHTML = shell(`<section class="card">${backButton('back-views', state.subject==='maths'?'Maths':'English')}<p class="eyebrow">${escapeHtml(state.subject)}</p><h1>${escapeHtml(state.view?.label||'Lessons')}</h1><div class="error-box" role="alert">${escapeHtml(friendlyError(error))}</div><p><button id="retry-view" class="button button-primary" type="button">Try again</button></p></section>`, {portal:true});
-  bindShell(); document.querySelector('#back-views').addEventListener('click', () => renderViews(state.subject)); document.querySelector('#retry-view').addEventListener('click', () => loadView(state.view.viewId));
+  const nestedYear6 = Boolean(state.year6Section) && isYear6TeachingView(state.view);
+  const heading = currentLessonListHeading();
+  const backId = nestedYear6 ? 'back-year6' : 'back-views';
+  const backLabel = nestedYear6 ? 'Year 6' : (state.subject==='maths'?'Maths':'English');
+  root.innerHTML = shell(`<section class="card">${backButton(backId, backLabel)}<p class="eyebrow">${escapeHtml(state.subject)}</p><h1>${escapeHtml(heading)}</h1><div class="error-box" role="alert">${escapeHtml(friendlyError(error))}</div><p><button id="retry-view" class="button button-primary" type="button">Try again</button></p></section>`, {portal:true});
+  bindShell();
+  document.querySelector(`#${backId}`)?.addEventListener('click', () => nestedYear6 ? renderYear6Hub(state.view) : renderViews(state.subject));
+  document.querySelector('#retry-view')?.addEventListener('click', () => nestedYear6 ? loadYear6Section(state.year6Section) : loadView(state.view.viewId));
 }
 
 function filteredLessons() {
@@ -324,11 +395,56 @@ function lessonRowHtml(row) {
 }
 
 function isSatsLesson(row) {
-  return /^Y6MS\d+$/i.test(String(row.displayLessonId || row.lessonId || '').trim());
+  const values = [row?.displayLessonId, row?.lessonId].map(value => String(value || '').trim()).filter(Boolean);
+  for (const value of values) {
+    if (/^Y6(?:SM|MS)\d+$/i.test(value)) return true;
+    const canonical = value.match(/^Y6M(\d+)$/i);
+    if (canonical) {
+      const n = Number(canonical[1]);
+      if (n >= 51 && n <= 69) return true;
+    }
+  }
+  return false;
+}
+
+const YEAR6_ELEVEN_PLUS_ONLY_IDS = new Set([
+  'MATHS_L3_11P_T2M25_2026',
+  'MATHS_L3_11P_T3M43_2026',
+  'L3T2M24',
+  'Y6M1.4'
+]);
+
+function isYear6ElevenPlusOnlyLesson(row) {
+  const values = [row?.lessonId, row?.canonicalLessonId, row?.displayLessonId]
+    .map(value => String(value || '').trim().toUpperCase())
+    .filter(Boolean);
+  if (values.some(value => YEAR6_ELEVEN_PLUS_ONLY_IDS.has(value))) return true;
+  const display = String(row?.displayLessonId || '').trim();
+  if (/^L3T\d+M\d+$/i.test(display)) return true;
+  const title = String(row?.title || '').trim().toLowerCase();
+  return title === 'mean median mode' || title === 'advanced statistics';
+}
+
+function year6RowsForSection(rows, section) {
+  const source = Array.isArray(rows) ? rows : [];
+  if (section === 'sats') return source.filter(isSatsLesson);
+  return source.filter(row => !isSatsLesson(row) && !isYear6ElevenPlusOnlyLesson(row));
+}
+
+function currentLessonListHeading() {
+  if (state.year6Section === 'sats' && isYear6TeachingView(state.view)) return 'SATS';
+  if (state.year6Section === 'lessons' && isYear6TeachingView(state.view)) return 'Lessons';
+  return state.view?.label || 'Lessons';
+}
+
+function backFromLessonList() {
+  if (state.year6Section && isYear6TeachingView(state.view)) return renderYear6Hub(state.view);
+  return renderViews(state.subject);
 }
 
 function lessonRowsHtml(rows) {
   if (!rows.length) return '<div class="empty-state">No lessons match your search.</div>';
+  if (state.year6Section && isYear6TeachingView(state.view)) return rows.map(lessonRowHtml).join('');
   const sats = rows.filter(isSatsLesson);
   if (!sats.length) return rows.map(lessonRowHtml).join('');
   const weekly = rows.filter(row => !isSatsLesson(row));
@@ -338,11 +454,16 @@ function lessonRowsHtml(rows) {
 
 function renderLessonList() {
   const rows = filteredLessons();
-  root.innerHTML = shell(`<section class="card portal-card">${backButton('back-views', state.subject==='maths'?'Maths':'English')}<p class="eyebrow">${escapeHtml(portalLabel())}</p><h1>${escapeHtml(state.view?.label||'Lessons')}</h1><p class="intro">Your lessons are shown in chronological order.</p>
+  const nestedYear6 = Boolean(state.year6Section) && isYear6TeachingView(state.view);
+  const heading = currentLessonListHeading();
+  const backId = nestedYear6 ? 'back-year6' : 'back-views';
+  const backLabel = nestedYear6 ? 'Year 6' : (state.subject==='maths'?'Maths':'English');
+  const intro = state.year6Section === 'sats' ? 'Your SATS lessons and practice papers are shown in chronological order.' : 'Your lessons are shown in chronological order.';
+  root.innerHTML = shell(`<section class="card portal-card">${backButton(backId, backLabel)}<p class="eyebrow">${escapeHtml(portalLabel())}</p><h1>${escapeHtml(heading)}</h1><p class="intro">${escapeHtml(intro)}</p>
     <div class="search-wrap"><label for="lesson-search">Search lessons</label><input id="lesson-search" class="field" type="search" placeholder="Search by lesson ID, title or topic" value="${escapeHtml(state.search)}"></div>
     <div class="lesson-list-wrap">${lessonRowsHtml(rows)}</div></section>`, {portal:true});
   bindShell();
-  document.querySelector('#back-views').addEventListener('click', () => renderViews(state.subject));
+  document.querySelector(`#${backId}`)?.addEventListener('click', backFromLessonList);
   const search = document.querySelector('#lesson-search');
   search.addEventListener('input', () => { state.search = search.value; renderLessonList(); document.querySelector('#lesson-search')?.focus(); });
   document.querySelectorAll('[data-lesson]').forEach(button => button.addEventListener('click', () => loadLesson(button.dataset.lesson)));
@@ -351,7 +472,8 @@ function renderLessonList() {
 async function loadLesson(lessonId) {
   const epoch = ++navigationEpoch; abortScope('view'); clearLessonMedia();
   const controller = controllerFor('lesson');
-  root.innerHTML = shell(`<section class="card">${backButton('back-lessons','Lessons')}<div class="loading-row"><span class="spinner"></span><span>Loading lesson…</span></div></section>`, {portal:true});
+  const lessonBackLabel = state.year6Section === 'sats' ? 'SATS' : 'Lessons';
+  root.innerHTML = shell(`<section class="card">${backButton('back-lessons',lessonBackLabel)}<div class="loading-row"><span class="spinner"></span><span>Loading lesson…</span></div></section>`, {portal:true});
   bindShell(); document.querySelector('#back-lessons').addEventListener('click', renderLessonList);
   try {
     const payload = await requestJson(`/api/v2/student/lessons/${enc(lessonId)}?viewId=${enc(state.view.viewId)}`, { signal: controller.signal });
@@ -360,7 +482,8 @@ async function loadLesson(lessonId) {
     renderLesson(payload);
   } catch (error) {
     if (controller.signal.aborted || epoch !== navigationEpoch) return;
-    root.innerHTML = shell(`<section class="card">${backButton('back-lessons','Lessons')}<div class="error-box" role="alert">${escapeHtml(friendlyError(error))}</div><p><button id="retry-lesson" class="button button-primary" type="button">Try again</button></p></section>`, {portal:true});
+    const lessonBackLabel = state.year6Section === 'sats' ? 'SATS' : 'Lessons';
+    root.innerHTML = shell(`<section class="card">${backButton('back-lessons',lessonBackLabel)}<div class="error-box" role="alert">${escapeHtml(friendlyError(error))}</div><p><button id="retry-lesson" class="button button-primary" type="button">Try again</button></p></section>`, {portal:true});
     bindShell(); document.querySelector('#back-lessons').addEventListener('click', renderLessonList); document.querySelector('#retry-lesson').addEventListener('click', () => loadLesson(lessonId));
   }
 }
@@ -558,7 +681,7 @@ async function logout() {
   clearLessonMedia(); for (const controller of navControllers.values()) controller.abort();
   navControllers.clear();
   try { await requestJson('/api/v2/auth/logout', { method:'POST', body:{} }); } catch {}
-  state.account=null; state.home=null; state.subject=''; state.view=null; state.lessons=[]; state.lesson=null; renderLogin();
+  state.account=null; state.home=null; state.subject=''; state.view=null; state.year6Section=''; state.lessons=[]; state.lesson=null; state.search=''; renderLogin();
 }
 
 async function start() {
