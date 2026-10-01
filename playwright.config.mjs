@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  testMatch: ['**/checkpoint7.spec.mjs', '**/step10-v2-maths-practice.spec.mjs'],
+  testMatch: ['**/checkpoint7.spec.mjs', '**/step10-v2-maths-practice.spec.mjs', '**/year6-nested-v2.spec.mjs'],
   timeout: 30_000,
   expect: { timeout: 5_000 },
   fullyParallel: false,
