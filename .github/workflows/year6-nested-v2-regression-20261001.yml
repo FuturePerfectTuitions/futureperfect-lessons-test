@@ -1,0 +1,45 @@
+name: Year 6 nested V2 regression
+
+on:
+  push:
+    branches:
+      - fix/live-v2-year6-nested-20261001
+    paths:
+      - 'src/**'
+      - 'tests/year6-nested-v2.spec.mjs'
+      - 'tests/step10-v2-maths-practice.spec.mjs'
+      - 'playwright.config.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/year6-nested-v2-regression-20261001.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  year6-browser-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/live-v2-year6-nested-20261001
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Syntax and production build
+        run: |
+          node --check src/app.js
+          npm run build
+          grep -R -q 'YEAR6_NESTED_NAVIGATION_V2_20261001' dist/assets/portal-*.js
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Year 6 nested contract — desktop
+        run: npx playwright test tests/year6-nested-v2.spec.mjs --project=desktop-chromium
+      - name: Year 6 nested contract — mobile
+        run: npx playwright test tests/year6-nested-v2.spec.mjs --project=mobile-chromium
+      - name: Existing Maths practice non-regression — desktop
+        run: npx playwright test tests/step10-v2-maths-practice.spec.mjs --project=desktop-chromium
