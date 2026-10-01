@@ -42,16 +42,23 @@ jobs:
           i=sources.index(target)
           if i >= len(contents) or contents[i] is None:
               raise SystemExit('app.js sourcesContent missing')
-          pathlib.Path('src/app.js').write_text(contents[i], encoding='utf-8', newline='')
+          source=contents[i]
+          pathlib.Path('src/app.js').write_bytes(source.encode('utf-8'))
           PY
 
           ACTUAL_APP_SHA256="$(sha256sum src/app.js | awk '{print $1}')"
-          test "$ACTUAL_APP_SHA256" = "$EXPECTED_APP_SHA256"
+          APP_BYTES="$(wc -c < src/app.js | tr -d ' ')"
+          echo "LIVE_APP_BYTES=$APP_BYTES"
+          echo "LIVE_APP_SHA256=$ACTUAL_APP_SHA256"
+          echo "EXPECTED_APP_SHA256=$EXPECTED_APP_SHA256"
+          if [ "$ACTUAL_APP_SHA256" != "$EXPECTED_APP_SHA256" ]; then
+            echo 'LIVE_SOURCE_HASH_MISMATCH_FAIL_CLOSED'
+            exit 1
+          fi
 
           mkdir -p ops/evidence
           MAP_SHA256="$(sha256sum /tmp/portal.js.map | awk '{print $1}')"
           BUNDLE_SHA256="$(sha256sum /tmp/portal.js | awk '{print $1}')"
-          APP_BYTES="$(wc -c < src/app.js | tr -d ' ')"
           BUNDLE_BYTES="$(wc -c < /tmp/portal.js | tr -d ' ')"
           MAP_BYTES="$(wc -c < /tmp/portal.js.map | tr -d ' ')"
           python3 - <<PY
@@ -77,7 +84,7 @@ jobs:
           pathlib.Path('ops/evidence/live-v2-source-provenance-20261001.json').write_text(json.dumps(record, indent=2)+'\n', encoding='utf-8')
           PY
 
-          git diff -- src/app.js ops/evidence/live-v2-source-provenance-20261001.json
+          git diff --stat -- src/app.js ops/evidence/live-v2-source-provenance-20261001.json
 
       - name: Commit recovered baseline to repair branch
         shell: bash
