@@ -33,8 +33,9 @@ jobs:
       - name: Syntax and production build
         run: |
           node --check src/app.js
+          grep -q 'YEAR6_NESTED_NAVIGATION_V2_20261001' src/app.js
           npm run build
-          grep -R -q 'YEAR6_NESTED_NAVIGATION_V2_20261001' dist/assets/portal-*.js
+          grep -R -q 'Choose Lessons or SATS.' dist/assets/portal-*.js
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Year 6 nested contract — desktop
