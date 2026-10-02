@@ -318,7 +318,9 @@ async function loadYear6Section(section) {
   state.year6Section = section;
   state.search = '';
   const heading = section === 'sats' ? 'SATS' : 'Lessons';
-  const viewId = String(state.view?.viewId || 'maths-year6');
+  const viewId = section === 'sats'
+    ? 'maths-sats'
+    : String(state.view?.viewId || 'maths-year6');
   root.innerHTML = shell(`<section class="card">${backButton('back-year6','Year 6')}<p class="eyebrow">${escapeHtml(portalLabel())}</p><h1>${heading}</h1><div class="loading-row"><span class="spinner"></span><span>Loading your knowledge bank of lessons…</span></div></section>`, {portal:true});
   bindShell();
   document.querySelector('#back-year6')?.addEventListener('click', () => renderYear6Hub(state.view));
@@ -442,6 +444,11 @@ function backFromLessonList() {
   return renderViews(state.subject);
 }
 
+function activeLessonViewId() {
+  if (state.year6Section === 'sats' && isYear6TeachingView(state.view)) return 'maths-sats';
+  return String(state.view?.viewId || '');
+}
+
 function lessonRowsHtml(rows) {
   if (!rows.length) return '<div class="empty-state">No lessons match your search.</div>';
   if (state.year6Section && isYear6TeachingView(state.view)) return rows.map(lessonRowHtml).join('');
@@ -476,7 +483,7 @@ async function loadLesson(lessonId) {
   root.innerHTML = shell(`<section class="card">${backButton('back-lessons',lessonBackLabel)}<div class="loading-row"><span class="spinner"></span><span>Loading lesson…</span></div></section>`, {portal:true});
   bindShell(); document.querySelector('#back-lessons').addEventListener('click', renderLessonList);
   try {
-    const payload = await requestJson(`/api/v2/student/lessons/${enc(lessonId)}?viewId=${enc(state.view.viewId)}`, { signal: controller.signal });
+    const payload = await requestJson(`/api/v2/student/lessons/${enc(lessonId)}?viewId=${enc(activeLessonViewId())}`, { signal: controller.signal });
     if (epoch !== navigationEpoch) return;
     state.lesson = payload.lesson; state.lessonResources = payload.resources || []; state.videoLoaded = false;
     renderLesson(payload);
@@ -489,7 +496,7 @@ async function loadLesson(lessonId) {
 }
 
 function resourceOpenPath(resource) {
-  return `/api/v2/student/lessons/${enc(state.lesson.lessonId)}/resources/${enc(resource.resourceId)}/open?viewId=${enc(state.view.viewId)}`;
+  return `/api/v2/student/lessons/${enc(state.lesson.lessonId)}/resources/${enc(resource.resourceId)}/open?viewId=${enc(activeLessonViewId())}`;
 }
 
 function resourceScopes(resource) {
