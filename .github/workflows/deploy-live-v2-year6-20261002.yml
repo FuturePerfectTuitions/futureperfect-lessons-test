@@ -1,0 +1,85 @@
+name: Deploy repaired live V2 Year 6 portal
+
+on:
+  push:
+    branches:
+      - fix/live-v2-year6-nested-20261001
+    paths:
+      - '.github/workflows/deploy-live-v2-year6-20261002.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out repaired V2 source
+        uses: actions/checkout@v4
+        with:
+          ref: fix/live-v2-year6-nested-20261001
+          path: source
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build verified V2 frontend
+        working-directory: source
+        run: |
+          set -euo pipefail
+          npm install --no-audit --no-fund
+          node --check src/app.js
+          grep -q 'YEAR6_NESTED_NAVIGATION_V2_20261001' src/app.js
+          npm run build
+          grep -R -q 'Choose Lessons or SATS.' dist/assets/portal-*.js
+
+      - name: Check out production Pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: production
+          fetch-depth: 0
+
+      - name: Replace deployed site contents forward-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C production rev-parse HEAD)" = "813482631ec4b58f4be21f27f9b49e38f9e415ae"
+          find production -mindepth 1 -maxdepth 1 \
+            ! -name '.git' \
+            ! -name '.github' \
+            ! -name 'CNAME' \
+            -exec rm -rf {} +
+          cp -a source/dist/. production/
+          printf '%s\n' 'lessons.futureperfect.education' > production/CNAME
+          touch production/.nojekyll
+
+      - name: Verify deploy payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f production/index.html
+          test -f production/CNAME
+          grep -q 'lessons.futureperfect.education' production/CNAME
+          grep -q 'assets/portal-' production/index.html
+          grep -R -q 'Choose Lessons or SATS.' production/assets/portal-*.js
+          ! test -f production/assets/year6-display-sequence-fix.js
+
+      - name: Commit V2 deployment to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd production
+          git config user.name 'FuturePerfectTuitions'
+          git config user.email 'futureperfectlessons@gmail.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No deployment changes were required.'
+            exit 0
+          fi
+          git commit -m 'Deploy repaired live V2 Year 6 navigation'
+          git push origin HEAD:main
