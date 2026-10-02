@@ -1,0 +1,49 @@
+name: V2 Year 6 dedicated SATS route CI
+
+on:
+  push:
+    branches:
+      - fix/v2-sats-route-source-20261002
+    paths:
+      - 'src/app.js'
+      - 'tests/year6-nested-v2.spec.mjs'
+      - '.github/workflows/v2-year6-dedicated-sats-route-ci-20261002.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v2-sats-route-source-20261002
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Syntax and production build
+        run: |
+          node --check src/app.js
+          npm run build
+          grep -R -q 'maths-sats' dist/assets/portal-*.js
+          grep -R -q 'Choose Lessons or SATS.' dist/assets/portal-*.js
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Year 6 dedicated SATS route — desktop
+        run: npx playwright test tests/year6-nested-v2.spec.mjs --project=desktop-chromium
+
+      - name: Year 6 dedicated SATS route — mobile
+        run: npx playwright test tests/year6-nested-v2.spec.mjs --project=mobile-chromium
+
+      - name: Existing Maths Practice non-regression
+        run: npx playwright test tests/step10-v2-maths-practice.spec.mjs --project=desktop-chromium
