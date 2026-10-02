@@ -21,26 +21,31 @@ jobs:
           set -euo pipefail
           HOST='lessons.futureperfect.education'
           BASE="https://$HOST"
+          BUST="20261002-0456-3621bff2"
           echo '=== DNS A ==='
           dig +short A "$HOST" || true
           echo '=== DNS AAAA ==='
           dig +short AAAA "$HOST" || true
-          echo '=== DNS CNAME ==='
-          dig +short CNAME "$HOST" || true
-          echo '=== ROOT HEADERS ==='
+          echo '=== ROOT CACHED ==='
           curl --fail --silent --show-error --location --dump-header /tmp/root.headers "$BASE/" -o /tmp/root.html
           cat /tmp/root.headers
-          echo '=== ROOT IDENTITY ==='
-          wc -c /tmp/root.html
-          sha256sum /tmp/root.html
+          echo '=== ROOT CACHE-BYPASS QUERY ==='
+          curl --fail --silent --show-error --location \
+            -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' \
+            --dump-header /tmp/bypass.headers "$BASE/?cb=$BUST" -o /tmp/bypass.html
+          cat /tmp/bypass.headers
+          echo '=== IDENTITIES ==='
+          sha256sum /tmp/root.html /tmp/bypass.html
           python3 - <<'PY'
           import re, pathlib
-          text=pathlib.Path('/tmp/root.html').read_text(encoding='utf-8',errors='replace')
-          print('TITLE=', re.findall(r'<title[^>]*>(.*?)</title>', text, re.I|re.S))
-          print('SCRIPTS=', re.findall(r'<script[^>]+src=["\']([^"\']+)', text, re.I))
-          print('STYLES=', re.findall(r'<link[^>]+href=["\']([^"\']+)', text, re.I))
-          print('FIRST_1200=', repr(text[:1200]))
+          for name in ['root','bypass']:
+              text=pathlib.Path(f'/tmp/{name}.html').read_text(encoding='utf-8',errors='replace')
+              print(name.upper(), 'TITLE=', re.findall(r'<title[^>]*>(.*?)</title>', text, re.I|re.S))
+              print(name.upper(), 'SCRIPTS=', re.findall(r'<script[^>]+src=["\']([^"\']+)', text, re.I))
+              print(name.upper(), 'STYLES=', re.findall(r'<link[^>]+href=["\']([^"\']+)', text, re.I))
           PY
-          echo '=== KNOWN VITE ASSET HEADERS ==='
-          curl --fail --silent --show-error --head "$BASE/assets/portal-oe75FQBP.js" || true
-          echo 'LIVE_ORIGIN_PROBE_COMPLETE'
+          echo '=== NEW BUNDLE DIRECT ==='
+          curl --fail --silent --show-error --head "$BASE/assets/portal-D_COVybH.js?cb=$BUST" || true
+          echo '=== OLD BUNDLE DIRECT ==='
+          curl --fail --silent --show-error --head "$BASE/assets/portal-oe75FQBP.js?cb=$BUST" || true
+          echo 'LIVE_ORIGIN_BYPASS_PROBE_COMPLETE'
