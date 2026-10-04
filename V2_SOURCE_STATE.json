@@ -4,12 +4,12 @@
   "asOf": "2026-10-04",
   "liveHost": "lessons.futureperfect.education",
   "productionBranch": "main",
-  "productionCommit": "101a232f77a3002069e4d87633997140326d642d",
+  "productionCommit": "72865bec6ff1cd7ce60e3a19e800463a54697c23",
   "sourceBranch": "source/live-v2-current",
   "sourceFile": "src/app.js",
   "requiredMarkers": [
     "YEAR6_CHRONOLOGICAL_ORDER_V2_20261004",
-    "YEAR6_VISIBLE_ORDER_GUARD_V2_20261004"
+    "YEAR6_STANDALONE_VISIBLE_ORDER_GUARD_V2_20261004"
   ],
   "year6Ordering": {
     "ownerRule": "The final browser-visible Year 6 list must be chronological by visible display code.",
@@ -24,7 +24,7 @@
       ],
       "mechanism": "post-render visible-code DOM reorder plus MutationObserver and cache-bust"
     },
-    "currentV2Mechanism": "numeric pre-render sort plus ported last-mile visible-code DOM reorder, MutationObserver, and explicit post-render microtask",
+    "currentV2Mechanism": "Numeric pre-render sort plus the exact September-style standalone, cache-busted visible-code DOM guard loaded before the V2 module; the guard uses MutationObserver so later DOM changes are corrected.",
     "exactRegression": {
       "input": [
         "Y6T1M01",
@@ -39,17 +39,23 @@
         "Y6T2M20"
       ],
       "mutationRecoveryRequired": true
+    },
+    "standaloneGuard": {
+      "source": "public/assets/year6-display-sequence-fix-v2.js",
+      "deployed": "assets/year6-display-sequence-fix-v2.js",
+      "indexReference": "/assets/year6-display-sequence-fix-v2.js?v=20261004-september-port-1",
+      "reason": "This preserves the same independent last-mile architecture that actually worked in September instead of relying on the V2 application bundle to enforce the browser-visible order."
     }
   },
   "verification": {
-    "regressionRun": 37184415526,
-    "deploymentRun": 37184495901,
-    "pagesRun": 37184545729,
+    "regressionRun": 37185547020,
+    "deploymentRun": 37185634182,
+    "pagesRun": 37185679093,
     "ownerBrowserVerification": "PENDING"
   },
   "preservation": {
     "forwardOnly": true,
     "doNotRollback": true,
-    "rule": "Future frontend rebuilds must start from this source branch or a descendant and must preserve the required markers and Year 6 ordering regression."
+    "rule": "Future frontend rebuilds must start from this source branch or a descendant, must load the standalone Year 6 ordering guard from index.html with an explicit cache-busting version, and must retain the exact owner-failure regression."
   }
 }
