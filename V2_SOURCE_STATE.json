@@ -1,6 +1,6 @@
 {
   "schema": "fpt.portal.v2.frontend-source-state.v1",
-  "status": "AUTHORITATIVE_SOURCE",
+  "status": "AUTHORITATIVE_LIVE_BROWSER_SOURCE",
   "asOf": "2026-10-04",
   "liveHost": "lessons.futureperfect.education",
   "productionBranch": "main",
@@ -8,7 +8,6 @@
   "sourceBranch": "source/live-v2-current",
   "sourceFile": "src/app.js",
   "requiredMarkers": [
-    "YEAR6_CHRONOLOGICAL_ORDER_V2_20261004",
     "YEAR6_STANDALONE_VISIBLE_ORDER_GUARD_V2_20261004"
   ],
   "year6Ordering": {
@@ -22,9 +21,15 @@
         "c701cad019674c3288f6171dd828a2a8073833d2",
         "a306562bb6890da0bd471fb17c7e5b3cc4b5c650"
       ],
-      "mechanism": "post-render visible-code DOM reorder plus MutationObserver and cache-bust"
+      "mechanism": "Standalone script explicitly loaded by index.html, visible lesson-code DOM sorting, MutationObserver reapplication, and explicit cache-busting."
     },
-    "currentV2Mechanism": "Numeric pre-render sort plus the exact September-style standalone, cache-busted visible-code DOM guard loaded before the V2 module; the guard uses MutationObserver so later DOM changes are corrected.",
+    "currentV2Port": {
+      "standaloneSource": "public/assets/year6-display-sequence-fix-v2.js",
+      "deployedPath": "assets/year6-display-sequence-fix-v2.js",
+      "indexReference": "/assets/year6-display-sequence-fix-v2.js?v=20261004-september-port-2",
+      "marker": "YEAR6_STANDALONE_VISIBLE_ORDER_GUARD_V2_20261004",
+      "rule": "The ordering fix lives only in the standalone last-mile guard. The V2 application source remains the exact tested/deployed 2026-10-02 source."
+    },
     "exactRegression": {
       "input": [
         "Y6T1M01",
@@ -39,23 +44,28 @@
         "Y6T2M20"
       ],
       "mutationRecoveryRequired": true
-    },
-    "standaloneGuard": {
-      "source": "public/assets/year6-display-sequence-fix-v2.js",
-      "deployed": "assets/year6-display-sequence-fix-v2.js",
-      "indexReference": "/assets/year6-display-sequence-fix-v2.js?v=20261004-september-port-1",
-      "reason": "This preserves the same independent last-mile architecture that actually worked in September instead of relying on the V2 application bundle to enforce the browser-visible order."
     }
   },
   "verification": {
-    "regressionRun": 37185547020,
-    "deploymentRun": 37185634182,
-    "pagesRun": 37185679093,
-    "ownerBrowserVerification": "PENDING"
+    "ownerBrowserVerification": "PENDING_AFTER_LIVE_BROWSER_WORKER_DEPLOY"
   },
   "preservation": {
     "forwardOnly": true,
     "doNotRollback": true,
-    "rule": "Future frontend rebuilds must start from this source branch or a descendant, must load the standalone Year 6 ordering guard from index.html with an explicit cache-busting version, and must retain the exact owner-failure regression."
+    "rule": "Future browser deployments must rebuild from this branch or a descendant, verify src/app.js still matches the preserved 2026-10-02 base unless an independently authorised frontend change exists, preserve the standalone ordering guard, and deploy through fpt-portal-v2-rebuild-browser-prod ASSETS."
+  },
+  "baseFrontend": {
+    "repository": "FuturePerfectTuitions/futureperfect-lessons-test",
+    "exactPreservedRef": "e5e833a9b956a6985bb5a76e7dd056b897b7d76e",
+    "sourceFile": "src/app.js",
+    "rule": "src/app.js is byte-for-byte the exact frontend source used by the successful 2026-10-02 live Browser Worker asset deployment. Do not modify it for the Year 6 ordering fix."
+  },
+  "liveTopology": {
+    "hostname": "lessons.futureperfect.education",
+    "cloudflareWorkerRoute": "lessons.futureperfect.education/*",
+    "browserWorker": "fpt-portal-v2-rebuild-browser-prod",
+    "browserAssetsBinding": "ASSETS",
+    "studentServiceBinding": "fpt-portal-v2-rebuild-student-prod",
+    "note": "GitHub Pages is not the live serving path while the Cloudflare Worker route is active. Production frontend changes must deploy Browser Worker assets."
   }
 }
