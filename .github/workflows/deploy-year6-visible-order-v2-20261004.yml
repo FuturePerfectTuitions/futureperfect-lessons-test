@@ -1,0 +1,108 @@
+name: Deploy proven Year 6 visible-order guard
+
+on:
+  push:
+    branches:
+      - fix/year6-visible-order-guard-v2-20261004
+    paths:
+      - '.github/workflows/deploy-year6-visible-order-v2-20261004.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact corrected source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: source
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build and verify proven ordering guard
+        working-directory: source
+        run: |
+          set -euo pipefail
+          npm install --no-audit --no-fund
+          node --check src/app.js
+          grep -q 'YEAR6_CHRONOLOGICAL_ORDER_V2_20261004' src/app.js
+          grep -q 'YEAR6_VISIBLE_ORDER_GUARD_V2_20261004' src/app.js
+          grep -q 'visibleLessonCode' src/app.js
+          grep -q 'MutationObserver' src/app.js
+          npm run build
+          grep -R -q 'YEAR6_VISIBLE_ORDER_GUARD_V2_20261004' dist/assets/portal-*.js.map
+          grep -R -q 'Choose Lessons or SATS.' dist/assets/portal-*.js
+
+      - name: Install Chromium
+        working-directory: source
+        run: npx playwright install --with-deps chromium
+
+      - name: Exact September failure regression — desktop
+        working-directory: source
+        run: npx playwright test tests/year6-nested-v2.spec.mjs --project=desktop-chromium
+
+      - name: Exact September failure regression — mobile
+        working-directory: source
+        run: npx playwright test tests/year6-nested-v2.spec.mjs --project=mobile-chromium
+
+      - name: Existing Maths Practice non-regression
+        working-directory: source
+        run: npx playwright test tests/step10-v2-maths-practice.spec.mjs --project=desktop-chromium
+
+      - name: Check out current production Pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: production
+          fetch-depth: 0
+
+      - name: Forward-only production guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C production rev-parse HEAD)" = "56bd434dec050ecf0afb73fef9cfd25b32a71ea8"
+          grep -q 'lessons.futureperfect.education' production/CNAME
+          grep -q 'assets/portal-CPEJQafV.js' production/index.html
+
+      - name: Replace deployed frontend from verified build
+        shell: bash
+        run: |
+          set -euo pipefail
+          find production -mindepth 1 -maxdepth 1             ! -name '.git'             ! -name '.github'             ! -name 'CNAME'             -exec rm -rf {} +
+          cp -a source/dist/. production/
+          printf '%s\n' 'lessons.futureperfect.education' > production/CNAME
+          touch production/.nojekyll
+
+      - name: Verify deployment payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f production/index.html
+          grep -q 'lessons.futureperfect.education' production/CNAME
+          grep -q 'assets/portal-' production/index.html
+          grep -R -q 'YEAR6_VISIBLE_ORDER_GUARD_V2_20261004' production/assets/portal-*.js.map
+          grep -R -q 'visibleLessonCode' production/assets/portal-*.js.map
+          grep -R -q 'Choose Lessons or SATS.' production/assets/portal-*.js
+
+      - name: Commit corrected V2 frontend to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd production
+          git config user.name 'FuturePerfectTuitions'
+          git config user.email 'futureperfectlessons@gmail.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No deployment changes were required.'
+            exit 0
+          fi
+          git commit -m 'Port proven Year 6 visible-order guard into live V2'
+          git push origin HEAD:main
