@@ -19,7 +19,7 @@ jobs:
       - name: Check out corrected V2 source
         uses: actions/checkout@v4
         with:
-          ref: fix/year6-chronological-v2-20261004
+          ref: bc794fde8f6d0ec1922f43c9090b502ee65c47da
           path: source
 
       - name: Set up Node
@@ -34,6 +34,8 @@ jobs:
           npm install --no-audit --no-fund
           node --check src/app.js
           grep -q 'YEAR6_CHRONOLOGICAL_ORDER_V2_20261004' src/app.js
+          ! grep -q "const viewId = section === 'sats'" src/app.js
+          ! grep -q 'function activeLessonViewId' src/app.js
           npm run build
           grep -R -q 'Choose Lessons or SATS.' dist/assets/portal-*.js
           grep -R -q 'YEAR6_CHRONOLOGICAL_ORDER_V2_20261004' dist/assets/portal-*.js.map
@@ -65,7 +67,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git -C production rev-parse HEAD)" = "3621bff2acb1caccb04515e99cc4c3327e3edaa4"
+          test "$(git -C production rev-parse HEAD)" = "930c15ddb5332652a012787e24b78d02e7461e9b"
           grep -q 'lessons.futureperfect.education' production/CNAME
           grep -q 'assets/portal-D_COVybH.js' production/index.html
 
@@ -92,6 +94,8 @@ jobs:
           grep -q 'assets/portal-' production/index.html
           grep -R -q 'Choose Lessons or SATS.' production/assets/portal-*.js
           grep -R -q 'YEAR6_CHRONOLOGICAL_ORDER_V2_20261004' production/assets/portal-*.js.map
+          ! grep -R -q "const viewId = section === 'sats'" production/assets/portal-*.js.map
+          ! grep -R -q 'function activeLessonViewId' production/assets/portal-*.js.map
 
       - name: Commit corrected V2 frontend to main
         shell: bash
@@ -105,5 +109,5 @@ jobs:
             echo 'No deployment changes were required.'
             exit 0
           fi
-          git commit -m 'Restore Year 6 chronological ordering in live V2'
+          git commit -m 'Preserve live V2 routing with Year 6 chronological order'
           git push origin HEAD:main
