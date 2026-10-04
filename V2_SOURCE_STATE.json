@@ -1,0 +1,55 @@
+{
+  "schema": "fpt.portal.v2.frontend-source-state.v1",
+  "status": "AUTHORITATIVE_SOURCE",
+  "asOf": "2026-10-04",
+  "liveHost": "lessons.futureperfect.education",
+  "productionBranch": "main",
+  "productionCommit": "101a232f77a3002069e4d87633997140326d642d",
+  "sourceBranch": "source/live-v2-current",
+  "sourceFile": "src/app.js",
+  "requiredMarkers": [
+    "YEAR6_CHRONOLOGICAL_ORDER_V2_20261004",
+    "YEAR6_VISIBLE_ORDER_GUARD_V2_20261004"
+  ],
+  "year6Ordering": {
+    "ownerRule": "The final browser-visible Year 6 list must be chronological by visible display code.",
+    "lessons": "Y6TnMm sorts by term n then lesson m.",
+    "sats": "Y6SMn/Y6MSn sorts numerically.",
+    "historicalProvenFix": {
+      "commits": [
+        "10ff278ccadac9914df6f0e35277edb84292e4fd",
+        "84b111249bc75b0aaafa959bd0f0e59efaa7234b",
+        "c701cad019674c3288f6171dd828a2a8073833d2",
+        "a306562bb6890da0bd471fb17c7e5b3cc4b5c650"
+      ],
+      "mechanism": "post-render visible-code DOM reorder plus MutationObserver and cache-bust"
+    },
+    "currentV2Mechanism": "numeric pre-render sort plus ported last-mile visible-code DOM reorder, MutationObserver, and explicit post-render microtask",
+    "exactRegression": {
+      "input": [
+        "Y6T1M01",
+        "Y6T1M17",
+        "Y6T1M02",
+        "Y6T2M20"
+      ],
+      "expected": [
+        "Y6T1M01",
+        "Y6T1M02",
+        "Y6T1M17",
+        "Y6T2M20"
+      ],
+      "mutationRecoveryRequired": true
+    }
+  },
+  "verification": {
+    "regressionRun": 37184415526,
+    "deploymentRun": 37184495901,
+    "pagesRun": 37184545729,
+    "ownerBrowserVerification": "PENDING"
+  },
+  "preservation": {
+    "forwardOnly": true,
+    "doNotRollback": true,
+    "rule": "Future frontend rebuilds must start from this source branch or a descendant and must preserve the required markers and Year 6 ordering regression."
+  }
+}
