@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 const ordinary = { lessonId:'Y6M40', displayLessonId:'Y6T2M20', title:'Ratio and Proportion 5', description:'Ordinary Year 6 teaching lesson', locked:false };
+const ordinaryT1M05 = { lessonId:'Y6M05', displayLessonId:'Y6T1M05', title:'Number and Place Value V', description:'Ordinary Year 6 teaching lesson', locked:false };
+const ordinaryT1M06 = { lessonId:'Y6M06', displayLessonId:'Y6T1M06', title:'Addition', description:'Ordinary Year 6 teaching lesson', locked:false };
+const ordinaryT1M21 = { lessonId:'Y6M21', displayLessonId:'Y6T1M21', title:'Ratio and Proportion 5', description:'Ordinary Year 6 teaching lesson', locked:false };
 const sats1 = { lessonId:'Y6M51', displayLessonId:'Y6SM1', title:'SATs Arithmetic Practice 1', description:'SATs paper', locked:false };
+const sats2 = { lessonId:'Y6M52', displayLessonId:'Y6SM2', title:'SATs Arithmetic Practice 2', description:'SATs paper', locked:false };
+const sats10 = { lessonId:'Y6M60', displayLessonId:'Y6SM10', title:'SATs Arithmetic Practice 10', description:'SATs paper', locked:false };
 const elevenPlusMean = { lessonId:'MATHS_L3_11P_T2M25_2026', displayLessonId:'L3T2M25', title:'Mean Median Mode', description:'11+ only', locked:false };
 const elevenPlusStats = { lessonId:'MATHS_L3_11P_T3M43_2026', displayLessonId:'L3T3M43', title:'Advanced Statistics', description:'11+ only', locked:false };
 
@@ -37,10 +42,10 @@ async function installApi(page, { includeL3 = false } = {}) {
     if (url.pathname === '/api/v2/auth/logout') { loggedIn=false; return json({ok:true}); }
     if (url.pathname === '/api/v2/student/quiz/eligibility') return json({eligible:false,reason:'NOT_ELIGIBLE'});
     if (url.pathname === '/api/v2/student/views/maths-year6/lessons') {
-      return json({ok:true,view:{viewId:'maths-year6'},lessons:[ordinary,elevenPlusMean,elevenPlusStats]});
+      return json({ok:true,view:{viewId:'maths-year6'},lessons:[ordinaryT1M05,ordinaryT1M21,ordinaryT1M06,ordinary,elevenPlusMean,elevenPlusStats]});
     }
     if (url.pathname === '/api/v2/student/views/maths-sats/lessons') {
-      return json({ok:true,view:{viewId:'maths-sats'},lessons:[sats1]});
+      return json({ok:true,view:{viewId:'maths-sats'},lessons:[sats10,sats1,sats2]});
     }
     if (url.pathname === '/api/v2/student/lessons/Y6M51') {
       if (url.searchParams.get('viewId') !== 'maths-sats') return json({error:'WRONG_VIEW'},400);
@@ -83,6 +88,12 @@ test.describe('Live V2 Year 6 nested Lessons / SATS contract', () => {
     await page.getByRole('button',{name:/^Lessons/}).click();
     await expect(page.getByRole('heading',{name:'Lessons'})).toBeVisible();
     await expect(page.getByText('Ratio and Proportion 5')).toBeVisible();
+    await expect(page.locator('.lesson-code')).toHaveText([
+      'Y6T1M05',
+      'Y6T1M06',
+      'Y6T1M21',
+      'Y6T2M20'
+    ]);
     await expect(page.getByText('SATs Arithmetic Practice 1')).toHaveCount(0);
     await expect(page.getByText('Mean Median Mode')).toHaveCount(0);
     await expect(page.getByText('Advanced Statistics')).toHaveCount(0);
@@ -93,6 +104,11 @@ test.describe('Live V2 Year 6 nested Lessons / SATS contract', () => {
     await page.getByRole('button',{name:/^SATS/}).click();
     await expect(page.getByRole('heading',{name:'SATS'})).toBeVisible();
     await expect(page.getByText('SATs Arithmetic Practice 1')).toBeVisible();
+    await expect(page.locator('.lesson-code')).toHaveText([
+      'Y6SM1',
+      'Y6SM2',
+      'Y6SM10'
+    ]);
     await expect(page.getByText('Ratio and Proportion 5')).toHaveCount(0);
     await expect(page.getByText('Mean Median Mode')).toHaveCount(0);
     await expect(page.getByText('Advanced Statistics')).toHaveCount(0);
