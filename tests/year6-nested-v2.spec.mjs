@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const ordinary = { lessonId:'Y6M40', displayLessonId:'Y6T2M20', title:'Ratio and Proportion 5', description:'Ordinary Year 6 teaching lesson', locked:false };
+const ordinary = { lessonId:'Y6M40', displayLessonId:'Y6T2M20', title:'Term 2 Example', description:'Ordinary Year 6 teaching lesson', locked:false };
 const ordinaryT1M05 = { lessonId:'Y6M05', displayLessonId:'Y6T1M05', title:'Number and Place Value V', description:'Ordinary Year 6 teaching lesson', locked:false };
 const ordinaryT1M06 = { lessonId:'Y6M06', displayLessonId:'Y6T1M06', title:'Addition', description:'Ordinary Year 6 teaching lesson', locked:false };
 const ordinaryT1M21 = { lessonId:'Y6M21', displayLessonId:'Y6T1M21', title:'Ratio and Proportion 5', description:'Ordinary Year 6 teaching lesson', locked:false };
@@ -134,7 +134,7 @@ test.describe('Live V2 Year 6 nested Lessons / SATS contract', () => {
     await loginAndOpenMaths(page);
     await page.getByRole('button',{name:/Year 5/}).click();
     await expect(page.getByRole('heading',{name:'Year 5'})).toBeVisible();
-    await expect(page.getByText('Ratio and Proportion 5')).toBeVisible();
+    await expect(page.getByText('Term 2 Example')).toBeVisible();
     await expect(page.getByRole('button',{name:/^Lessons/})).toHaveCount(0);
   });
 });
