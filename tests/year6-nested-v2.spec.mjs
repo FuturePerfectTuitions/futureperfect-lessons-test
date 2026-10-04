@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const ordinary = { lessonId:'Y6M40', displayLessonId:'Y6T2M20', title:'Term 2 Example', description:'Ordinary Year 6 teaching lesson', locked:false };
+const ordinary = { lessonId:'Y6M40', displayLessonId:'Y6T2M20', title:'Ratio and Proportion 5', description:'Ordinary Year 6 teaching lesson', locked:false };
 const ordinaryT1M01 = { lessonId:'Y6M01', displayLessonId:'Y6T1M01', title:'Number and Place Value I', description:'Ordinary Year 6 teaching lesson', locked:false };
 const ordinaryT1M02 = { lessonId:'Y6M02', displayLessonId:'Y6T1M02', title:'Number and Place Value II', description:'Ordinary Year 6 teaching lesson', locked:false };
 const ordinaryT1M17 = { lessonId:'Y6M17', displayLessonId:'Y6T1M17', title:'Ratio and Proportion 1', description:'Ordinary Year 6 teaching lesson', locked:false };
@@ -42,21 +42,14 @@ async function installApi(page, { includeL3 = false } = {}) {
     if (url.pathname === '/api/v2/auth/logout') { loggedIn=false; return json({ok:true}); }
     if (url.pathname === '/api/v2/student/quiz/eligibility') return json({eligible:false,reason:'NOT_ELIGIBLE'});
     if (url.pathname === '/api/v2/student/views/maths-year6/lessons') {
-      return json({ok:true,view:{viewId:'maths-year6'},lessons:[
-        ordinaryT1M01,
-        ordinaryT1M17,
-        sats10,
-        ordinaryT1M02,
-        sats1,
-        ordinary,
-        sats2,
-        elevenPlusMean,
-        elevenPlusStats
-      ]});
+      return json({ok:true,view:{viewId:'maths-year6'},lessons:[ordinaryT1M01,ordinaryT1M17,ordinaryT1M02,ordinary,elevenPlusMean,elevenPlusStats]});
+    }
+    if (url.pathname === '/api/v2/student/views/maths-sats/lessons') {
+      return json({ok:true,view:{viewId:'maths-sats'},lessons:[sats10,sats1,sats2]});
     }
     if (url.pathname === '/api/v2/student/lessons/Y6M51') {
-      if (url.searchParams.get('viewId') !== 'maths-year6') return json({error:'WRONG_VIEW'},400);
-      return json({ok:true,view:{viewId:'maths-year6',label:'Year 6'},lesson:sats1,resources:[]});
+      if (url.searchParams.get('viewId') !== 'maths-sats') return json({error:'WRONG_VIEW'},400);
+      return json({ok:true,view:{viewId:'maths-sats',label:'SATS'},lesson:sats1,resources:[]});
     }
     if (url.pathname === '/api/v2/student/views/maths-level3/lessons') {
       return json({ok:true,view:{viewId:'maths-level3'},lessons:[elevenPlusMean,elevenPlusStats]});
@@ -94,7 +87,7 @@ test.describe('Live V2 Year 6 nested Lessons / SATS contract', () => {
 
     await page.getByRole('button',{name:/^Lessons/}).click();
     await expect(page.getByRole('heading',{name:'Lessons'})).toBeVisible();
-    await expect(page.getByText('Ratio and Proportion 1')).toBeVisible();
+    await expect(page.getByText('Ratio and Proportion 5')).toBeVisible();
     await expect(page.locator('.lesson-code')).toHaveText([
       'Y6T1M01',
       'Y6T1M02',
@@ -102,8 +95,8 @@ test.describe('Live V2 Year 6 nested Lessons / SATS contract', () => {
       'Y6T2M20'
     ]);
 
-    // Reproduce the September failure mode at the DOM layer. The visible-order
-    // guard must repair M01, M17, M02 back to M01, M02, M17 after mutation.
+    // Exact owner failure shape: deliberately put M17 back before M02 after render.
+    // The standalone MutationObserver guard must repair the visible DOM again.
     await page.evaluate(() => {
       const parent = document.querySelector('.lesson-list-wrap');
       const rows = [...parent.querySelectorAll(':scope > .lesson-row')];
@@ -117,6 +110,7 @@ test.describe('Live V2 Year 6 nested Lessons / SATS contract', () => {
       'Y6T1M17',
       'Y6T2M20'
     ]);
+
     await expect(page.getByText('SATs Arithmetic Practice 1')).toHaveCount(0);
     await expect(page.getByText('Mean Median Mode')).toHaveCount(0);
     await expect(page.getByText('Advanced Statistics')).toHaveCount(0);
@@ -132,14 +126,14 @@ test.describe('Live V2 Year 6 nested Lessons / SATS contract', () => {
       'Y6SM2',
       'Y6SM10'
     ]);
-    await expect(page.getByText('Ratio and Proportion 1')).toHaveCount(0);
+    await expect(page.getByText('Ratio and Proportion 5')).toHaveCount(0);
     await expect(page.getByText('Mean Median Mode')).toHaveCount(0);
     await expect(page.getByText('Advanced Statistics')).toHaveCount(0);
-    expect(calls).not.toContain('GET /api/v2/student/views/maths-sats/lessons');
-    expect(calls.filter(call => call === 'GET /api/v2/student/views/maths-year6/lessons').length).toBe(year6CallsBeforeSats + 1);
+    expect(calls).toContain('GET /api/v2/student/views/maths-sats/lessons');
+    expect(calls.filter(call => call === 'GET /api/v2/student/views/maths-year6/lessons').length).toBe(year6CallsBeforeSats);
 
     await page.locator('[data-lesson="Y6M51"]').click();
-    await expect(page.getByText('SATs Arithmetic Practice 1', { exact:true })).toBeVisible();
+    await expect(page.getByText('SATs Arithmetic Practice 1')).toBeVisible();
     expect(calls).toContain('GET /api/v2/student/lessons/Y6M51');
   });
 
@@ -157,7 +151,7 @@ test.describe('Live V2 Year 6 nested Lessons / SATS contract', () => {
     await loginAndOpenMaths(page);
     await page.getByRole('button',{name:/Year 5/}).click();
     await expect(page.getByRole('heading',{name:'Year 5'})).toBeVisible();
-    await expect(page.getByText('Term 2 Example')).toBeVisible();
+    await expect(page.getByText('Ratio and Proportion 5')).toBeVisible();
     await expect(page.getByRole('button',{name:/^Lessons/})).toHaveCount(0);
   });
 });
