@@ -4,7 +4,6 @@
   "asOf": "2026-10-04",
   "liveHost": "lessons.futureperfect.education",
   "productionBranch": "main",
-  "productionCommit": "72865bec6ff1cd7ce60e3a19e800463a54697c23",
   "sourceBranch": "source/live-v2-current",
   "sourceFile": "src/app.js",
   "requiredMarkers": [
@@ -47,7 +46,11 @@
     }
   },
   "verification": {
-    "ownerBrowserVerification": "PENDING_AFTER_LIVE_BROWSER_WORKER_DEPLOY"
+    "canonicalRegressionRun": 37187033848,
+    "canonicalRegressionResult": "PASS_DESKTOP_MOBILE_YEAR6_AND_MATHS_PRACTICE",
+    "liveDeploymentRun": 37187274911,
+    "liveAssetVerification": "PASS_EXACT_CORE_SHA_GUARD_MARKER_API_FACADE_AND_STABLE_RECHECK",
+    "ownerBrowserVerification": "PENDING"
   },
   "preservation": {
     "forwardOnly": true,
@@ -67,5 +70,25 @@
     "browserAssetsBinding": "ASSETS",
     "studentServiceBinding": "fpt-portal-v2-rebuild-student-prod",
     "note": "GitHub Pages is not the live serving path while the Cloudflare Worker route is active. Production frontend changes must deploy Browser Worker assets."
+  },
+  "liveDeployment": {
+    "servingPath": "Cloudflare Browser Worker ASSETS",
+    "browserWorker": "fpt-portal-v2-rebuild-browser-prod",
+    "sourceRefUsed": "0018a098b4fcfd523c49106fdca836ff4d9c2198",
+    "deploymentRun": 37187274911,
+    "result": "PASS",
+    "browserWorkerVersion": "e2fe39d0-fd44-41e6-82be-1ff730ccc6b1",
+    "coreBundle": "portal-CUeGMgxq.js",
+    "coreBundleSha256": "ad9231271fa8970455583d35914d681534653c890aeca69a5cd19b7ba9dfde28",
+    "guardAsset": "assets/year6-display-sequence-fix-v2.js",
+    "liveGuardVerified": true,
+    "apiFacadePreserved": true,
+    "stablePublicRecheck": true
+  },
+  "pagesFallback": {
+    "branch": "main",
+    "syncRun": 37187451575,
+    "result": "PASS",
+    "role": "fallback/mirror only while the Cloudflare Browser Worker route is active"
   }
 }
