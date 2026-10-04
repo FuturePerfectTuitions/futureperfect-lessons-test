@@ -69,7 +69,7 @@ jobs:
           set -euo pipefail
           test "$(git -C production rev-parse HEAD)" = "930c15ddb5332652a012787e24b78d02e7461e9b"
           grep -q 'lessons.futureperfect.education' production/CNAME
-          grep -q 'assets/portal-D_COVybH.js' production/index.html
+          grep -q 'assets/portal-D3JFBMjy.js' production/index.html
 
       - name: Replace deployed frontend from verified build
         shell: bash
