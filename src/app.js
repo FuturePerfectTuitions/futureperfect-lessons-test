@@ -471,64 +471,6 @@ function sortYear6Rows(rows) {
   return [...(Array.isArray(rows) ? rows : [])].sort(compareYear6SequentialRows);
 }
 
-// YEAR6_VISIBLE_ORDER_GUARD_V2_20261004
-// Port of the proven 26 Sep last-mile guard: rank the code the user can actually
-// see in the rendered lesson row, then repair DOM order after any render/mutation.
-let applyingVisibleYear6Order = false;
-
-function visibleLessonCode(row) {
-  return String(row?.querySelector?.('.lesson-code')?.textContent || '').trim();
-}
-
-function visibleYear6Rank(code) {
-  const value = String(code || '').trim().toUpperCase();
-  let match = /^Y6T([123])M(\d+)$/.exec(value);
-  if (match) return { recognised:true, section:0, term:Number(match[1]), lesson:Number(match[2]), code:value };
-
-  match = /^Y6(?:SM|MS)(\d+)$/.exec(value);
-  if (match) return { recognised:true, section:1, term:0, lesson:Number(match[1]), code:value };
-
-  return {
-    recognised:false,
-    section:2,
-    term:Number.MAX_SAFE_INTEGER,
-    lesson:Number.MAX_SAFE_INTEGER,
-    code:value
-  };
-}
-
-function compareVisibleYear6Rows(left, right) {
-  const a = visibleYear6Rank(visibleLessonCode(left));
-  const b = visibleYear6Rank(visibleLessonCode(right));
-  if (a.recognised && b.recognised) {
-    return a.section - b.section || a.term - b.term || a.lesson - b.lesson;
-  }
-  if (a.recognised !== b.recognised) return a.recognised ? -1 : 1;
-  return a.code.localeCompare(b.code, undefined, { numeric:true, sensitivity:'base' });
-}
-
-function applyVisibleYear6Order() {
-  if (applyingVisibleYear6Order) return;
-  const allRows = [...root.querySelectorAll('.lesson-row')];
-  if (!allRows.length) return;
-
-  const parents = [...new Set(allRows.map(row => row.parentElement).filter(Boolean))];
-  for (const parent of parents) {
-    const rows = [...parent.children].filter(node => node.classList?.contains('lesson-row'));
-    if (!rows.some(row => /^Y6(?:T[123]M\d+|(?:SM|MS)\d+)$/i.test(visibleLessonCode(row)))) continue;
-
-    const desired = [...rows].sort(compareVisibleYear6Rows);
-    if (rows.every((row, index) => row === desired[index])) continue;
-
-    applyingVisibleYear6Order = true;
-    try {
-      for (const row of desired) parent.appendChild(row);
-    } finally {
-      applyingVisibleYear6Order = false;
-    }
-  }
-}
-
 function year6RowsForSection(rows, section) {
   const source = Array.isArray(rows) ? rows : [];
   if (section === 'sats') return sortYear6Rows(source.filter(isSatsLesson));
@@ -571,7 +513,6 @@ function renderLessonList() {
   const search = document.querySelector('#lesson-search');
   search.addEventListener('input', () => { state.search = search.value; renderLessonList(); document.querySelector('#lesson-search')?.focus(); });
   document.querySelectorAll('[data-lesson]').forEach(button => button.addEventListener('click', () => loadLesson(button.dataset.lesson)));
-  queueMicrotask(applyVisibleYear6Order);
 }
 
 async function loadLesson(lessonId) {
@@ -788,9 +729,6 @@ async function logout() {
   try { await requestJson('/api/v2/auth/logout', { method:'POST', body:{} }); } catch {}
   state.account=null; state.home=null; state.subject=''; state.view=null; state.year6Section=''; state.lessons=[]; state.lesson=null; state.search=''; renderLogin();
 }
-
-const visibleYear6OrderObserver = new MutationObserver(() => queueMicrotask(applyVisibleYear6Order));
-visibleYear6OrderObserver.observe(root, { childList:true, subtree:true, characterData:true });
 
 async function start() {
   root.innerHTML = `<main class="login-layout"><div class="loading-row"><span class="spinner"></span><span>Loading your portal…</span></div></main>`;
