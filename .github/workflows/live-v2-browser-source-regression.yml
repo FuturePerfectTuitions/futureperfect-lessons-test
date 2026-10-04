@@ -1,0 +1,72 @@
+name: Live V2 browser source regression
+
+on:
+  push:
+    branches:
+      - source/live-v2-current
+    paths:
+      - 'src/app.js'
+      - 'index.html'
+      - 'public/assets/year6-display-sequence-fix-v2.js'
+      - 'tests/year6-nested-v2.spec.mjs'
+      - 'tests/step10-v2-maths-practice.spec.mjs'
+      - 'V2_SOURCE_STATE.json'
+      - '.github/workflows/live-v2-browser-source-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: source/live-v2-current
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Prove V2 application source is exact Oct 2 live source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show e5e833a9b956a6985bb5a76e7dd056b897b7d76e:src/app.js > /tmp/oct2-app.js
+          cmp -s /tmp/oct2-app.js src/app.js
+          ! grep -q 'YEAR6_CHRONOLOGICAL_ORDER_V2_20261004' src/app.js
+          ! grep -q 'YEAR6_VISIBLE_ORDER_GUARD_V2_20261004' src/app.js
+          echo EXACT_OCT2_APP_SOURCE_PASS
+
+      - name: Verify standalone September-style ordering guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check public/assets/year6-display-sequence-fix-v2.js
+          grep -q 'YEAR6_STANDALONE_VISIBLE_ORDER_GUARD_V2_20261004' public/assets/year6-display-sequence-fix-v2.js
+          grep -q 'MutationObserver' public/assets/year6-display-sequence-fix-v2.js
+          grep -q 'ra.term - rb.term' public/assets/year6-display-sequence-fix-v2.js
+          grep -q 'ra.lesson - rb.lesson' public/assets/year6-display-sequence-fix-v2.js
+          grep -q 'year6-display-sequence-fix-v2.js?v=20261004-september-port-2' index.html
+
+      - name: Build
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+          grep -q 'year6-display-sequence-fix-v2.js?v=20261004-september-port-2' dist/index.html
+          grep -q 'YEAR6_STANDALONE_VISIBLE_ORDER_GUARD_V2_20261004' dist/assets/year6-display-sequence-fix-v2.js
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Exact Year 6 visible-order regression — desktop
+        run: npx playwright test tests/year6-nested-v2.spec.mjs --project=desktop-chromium
+
+      - name: Exact Year 6 visible-order regression — mobile
+        run: npx playwright test tests/year6-nested-v2.spec.mjs --project=mobile-chromium
+
+      - name: Maths Practice non-regression
+        run: npx playwright test tests/step10-v2-maths-practice.spec.mjs --project=desktop-chromium
