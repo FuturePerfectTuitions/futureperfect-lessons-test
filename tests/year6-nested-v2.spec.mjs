@@ -116,7 +116,7 @@ test.describe('Live V2 Year 6 nested Lessons / SATS contract', () => {
     expect(calls.filter(call => call === 'GET /api/v2/student/views/maths-year6/lessons').length).toBe(year6CallsBeforeSats);
 
     await page.locator('[data-lesson="Y6M51"]').click();
-    await expect(page.getByText('SATs Arithmetic Practice 1')).toBeVisible();
+    await expect(page.getByText('SATs Arithmetic Practice 1', { exact:true })).toBeVisible();
     expect(calls).toContain('GET /api/v2/student/lessons/Y6M51');
   });
 
