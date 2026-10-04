@@ -42,14 +42,21 @@ async function installApi(page, { includeL3 = false } = {}) {
     if (url.pathname === '/api/v2/auth/logout') { loggedIn=false; return json({ok:true}); }
     if (url.pathname === '/api/v2/student/quiz/eligibility') return json({eligible:false,reason:'NOT_ELIGIBLE'});
     if (url.pathname === '/api/v2/student/views/maths-year6/lessons') {
-      return json({ok:true,view:{viewId:'maths-year6'},lessons:[ordinaryT1M05,ordinaryT1M21,ordinaryT1M06,ordinary,elevenPlusMean,elevenPlusStats]});
-    }
-    if (url.pathname === '/api/v2/student/views/maths-sats/lessons') {
-      return json({ok:true,view:{viewId:'maths-sats'},lessons:[sats10,sats1,sats2]});
+      return json({ok:true,view:{viewId:'maths-year6'},lessons:[
+        ordinaryT1M05,
+        ordinaryT1M21,
+        sats10,
+        ordinaryT1M06,
+        sats1,
+        ordinary,
+        sats2,
+        elevenPlusMean,
+        elevenPlusStats
+      ]});
     }
     if (url.pathname === '/api/v2/student/lessons/Y6M51') {
-      if (url.searchParams.get('viewId') !== 'maths-sats') return json({error:'WRONG_VIEW'},400);
-      return json({ok:true,view:{viewId:'maths-sats',label:'SATS'},lesson:sats1,resources:[]});
+      if (url.searchParams.get('viewId') !== 'maths-year6') return json({error:'WRONG_VIEW'},400);
+      return json({ok:true,view:{viewId:'maths-year6',label:'Year 6'},lesson:sats1,resources:[]});
     }
     if (url.pathname === '/api/v2/student/views/maths-level3/lessons') {
       return json({ok:true,view:{viewId:'maths-level3'},lessons:[elevenPlusMean,elevenPlusStats]});
@@ -112,8 +119,8 @@ test.describe('Live V2 Year 6 nested Lessons / SATS contract', () => {
     await expect(page.getByText('Ratio and Proportion 5')).toHaveCount(0);
     await expect(page.getByText('Mean Median Mode')).toHaveCount(0);
     await expect(page.getByText('Advanced Statistics')).toHaveCount(0);
-    expect(calls).toContain('GET /api/v2/student/views/maths-sats/lessons');
-    expect(calls.filter(call => call === 'GET /api/v2/student/views/maths-year6/lessons').length).toBe(year6CallsBeforeSats);
+    expect(calls).not.toContain('GET /api/v2/student/views/maths-sats/lessons');
+    expect(calls.filter(call => call === 'GET /api/v2/student/views/maths-year6/lessons').length).toBe(year6CallsBeforeSats + 1);
 
     await page.locator('[data-lesson="Y6M51"]').click();
     await expect(page.getByText('SATs Arithmetic Practice 1', { exact:true })).toBeVisible();
