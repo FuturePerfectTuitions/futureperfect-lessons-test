@@ -1,0 +1,33 @@
+name: Cleanup superseded Year 6 fix branches
+
+on:
+  push:
+    branches: [source/live-v2-current]
+    paths:
+      - '.github/workflows/cleanup-superseded-year6-branches-20261004.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: source/live-v2-current
+          fetch-depth: 0
+      - name: Delete superseded branches
+        shell: bash
+        run: |
+          set -euo pipefail
+          for branch in             fix/year6-chronological-v2-20261004             fix/year6-visible-order-guard-v2-20261004             fix/year6-exact-september-guard-v2-20261004
+          do
+            if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+              git push origin --delete "$branch"
+              echo "DELETED $branch"
+            else
+              echo "ABSENT $branch"
+            fi
+          done
