@@ -318,9 +318,7 @@ async function loadYear6Section(section) {
   state.year6Section = section;
   state.search = '';
   const heading = section === 'sats' ? 'SATS' : 'Lessons';
-  const viewId = section === 'sats'
-    ? 'maths-sats'
-    : String(state.view?.viewId || 'maths-year6');
+  const viewId = String(state.view?.viewId || 'maths-year6');
   root.innerHTML = shell(`<section class="card">${backButton('back-year6','Year 6')}<p class="eyebrow">${escapeHtml(portalLabel())}</p><h1>${heading}</h1><div class="loading-row"><span class="spinner"></span><span>Loading your knowledge bank of lessons…</span></div></section>`, {portal:true});
   bindShell();
   document.querySelector('#back-year6')?.addEventListener('click', () => renderYear6Hub(state.view));
@@ -433,37 +431,19 @@ function year6SequentialKey(row) {
 
   let match = code.match(/^Y6T(\d+)M(\d+)$/);
   if (match) {
-    return {
-      recognised:true,
-      section:0,
-      term:Number(match[1]),
-      lesson:Number(match[2]),
-      code
-    };
+    return { recognised:true, section:0, term:Number(match[1]), lesson:Number(match[2]), code };
   }
 
   match = code.match(/^Y6(?:SM|MS)(\d+)$/);
   if (match) {
-    return {
-      recognised:true,
-      section:1,
-      term:0,
-      lesson:Number(match[1]),
-      code
-    };
+    return { recognised:true, section:1, term:0, lesson:Number(match[1]), code };
   }
 
   match = code.match(/^Y6M(\d+)$/);
   if (match) {
     const canonical = Number(match[1]);
     if (canonical >= 51 && canonical <= 69) {
-      return {
-        recognised:true,
-        section:1,
-        term:0,
-        lesson:canonical - 50,
-        code
-      };
+      return { recognised:true, section:1, term:0, lesson:canonical - 50, code };
     }
   }
 
@@ -481,11 +461,7 @@ function compareYear6SequentialRows(left, right) {
   const b = year6SequentialKey(right);
 
   if (a.recognised && b.recognised) {
-    return (
-      a.section - b.section ||
-      a.term - b.term ||
-      a.lesson - b.lesson
-    );
+    return a.section - b.section || a.term - b.term || a.lesson - b.lesson;
   }
   if (a.recognised !== b.recognised) return a.recognised ? -1 : 1;
   return a.code.localeCompare(b.code, undefined, { numeric:true, sensitivity:'base' });
@@ -510,11 +486,6 @@ function currentLessonListHeading() {
 function backFromLessonList() {
   if (state.year6Section && isYear6TeachingView(state.view)) return renderYear6Hub(state.view);
   return renderViews(state.subject);
-}
-
-function activeLessonViewId() {
-  if (state.year6Section === 'sats' && isYear6TeachingView(state.view)) return 'maths-sats';
-  return String(state.view?.viewId || '');
 }
 
 function lessonRowsHtml(rows) {
@@ -551,7 +522,7 @@ async function loadLesson(lessonId) {
   root.innerHTML = shell(`<section class="card">${backButton('back-lessons',lessonBackLabel)}<div class="loading-row"><span class="spinner"></span><span>Loading lesson…</span></div></section>`, {portal:true});
   bindShell(); document.querySelector('#back-lessons').addEventListener('click', renderLessonList);
   try {
-    const payload = await requestJson(`/api/v2/student/lessons/${enc(lessonId)}?viewId=${enc(activeLessonViewId())}`, { signal: controller.signal });
+    const payload = await requestJson(`/api/v2/student/lessons/${enc(lessonId)}?viewId=${enc(state.view.viewId)}`, { signal: controller.signal });
     if (epoch !== navigationEpoch) return;
     state.lesson = payload.lesson; state.lessonResources = payload.resources || []; state.videoLoaded = false;
     renderLesson(payload);
@@ -564,7 +535,7 @@ async function loadLesson(lessonId) {
 }
 
 function resourceOpenPath(resource) {
-  return `/api/v2/student/lessons/${enc(state.lesson.lessonId)}/resources/${enc(resource.resourceId)}/open?viewId=${enc(activeLessonViewId())}`;
+  return `/api/v2/student/lessons/${enc(state.lesson.lessonId)}/resources/${enc(resource.resourceId)}/open?viewId=${enc(state.view.viewId)}`;
 }
 
 function resourceScopes(resource) {
