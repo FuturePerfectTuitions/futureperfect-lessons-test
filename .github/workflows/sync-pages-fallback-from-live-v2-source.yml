@@ -1,0 +1,80 @@
+name: Sync canonical V2 Pages fallback
+
+on:
+  push:
+    branches: [source/live-v2-current]
+    paths:
+      - '.github/workflows/sync-pages-fallback-from-live-v2-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact canonical source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: source
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify canonical source and build
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show e5e833a9b956a6985bb5a76e7dd056b897b7d76e:src/app.js > /tmp/exact-oct2-app.js
+          cmp -s /tmp/exact-oct2-app.js src/app.js
+          ! grep -q 'YEAR6_CHRONOLOGICAL_ORDER_V2_20261004' src/app.js
+          ! grep -q 'YEAR6_VISIBLE_ORDER_GUARD_V2_20261004' src/app.js
+          grep -q 'YEAR6_STANDALONE_VISIBLE_ORDER_GUARD_V2_20261004' public/assets/year6-display-sequence-fix-v2.js
+          grep -q 'year6-display-sequence-fix-v2.js?v=20261004-september-port-2' index.html
+          npm install --no-audit --no-fund
+          npm run build
+          grep -q 'year6-display-sequence-fix-v2.js?v=20261004-september-port-2' dist/index.html
+          grep -q 'YEAR6_STANDALONE_VISIBLE_ORDER_GUARD_V2_20261004' dist/assets/year6-display-sequence-fix-v2.js
+
+      - name: Check out Pages fallback branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: pages
+          fetch-depth: 0
+
+      - name: Replace fallback assets from canonical build
+        shell: bash
+        run: |
+          set -euo pipefail
+          find pages -mindepth 1 -maxdepth 1 \
+            ! -name '.git' \
+            ! -name '.github' \
+            ! -name 'CNAME' \
+            -exec rm -rf {} +
+          cp -a source/dist/. pages/
+          printf '%s\n' 'lessons.futureperfect.education' > pages/CNAME
+          touch pages/.nojekyll
+          grep -q 'year6-display-sequence-fix-v2.js?v=20261004-september-port-2' pages/index.html
+          grep -q 'YEAR6_STANDALONE_VISIBLE_ORDER_GUARD_V2_20261004' pages/assets/year6-display-sequence-fix-v2.js
+
+      - name: Commit canonical fallback
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd pages
+          git config user.name 'FuturePerfectTuitions'
+          git config user.email 'futureperfectlessons@gmail.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'Pages fallback already matches canonical source.'
+            exit 0
+          fi
+          git commit -m 'Sync Pages fallback to canonical live V2 source'
+          git push origin HEAD:main
