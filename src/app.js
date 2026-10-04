@@ -427,10 +427,78 @@ function isYear6ElevenPlusOnlyLesson(row) {
   return title === 'mean median mode' || title === 'advanced statistics';
 }
 
+// YEAR6_CHRONOLOGICAL_ORDER_V2_20261004
+function year6SequentialKey(row) {
+  const code = String(row?.displayLessonId || row?.lessonId || '').trim().toUpperCase();
+
+  let match = code.match(/^Y6T(\d+)M(\d+)$/);
+  if (match) {
+    return {
+      recognised:true,
+      section:0,
+      term:Number(match[1]),
+      lesson:Number(match[2]),
+      code
+    };
+  }
+
+  match = code.match(/^Y6(?:SM|MS)(\d+)$/);
+  if (match) {
+    return {
+      recognised:true,
+      section:1,
+      term:0,
+      lesson:Number(match[1]),
+      code
+    };
+  }
+
+  match = code.match(/^Y6M(\d+)$/);
+  if (match) {
+    const canonical = Number(match[1]);
+    if (canonical >= 51 && canonical <= 69) {
+      return {
+        recognised:true,
+        section:1,
+        term:0,
+        lesson:canonical - 50,
+        code
+      };
+    }
+  }
+
+  return {
+    recognised:false,
+    section:2,
+    term:Number.MAX_SAFE_INTEGER,
+    lesson:Number.MAX_SAFE_INTEGER,
+    code
+  };
+}
+
+function compareYear6SequentialRows(left, right) {
+  const a = year6SequentialKey(left);
+  const b = year6SequentialKey(right);
+
+  if (a.recognised && b.recognised) {
+    return (
+      a.section - b.section ||
+      a.term - b.term ||
+      a.lesson - b.lesson
+    );
+  }
+  if (a.recognised !== b.recognised) return a.recognised ? -1 : 1;
+  return a.code.localeCompare(b.code, undefined, { numeric:true, sensitivity:'base' });
+}
+
+function sortYear6Rows(rows) {
+  return [...(Array.isArray(rows) ? rows : [])].sort(compareYear6SequentialRows);
+}
+
 function year6RowsForSection(rows, section) {
   const source = Array.isArray(rows) ? rows : [];
-  if (section === 'sats') return source.filter(isSatsLesson);
-  return source.filter(row => !isSatsLesson(row) && !isYear6ElevenPlusOnlyLesson(row));
+  if (section === 'sats') return sortYear6Rows(source.filter(isSatsLesson));
+  return sortYear6Rows(source.filter(row => !isSatsLesson(row) && !isYear6ElevenPlusOnlyLesson(row)));
 }
 
 function currentLessonListHeading() {
