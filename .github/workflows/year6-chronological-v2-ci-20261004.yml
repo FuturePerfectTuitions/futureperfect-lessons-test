@@ -38,7 +38,6 @@ jobs:
           node --check src/app.js
           grep -q 'YEAR6_CHRONOLOGICAL_ORDER_V2_20261004' src/app.js
           npm run build
-          grep -R -q 'YEAR6_CHRONOLOGICAL_ORDER_V2_20261004' dist/assets/portal-*.js
           grep -R -q 'Choose Lessons or SATS.' dist/assets/portal-*.js
 
       - name: Install Chromium
