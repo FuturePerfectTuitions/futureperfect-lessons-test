@@ -212,16 +212,7 @@ function isMathsSatsView(view) {
 }
 
 function topLevelSubjectViews(subject) {
-  let views = subjectViews(subject);
-  // Kiaan's 11+ Maths programme is already shown as L1/L2/L3.
-  // Hide only the redundant Year 4/Year 5 navigation cards; never remove
-  // lesson entitlements or the canonical year-based lesson data.
-  if (subject === 'maths' && String(state.account?.firstName || '').trim().toLowerCase() === 'kiaan') {
-    const labels = new Set(views.map(view => String(view.label || '').trim().toLowerCase()));
-    if (labels.has('l1') && labels.has('l2')) {
-      views = views.filter(view => !['year 4', 'year 5'].includes(String(view.label || '').trim().toLowerCase()));
-    }
-  }
+  const views = subjectViews(subject);
   if (subject !== 'maths' || !views.some(isYear6TeachingView)) return views;
   return views.filter(view => !isMathsSatsView(view));
 }
