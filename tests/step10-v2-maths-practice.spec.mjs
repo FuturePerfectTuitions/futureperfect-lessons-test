@@ -36,6 +36,8 @@ async function installApi(page, { eligibility = { status:200, body:{ eligible:tr
     if (url.pathname === '/api/v2/student/quiz/launch' && request.method() === 'POST') {
       return json(launch.body || {}, launch.status || 200);
     }
+    if (url.pathname === '/api/v2/student/views/maths-level2/lessons') return json({ok:true,lessons:[{lessonId:'fixture-translation',displayLessonId:'L2T3M31',title:'Translation',locked:false},{lessonId:'fixture-locked',displayLessonId:'L2T3M32',title:'Locked lesson',locked:true}]});
+    if (url.pathname === '/api/v2/student/lessons/fixture-translation') return json({ok:true,lesson:{lessonId:'fixture-translation',displayLessonId:'L2T3M31',title:'Translation'},resources:[]});
     if (/^\/api\/v2\/student\/views\//.test(url.pathname)) return json({ok:true,view:{},lessons:[]});
     return json({error:'NOT_FOUND'},404);
   });
@@ -116,4 +118,24 @@ test.describe('Step 10 Maths practice card', () => {
     await expect(page.getByRole('heading',{name:'Maths'})).toBeVisible();
     await expect(page.getByRole('button',{name:/L3/})).toBeVisible();
   });
+});
+
+test('recommended L2 lesson opens after Portal login using canonical ID and view', async ({page}) => {
+  const calls = await installApi(page);
+  await page.goto('/?revisit=L2T3M31');
+  await page.getByLabel('Username').fill('ava0101');
+  await page.getByRole('textbox',{name:'Password',exact:true}).fill('L9in');
+  await page.getByRole('button',{name:'Log in'}).click();
+  await expect(page.getByRole('heading',{name:/Translation/})).toBeVisible();
+  expect(calls).toContain('GET /api/v2/student/views/maths-level2/lessons');
+  expect(calls).toContain('GET /api/v2/student/lessons/fixture-translation');
+});
+test('locked recommendation fails closed after login', async ({page}) => {
+  const calls = await installApi(page);
+  await page.goto('/?revisit=L2T3M32');
+  await page.getByLabel('Username').fill('ava0101');
+  await page.getByRole('textbox',{name:'Password',exact:true}).fill('L9in');
+  await page.getByRole('button',{name:'Log in'}).click();
+  await expect(page.getByText('This recommended lesson is not currently available', {exact:false})).toBeVisible();
+  expect(calls).not.toContain('GET /api/v2/student/lessons/fixture-locked');
 });

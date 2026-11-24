@@ -185,7 +185,7 @@ async function bootstrapHome() {
     state.home = payload;
     state.account = payload.account || state.account || {};
     if (payload.accountLocked) return renderLogin('Your access to Future Perfect Material has now been withdrawn.');
-    renderSubjects();
+    if (!await openRecommendedMathsLesson()) renderSubjects();
   } catch (error) {
     if (error.status === 401) return renderLogin();
     renderPortalError('We could not load your portal.', error, bootstrapHome);
@@ -195,6 +195,46 @@ async function bootstrapHome() {
 function renderPortalError(title, error, retry) {
   root.innerHTML = shell(`<section class="card"><p class="eyebrow">Student Portal</p><h1>${escapeHtml(title)}</h1><div class="error-box" role="alert">${escapeHtml(friendlyError(error))}</div><p><button id="retry" class="button button-primary" type="button">Try again</button></p></section>`, { portal: true });
   bindShell(); document.querySelector('#retry')?.addEventListener('click', retry);
+}
+
+// MATHS_REVISIT_DEEP_LINK_V1: resolve display codes only through the authenticated catalogue.
+async function openRecommendedMathsLesson() {
+  const url = new URL(window.location.href);
+  const code = String(url.searchParams.get('revisit') || '').toUpperCase();
+  if (!url.searchParams.has('revisit')) return false;
+  // Consume the navigation request only after authenticated bootstrap.
+  url.searchParams.delete('revisit');
+  window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+  const showUnavailable = () => {
+    renderSubjects();
+    const note = document.createElement('p');
+    note.className = 'error-box';
+    note.setAttribute('role', 'alert');
+    note.textContent = 'This recommended lesson is not currently available in your Portal. Please choose a lesson from Maths.';
+    root.querySelector('.main')?.prepend(note);
+  };
+  if (!/^L[23]T[1-3]M\d{1,3}$/.test(code)) { showUnavailable(); return true; }
+  const expectedView = code.startsWith('L2') ? 'maths-level2' : 'maths-level3';
+  const view = subjectViews('maths').find(v => v.viewId === expectedView && !v.lockedPreview);
+  if (!view) { showUnavailable(); return true; }
+  const epoch = ++navigationEpoch;
+  abortScope('view'); abortScope('lesson'); clearLessonMedia();
+  const controller = controllerFor('view');
+  root.innerHTML = shell('<section class="card">' + backButton('back-subjects','Subjects') + '<div class="loading-row"><span class="spinner"></span><span>Opening your recommended lesson…</span></div></section>', {portal:true});
+  bindShell();
+  document.querySelector('#back-subjects')?.addEventListener('click', renderSubjects);
+  try {
+    const payload = await requestJson('/api/v2/student/views/' + enc(view.viewId) + '/lessons', {signal:controller.signal});
+    if (controller.signal.aborted || epoch !== navigationEpoch) return true;
+    const rows = Array.isArray(payload.lessons) ? payload.lessons : [];
+    const matches = rows.filter(row => !row.locked && row.lessonId && String(row.displayLessonId || row.lessonId).toUpperCase() === code);
+    if (matches.length !== 1) { showUnavailable(); return true; }
+    state.subject = 'maths'; state.view = view; state.year6Section = ''; state.search = ''; state.lessons = rows;
+    await loadLesson(matches[0].lessonId);
+  } catch (error) {
+    if (!controller.signal.aborted && epoch === navigationEpoch) showUnavailable();
+  }
+  return true;
 }
 
 function subjectViews(subject) {
